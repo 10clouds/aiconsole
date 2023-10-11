@@ -10,6 +10,7 @@ import { MessageControls } from './MessageControls';
 import { useAICStore } from '../store/AICStore';
 import { BlinkingCursor } from './BlinkingCursor';
 import { BASE_URL } from '../api/Api';
+import { Button } from './Button';
 
 interface MessageProps {
   message: AICMessage;
@@ -62,15 +63,27 @@ export function Message({ message, isStreaming }: MessageProps) {
       ) : (
         <>
           {message.code && (
-            <>
-              <span className="w-20 flex-none">Code:</span>
-              <SyntaxHighlighter
-                style={darcula}
-                children={message.content}
-                language={message.language}
-                className="overflow-scroll max-w-2xl"
-              />
-            </>
+            <div className="flex flex-col">
+              <div className="flex items-start">
+                <span className="w-24 flex-none">Code:</span>
+                <SyntaxHighlighter
+                  style={darcula}
+                  children={message.content}
+                  language={message.language}
+                  className="overflow-scroll max-w-2xl"
+                />
+              </div>
+              {!message.code_output && (
+                <div className="flex pt-4">
+                  <span className="w-24 flex-none">Execute?</span>
+                  <div className="flex gap-4">
+                    <Button label="Yes" variant="primary" />
+                    <Button label="No" variant="danger" />
+                    <Button label="Always" variant="secondary" />
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           {message.code_output && (

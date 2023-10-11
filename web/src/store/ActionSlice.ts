@@ -340,7 +340,7 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
       }
     } finally {
       //If the message is still empty, remove it
-      
+
       set(({ messages }) => {
         if (messages !== undefined) {
           if (messages[messages.length - 1].content === '') {
@@ -362,21 +362,21 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
       }));
     }
 
-    const messages = get().messages || [];
-    const language = messages[messages.length - 1].language;
-    if (messages.length > 0 && messages[messages.length - 1].code && language) {
-      console.log('Running code');
-      await get().doRun(
-        agentId,
-        task,
-        materials,
-        language,
-        messages[messages.length - 1].content,
-      );
-    } else {
-      console.log('Analysing');
-      await get().doAnalysis();
-    }
+    // const messages = get().messages || [];
+    // const language = messages[messages.length - 1].language;
+    // if (messages.length > 0 && messages[messages.length - 1].code && language) {
+    //   console.log('Running code');
+    //   await get().doRun(
+    //     agentId,
+    //     task,
+    //     materials,
+    //     language,
+    //     messages[messages.length - 1].content,
+    //   );
+    // } else {
+    //   console.log('Analysing');
+    //   await get().doAnalysis();
+    // }
   },
 
   isWorking: () => get().isAnalysisRunning || get().isExecuteRunning,
