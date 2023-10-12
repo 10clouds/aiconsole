@@ -2,7 +2,7 @@ import { StateCreator } from 'zustand';
 
 import { Agent, Material as Material } from './types';
 import { createMessage } from './utils';
-import { Api } from '../api/Api';
+import Api from '../api/Api';
 import { AICStore } from './AICStore';
 
 export type ActionSlice = {
@@ -118,7 +118,7 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
     }));
 
     try {
-      const response = await Api.run_code({
+      const response = await Api.runCode({
         chatId: get().chatId,
         language,
         code,

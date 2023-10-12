@@ -3,7 +3,7 @@ import { Notifications } from '@mantine/notifications';
 import { TopBar } from './TopBar';
 import { useParams } from 'react-router-dom';
 import { ChangeEvent, useEffect, useState } from 'react';
-import { Api } from '../api/Api';
+import Api from '../api/Api';
 import { Material } from '../store/types';
 import { useWebSocketStore } from '../store/useWebSocketStore';
 
@@ -22,13 +22,12 @@ export function MaterialView() {
     });
   }, [material_id]);
 
-
   //HACK: This is a copy from App, and also with an ugly twist of fake chatId
   {
     const { initWebSocket, disconnect } = useWebSocketStore();
 
     useEffect(() => {
-      initWebSocket("non-existant-chat-id");
+      initWebSocket('non-existant-chat-id');
 
       // add return cleanup function to disconnect on unmount
       return () => disconnect();

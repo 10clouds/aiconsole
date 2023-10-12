@@ -1,11 +1,12 @@
 import { StateCreator } from 'zustand';
 
 import { ChatHeadline } from './types';
-import { Api } from '../api/Api';
+import Api from '../api/Api';
 import { AICStore } from './AICStore';
 
 export type ChatSlice = {
   chatId: string;
+  alwaysExecuteCode: boolean;
   chatHeadlines: ChatHeadline[];
   setChatId: (id: string) => void;
   deleteChat: (id: string) => Promise<void>;
@@ -18,6 +19,7 @@ export const createChatSlice: StateCreator<AICStore, [], [], ChatSlice> = (
   get,
 ) => ({
   chatId: '',
+  alwaysExecuteCode: false,
   chatHeadlines: [],
   agent: undefined,
   materials: [],
@@ -38,6 +40,7 @@ export const createChatSlice: StateCreator<AICStore, [], [], ChatSlice> = (
   setChatId: async (id: string) => {
     set(() => ({
       chatId: id,
+      alwaysExecuteCode: false,
       messages: undefined,
     }));
 
@@ -61,5 +64,3 @@ export const createChatSlice: StateCreator<AICStore, [], [], ChatSlice> = (
     await get().initChatHistory();
   },
 });
-
-
