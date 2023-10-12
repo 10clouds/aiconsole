@@ -8,7 +8,8 @@ export type AICMessage = {
   materials: Material[];
   language?: string;
   code?: boolean;
-  code_output?: boolean;
+  codeExecuted?: boolean;
+  codeOutput?: boolean;
 };
 
 export type AICMessageSection = {
@@ -50,5 +51,3 @@ export type Agent = {
   usage: string;
   system: string;
 };
-
-

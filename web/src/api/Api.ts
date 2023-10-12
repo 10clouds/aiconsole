@@ -24,7 +24,7 @@ const runCode = ({
   code: string;
   signal?: AbortSignal;
 }) =>
-  ky.post(`${BASE_URL}/chats/${chatId}/runCode`, {
+  ky.post(`${BASE_URL}/chats/${chatId}/run_code`, {
     json: rest,
     signal,
     timeout: 60000,
@@ -42,6 +42,7 @@ const getChat: (id: string) => Promise<Chat> = async (id: string) =>
 
 const getMaterial = async (id: string) =>
   ky.get(`${BASE_URL}/api/materials/${id}`).json() as Promise<Material>;
+
 const saveMaterial = async (material: Material) =>
   ky.post(`${BASE_URL}/api/materials/${material.id}`, {
     json: { ...material },

@@ -117,6 +117,14 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
       isExecuteRunning: true,
     }));
 
+    const messages = get().messages || [];
+
+    messages[messages.length - 1].code_executed = true;
+
+    set(() => ({
+      messages: messages.slice(),
+    }));
+
     try {
       const response = await Api.runCode({
         chatId: get().chatId,
@@ -148,8 +156,6 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
             value: undefined,
             done: true,
           };
-
-          const messages = get().messages || [];
 
           const textChunk = decoder.decode(value);
 
@@ -215,6 +221,8 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
       content: '',
     };
 
+    const messages = get().messages || [];
+
     set(() => ({
       executeAbortSignal: new AbortController(),
       isExecuteRunning: true,
@@ -244,8 +252,6 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
             value: undefined,
             done: true,
           };
-
-          const messages = get().messages || [];
 
           const finishMessage = (newMessageProps: object, force: boolean) => {
             if (messageDone || force) {
@@ -362,6 +368,10 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
       }));
     }
 
+    if (!messages[messages.length - 1].code) {
+      await get().doAnalysis();
+    }
+
     // const messages = get().messages || [];
     // const language = messages[messages.length - 1].language;
     // if (messages.length > 0 && messages[messages.length - 1].code && language) {
@@ -375,7 +385,7 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
     //   );
     // } else {
     //   console.log('Analysing');
-    //   await get().doAnalysis();
+    //
     // }
   },
 

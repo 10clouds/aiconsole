@@ -22,6 +22,7 @@ export function Message({ message, isStreaming }: MessageProps) {
   const [content, setContent] = useState(message.content);
   const removeMessage = useAICStore((state) => state.removeMessage);
   const updateMessage = useAICStore((state) => state.editMessageContent);
+  const runCode = useAICStore((state) => state.doRun);
 
   const handleEditClick = () => {
     if (isStreaming) {
@@ -49,6 +50,20 @@ export function Message({ message, isStreaming }: MessageProps) {
     setTimeout(handleSaveClick, 0);
   }, [handleSaveClick]);
 
+  const handleYesClick = () => {
+    if (!message.task || !message.language) {
+      return;
+    }
+
+    runCode(
+      message.agent_id,
+      message.task,
+      message.materials,
+      message.language,
+      message.content,
+    );
+  };
+
   return (
     <div className="flex flex-grow items-start">
       {isEditing ? (
@@ -73,11 +88,16 @@ export function Message({ message, isStreaming }: MessageProps) {
                   className="overflow-scroll max-w-2xl"
                 />
               </div>
-              {!message.code_output && (
+              {!message.code_output && !message.code_executed && (
                 <div className="flex pt-4">
+                  {JSON.stringify(message.code_output)}
                   <span className="w-24 flex-none">Execute?</span>
                   <div className="flex gap-4">
-                    <Button label="Yes" variant="primary" />
+                    <Button
+                      label="Yes"
+                      variant="primary"
+                      onClick={handleYesClick}
+                    />
                     <Button label="No" variant="danger" />
                     <Button label="Always" variant="secondary" />
                   </div>
