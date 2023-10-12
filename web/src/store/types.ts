@@ -8,8 +8,8 @@ export type AICMessage = {
   materials: Material[];
   language?: string;
   code?: boolean;
-  codeExecuted?: boolean;
-  codeOutput?: boolean;
+  code_executed?: boolean;
+  code_output?: boolean;
 };
 
 export type AICMessageSection = {

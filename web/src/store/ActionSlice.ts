@@ -368,25 +368,26 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
       }));
     }
 
-    if (!messages[messages.length - 1].code) {
-      await get().doAnalysis();
-    }
+    const alwaysExecute = get().alwaysExecuteCode;
 
-    // const messages = get().messages || [];
-    // const language = messages[messages.length - 1].language;
-    // if (messages.length > 0 && messages[messages.length - 1].code && language) {
-    //   console.log('Running code');
-    //   await get().doRun(
-    //     agentId,
-    //     task,
-    //     materials,
-    //     language,
-    //     messages[messages.length - 1].content,
-    //   );
-    // } else {
-    //   console.log('Analysing');
-    //
-    // }
+    const language = messages[messages.length - 1].language;
+    if (
+      messages.length > 0 &&
+      messages[messages.length - 1].code &&
+      language &&
+      alwaysExecute
+    ) {
+      console.log('Running code');
+      await get().doRun(
+        agentId,
+        task,
+        materials,
+        language,
+        messages[messages.length - 1].content,
+      );
+    } else {
+      console.log('Analysing');
+    }
   },
 
   isWorking: () => get().isAnalysisRunning || get().isExecuteRunning,

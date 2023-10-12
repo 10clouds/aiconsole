@@ -9,6 +9,7 @@ export type ChatSlice = {
   alwaysExecuteCode: boolean;
   chatHeadlines: ChatHeadline[];
   setChatId: (id: string) => void;
+  enableAlwaysExecute: () => void;
   deleteChat: (id: string) => Promise<void>;
   initChatHistory: () => Promise<void>;
   saveCurrentChatHistory: () => Promise<void>;
@@ -53,6 +54,11 @@ export const createChatSlice: StateCreator<AICStore, [], [], ChatSlice> = (
           ...rest,
         };
       }),
+    }));
+  },
+  enableAlwaysExecute: () => {
+    set(() => ({
+      alwaysExecuteCode: true,
     }));
   },
   saveCurrentChatHistory: async () => {

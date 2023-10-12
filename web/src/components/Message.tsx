@@ -23,6 +23,8 @@ export function Message({ message, isStreaming }: MessageProps) {
   const removeMessage = useAICStore((state) => state.removeMessage);
   const updateMessage = useAICStore((state) => state.editMessageContent);
   const runCode = useAICStore((state) => state.doRun);
+  const alwaysExecuteCode = useAICStore((state) => state.alwaysExecuteCode);
+  const enableAlwaysExecute = useAICStore((state) => state.enableAlwaysExecute);
 
   const handleEditClick = () => {
     if (isStreaming) {
@@ -64,6 +66,22 @@ export function Message({ message, isStreaming }: MessageProps) {
     );
   };
 
+  const handleAlwaysClick = () => {
+    enableAlwaysExecute();
+
+    if (!message.task || !message.language) {
+      return;
+    }
+
+    runCode(
+      message.agent_id,
+      message.task,
+      message.materials,
+      message.language,
+      message.content,
+    );
+  };
+
   return (
     <div className="flex flex-grow items-start">
       {isEditing ? (
@@ -88,21 +106,27 @@ export function Message({ message, isStreaming }: MessageProps) {
                   className="overflow-scroll max-w-2xl"
                 />
               </div>
-              {!message.code_output && !message.code_executed && (
-                <div className="flex pt-4">
-                  {JSON.stringify(message.code_output)}
-                  <span className="w-24 flex-none">Execute?</span>
-                  <div className="flex gap-4">
-                    <Button
-                      label="Yes"
-                      variant="primary"
-                      onClick={handleYesClick}
-                    />
-                    <Button label="No" variant="danger" />
-                    <Button label="Always" variant="secondary" />
+              {!message.code_output &&
+                !message.code_executed &&
+                !alwaysExecuteCode && (
+                  <div className="flex pt-4">
+                    {JSON.stringify(message.code_output)}
+                    <span className="w-24 flex-none">Execute?</span>
+                    <div className="flex gap-4">
+                      <Button
+                        label="Yes"
+                        variant="primary"
+                        onClick={handleYesClick}
+                      />
+                      <Button label="No" variant="danger" />
+                      <Button
+                        label="Always"
+                        variant="secondary"
+                        onClick={handleAlwaysClick}
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           )}
 
