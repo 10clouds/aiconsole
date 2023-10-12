@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 
-import { Agent, Material as Material } from './types';
+import { AICMessage, Agent, Material as Material } from './types';
 import { createMessage } from './utils';
 import Api from '../api/Api';
 import { AICStore } from './AICStore';
@@ -13,13 +13,7 @@ export type ActionSlice = {
     task: string,
     materials: Material[],
   ) => Promise<void>;
-  doRun: (
-    agentId: string,
-    task: string,
-    materials: Material[],
-    language: string,
-    code: string,
-  ) => Promise<void>;
+  doRun: (message: AICMessage) => Promise<void>;
   isExecuteRunning: boolean;
   isWorking: () => boolean;
   stopWork: () => void;
@@ -105,13 +99,13 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
     }
   },
 
-  doRun: async (
-    agentId: string,
-    task: string,
-    materials: Material[],
-    language: string,
-    code: string,
-  ) => {
+  doRun: async (message: AICMessage) => {
+    const { agent_id, task, materials, language, content: code } = message;
+
+    if (!language || !code || !task) {
+      return;
+    }
+
     set(() => ({
       executeAbortSignal: new AbortController(),
       isExecuteRunning: true,
@@ -140,7 +134,7 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
         messages: [
           ...(messages || []),
           createMessage({
-            agent_id: agentId,
+            agent_id,
             task: task,
             materials,
             role: 'assistant',
@@ -194,7 +188,7 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
 
       newMessages.push(
         createMessage({
-          agent_id: agentId,
+          agent_id: agent_id,
           task: task,
           materials: materials,
           role: 'assistant',
@@ -206,7 +200,7 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
       };
     });
 
-    await get().doExecute(agentId, task, materials);
+    await get().doExecute(agent_id, task, materials);
   },
 
   /**
@@ -369,22 +363,16 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
     }
 
     const alwaysExecute = get().alwaysExecuteCode;
+    const message = messages[messages.length - 1];
 
-    const language = messages[messages.length - 1].language;
     if (
       messages.length > 0 &&
-      messages[messages.length - 1].code &&
-      language &&
+      message.code &&
+      message.language &&
       alwaysExecute
     ) {
       console.log('Running code');
-      await get().doRun(
-        agentId,
-        task,
-        materials,
-        language,
-        messages[messages.length - 1].content,
-      );
+      await get().doRun(message);
     } else {
       console.log('Analysing');
     }

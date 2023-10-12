@@ -53,33 +53,12 @@ export function Message({ message, isStreaming }: MessageProps) {
   }, [handleSaveClick]);
 
   const handleYesClick = () => {
-    if (!message.task || !message.language) {
-      return;
-    }
-
-    runCode(
-      message.agent_id,
-      message.task,
-      message.materials,
-      message.language,
-      message.content,
-    );
+    runCode(message);
   };
 
   const handleAlwaysClick = () => {
     enableAlwaysExecute();
-
-    if (!message.task || !message.language) {
-      return;
-    }
-
-    runCode(
-      message.agent_id,
-      message.task,
-      message.materials,
-      message.language,
-      message.content,
-    );
+    runCode(message);
   };
 
   return (
@@ -118,7 +97,6 @@ export function Message({ message, isStreaming }: MessageProps) {
                         variant="primary"
                         onClick={handleYesClick}
                       />
-                      <Button label="No" variant="danger" />
                       <Button
                         label="Always"
                         variant="secondary"
