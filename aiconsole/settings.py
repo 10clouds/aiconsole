@@ -16,7 +16,7 @@ if MAX_BUDGET:
 
 class Settings(BaseSettings):
     OPENAI_API_KEY: str
-    ORIGINS: list[str] = ["http://localhost:3000"]
+    ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001"]
 
     LOG_FORMAT: str = "{asctime} {name} [{levelname}] {message}"
     LOG_STYLE: str = "{"
@@ -37,6 +37,11 @@ class Settings(BaseSettings):
 
     DEFAULT_MODE: str = GPTMode.FAST.value
     FUNCTION_CALL_OUTPUT_LIMIT: int = 2000
+
+
+    DIRECTOR_MIN_TOKENS: int = 250
+    DIRECTOR_PREFERRED_TOKENS: int = 1000
+
 
     MIDJOURNEY_TIMEOUT: int = 100
 

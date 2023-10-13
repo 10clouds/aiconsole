@@ -1,3 +1,4 @@
+import asyncio
 import os
 import logging
 from datetime import datetime
@@ -32,26 +33,39 @@ def get_history(chat_id: str, get_json: Callable = Depends(json_read)):
 
     return get_json(file_path=file_path, empty_obj={})
 
+history_lock = asyncio.Lock()
 
 @router.post("/history")
-def save_history(chat: Chat, store_json: Callable = Depends(json_write)):
+async def save_history(chat: Chat, store_json: Callable = Depends(json_write), get_json: Callable = Depends(json_read)):
     """
     Saves the history of the chat to <history_dir>/<chat.id>.json
     """
 
-    chat_data = {
-        "id": chat.id,
-        "timestamp": datetime.now().isoformat(),
-        "messages": [message.model_dump() for message in chat.messages]
-    }
-    store_json(
-        directory=settings.HISTORY_DIRECTORY,
-        file_name=f"{chat.id}.json",
-        content=chat_data
-    )
-    return Response(
-        status_code=status.HTTP_201_CREATED,
-        content="Chat history saved successfully",
-    )
+    async with history_lock:
+
+        history_directory = settings.HISTORY_DIRECTORY
+        headline = None
+
+        file_path = os.path.join(history_directory, f"{chat.id}.json")
+
+        if os.path.exists(file_path):
+            history = get_json(file_path=file_path, empty_obj={})
+            headline = history["headline"] if history and history.get("headline", None) else headline
+
+        chat_data = {
+            "id": chat.id,
+            "timestamp": datetime.now().isoformat(),
+            "messages": [message.model_dump() for message in chat.messages],
+            "headline": headline
+        }
+        store_json(
+            directory=settings.HISTORY_DIRECTORY,
+            file_name=f"{chat.id}.json",
+            content=chat_data
+        )
+        return Response(
+            status_code=status.HTTP_201_CREATED,
+            content="Chat history saved successfully",
+        )
 
 

@@ -1,6 +1,6 @@
 import json
 from aiconsole.aic_types import AICMessage
-from aiconsole.gpt.types import GPTFunctionCall, GPTMessage
+from aiconsole.gpt.types import GPTFunctionCall, GPTMessage, GPTRole
 
 
 from typing import List
@@ -10,12 +10,13 @@ from aiconsole.settings import settings
 
 last_system_message = None
 
-def convert_message(message: AICMessage) -> List[GPTMessage]:
+def convert_message(message: AICMessage, is_last: bool) -> List[GPTMessage]:
     global last_system_message
 
     content = message.content
     function_call = None
     name = None
+    role: GPTRole = message.role
 
     result = []
 
@@ -27,7 +28,12 @@ def convert_message(message: AICMessage) -> List[GPTMessage]:
     #    system = f'next message by agent={message.agent_id} with access to materials={[(material.id  if message.materials else "None") for material in message.materials]}'
 
     if message.task:
-        system_message = f'Next task: {message.task}\nAgent: {message.agent_id}\nAvailable materials: {", ".join(m.id for m in message.materials) if message.materials else "None"}'
+        system_message = f'Agent: {message.agent_id}\nAvailable materials: {", ".join(m.id for m in message.materials) if message.materials else "None"}'
+
+        # Only provide a task for last message
+        if is_last:
+            system_message += "\n\nYour job: " + message.task
+
         if (last_system_message != system_message):
             result.append(GPTMessage(
                 role='system',
@@ -44,22 +50,24 @@ def convert_message(message: AICMessage) -> List[GPTMessage]:
                 "language": message.language,
             })
         )
-        name = "execute"
+        name = "code"
+        role = 'assistant'
     elif (message.code_output):
-        name = "output"
+        name = "Run"
 
         if (message.content == ""):
             content = "No output"
 
         # Enforce limit on output length, and put info that it was truncated only if limit was reached, truncate so the last part remains (not the first)
         if (len(content) > settings.FUNCTION_CALL_OUTPUT_LIMIT):
-            content = f"Output truncated to last {settings.FUNCTION_CALL_OUTPUT_LIMIT} characters: \n\n...\n{content[-FUNCTION_CALL_OUTPUT_LIMIT:]}"
+            content = f"Output truncated to last {settings.FUNCTION_CALL_OUTPUT_LIMIT} characters: \n\n...\n{content[-settings.FUNCTION_CALL_OUTPUT_LIMIT:]}"
 
+        role = 'function'
     elif (message.agent_id != 'user'):
         name = message.agent_id
 
     if content:
-        result.append(GPTMessage(role=message.role, content=content,
+        result.append(GPTMessage(role=role, content=content,
                       function_call=function_call, name=name))
 
     return result
@@ -69,4 +77,4 @@ def convert_messages(messages: List[AICMessage]) -> List[GPTMessage]:
     global last_system_message
     last_system_message = None
     # Flatten
-    return [item for sublist in [convert_message(message) for message in messages] for item in sublist]
+    return [item for sublist in [convert_message(message, is_last=index == len(messages) - 1) for  (index, message)  in enumerate(messages)] for item in sublist]

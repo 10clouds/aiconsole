@@ -67,6 +67,11 @@ const analyse = (body: object, signal?: AbortSignal) =>
     timeout: 60000,
   });
 
+const updateChatHeadline = (id: string, headline: string) =>
+  ky.post(`${BASE_URL}/chats/headlines/${id}`, {
+    json: { headline },
+  });
+
 export default {
   execute,
   runCode,
@@ -80,4 +85,5 @@ export default {
   saveCommandToHistory,
   saveHistory,
   deleteChat,
+  updateChatHeadline,
 };
