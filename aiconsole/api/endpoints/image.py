@@ -1,19 +1,21 @@
-from importlib import resources
 import logging
-import os
+from pathlib import Path
 from fastapi import APIRouter
 from fastapi.responses import FileResponse
+
+from aiconsole.settings import AICONSOLE_PATH
 
 router = APIRouter()
 
 _log = logging.getLogger(__name__)
 
+
 @router.get("/image")
 async def image(path: str):
-    path = os.path.join(os.getcwd(), path)
+    abs_path = Path.cwd() / path
 
-    if os.path.exists(path):
-        return FileResponse(path)
-    else:
-        with resources.path('aiconsole.agents.core', 'default.jpg') as static_path:
-            return FileResponse(static_path)
+    if abs_path.exists():
+        return FileResponse(str(abs_path))
+
+    static_path = AICONSOLE_PATH / 'agents' / 'core' / 'default.jpg'
+    return FileResponse(str(static_path))

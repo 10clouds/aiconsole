@@ -1,9 +1,8 @@
 import { StateCreator } from 'zustand';
 
-import { AICMessage, Agent, Material as Material } from './types';
-import { createMessage } from './utils';
 import Api from '../api/Api';
 import { AICStore } from './AICStore';
+import { createMessage } from './utils';
 
 export type ActionSlice = {
   doAnalysis: () => Promise<void>;
@@ -11,9 +10,15 @@ export type ActionSlice = {
   doExecute: (
     agentId: string,
     task: string,
-    materials: Material[],
+    materials_ids: string[],
   ) => Promise<void>;
-  doRun: (message: AICMessage) => Promise<void>;
+  doRun: (
+    agentId: string,
+    task: string,
+    material_ids: string[],
+    language: string,
+    code: string,
+  ) => Promise<void>;
   isExecuteRunning: boolean;
   isWorking: () => boolean;
   stopWork: () => void;
@@ -50,8 +55,8 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
       );
 
       const data = await response.json<{
-        agent: Agent;
-        materials: Material[];
+        agent_id: string;
+        materials_ids: string[];
         used_tokens: number;
         available_tokens: number;
         next_step: string;
@@ -62,15 +67,15 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
         return;
       }
 
-      if (data.agent.id !== 'user' && data.next_step) {
+      if (data.agent_id !== 'user' && data.next_step) {
         set(() => {
           const newMessages = (get().messages || []).slice();
           //push next step
           newMessages.push(
             createMessage({
-              agent_id: data.agent.id,
+              agent_id: data.agent_id,
               task: data.next_step,
-              materials: data.materials,
+              materials_ids: data.materials_ids,
               role: 'assistant',
               content: '',
             }),
@@ -80,9 +85,9 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
           };
         });
 
-        if (data.agent.id !== 'user') {
+        if (data.agent_id !== 'user') {
           console.log('Executing');
-          get().doExecute(data.agent.id, data.next_step, data.materials);
+          get().doExecute(data.agent_id, data.next_step, data.materials_ids);
         }
       }
     } catch (err) {
@@ -99,13 +104,13 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
     }
   },
 
-  doRun: async (message: AICMessage) => {
-    const { agent_id, task, materials, language, content: code } = message;
-
-    if (!language || !code || !task) {
-      return;
-    }
-
+  doRun: async (
+    agentId: string,
+    task: string,
+    materials_ids: string[],
+    language: string,
+    code: string,
+  ) => {
     set(() => ({
       executeAbortSignal: new AbortController(),
       isExecuteRunning: true,
@@ -124,6 +129,7 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
         chatId: get().chatId,
         language,
         code,
+        materials_ids: materials_ids,
         signal: get().executeAbortSignal.signal,
       });
 
@@ -136,7 +142,7 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
           createMessage({
             agent_id,
             task: task,
-            materials,
+            materials_ids,
             role: 'assistant',
             content: '',
             code_output: true,
@@ -190,7 +196,7 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
         createMessage({
           agent_id: agent_id,
           task: task,
-          materials: materials,
+          materials_ids,
           role: 'assistant',
           content: '',
         }),
@@ -200,17 +206,17 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
       };
     });
 
-    await get().doExecute(agent_id, task, materials);
+    await get().doExecute(agentId, task, materials_ids);
   },
 
   /**
    * doExecute expects that the last message is the one it should be filling in.
    */
-  doExecute: async (agentId: string, task: string, materials: Material[]) => {
+  doExecute: async (agentId: string, task: string, materials_ids: string[]) => {
     const commonMessageAspects = {
       agent_id: agentId,
       task: task,
-      materials,
+      materials_ids,
       role: 'assistant',
       content: '',
     };
@@ -228,7 +234,7 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
           id: get().chatId,
           // Add an empty message containing parameters of the current task so backend can use it for this execution
           messages: [...(get().messages || [])],
-          relevant_materials: materials,
+          relevant_materials_ids: materials_ids,
           agent_id: agentId,
         },
         get().executeAbortSignal.signal,
@@ -307,7 +313,7 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
             .split(regexPattern)
             .filter((text) => text !== '');
 
-          console.log(splitText)
+          console.log(splitText);
           for (const text of splitText) {
             let consumed = false;
             TOKEN_PROCESSORS.forEach((tokenProcessor) => {
@@ -365,15 +371,17 @@ export const createActionSlice: StateCreator<AICStore, [], [], ActionSlice> = (
 
     const alwaysExecute = get().alwaysExecuteCode;
     const message = messages[messages.length - 1];
+    const language = messages[messages.length - 1].language;
 
-    if (
-      messages.length > 0 &&
-      message.code &&
-      message.language &&
-      alwaysExecute
-    ) {
+    if (messages.length > 0 && message.code && language && alwaysExecute) {
       console.log('Running code');
-      await get().doRun(message);
+      await get().doRun(
+        agentId,
+        task,
+        materials_ids,
+        language,
+        messages[messages.length - 1].content,
+      );
     } else {
       console.log('Analysing');
     }

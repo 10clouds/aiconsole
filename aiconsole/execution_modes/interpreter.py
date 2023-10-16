@@ -1,43 +1,60 @@
 import logging
 from typing import AsyncGenerator
-from aiconsole.aic_types import ExecutionModeContext
+from aiconsole.agents.types import ExecutionModeContext
+from aiconsole.code_running.code_interpreters.language_map import language_map
 from aiconsole.execution_modes.get_agent_system_message import get_agent_system_message
-from aiconsole.gpt.create_full_prompt_from_sections import create_full_prompt_from_sections
+from aiconsole.gpt.create_full_prompt_with_materials import create_full_prompt_with_materials
 from aiconsole.utils.convert_messages import convert_messages
-from typing import AsyncGenerator
 from openai_function_call import OpenAISchema
-from aiconsole.code_interpreters.language_map import language_map
-from aiconsole.gpt.consts import GPTMode
 from aiconsole.gpt.gpt_executor import GPTExecutor
 from aiconsole.gpt.request import GPTRequest
 from aiconsole.gpt.types import CLEAR_STR
-import logging
 from pydantic import Field
 
 
 _log = logging.getLogger(__name__)
 
+class python(OpenAISchema):
+    """
+    When you send a message containing Python code to python, it will be executed in a stateful Jupyter notebook environment
+    """
 
-class Run(OpenAISchema):
+    code: str = Field(
+        ...,
+        description="python code to execute, it will be executed in a stateful Jupyter notebook environment",
+        json_schema_extra={"type": "string"}
+    )
+
+class bash(OpenAISchema):
     """
     This function executes the given code on the user's system using the local environment and returns the output.
     """
 
-    lang: str = Field(..., json_schema_extra={"type": "string", "enum": [
-        language for language in language_map.keys()
-    ]})
+    code: str = Field(..., json_schema_extra={"type": "string"})
+
+class shell(OpenAISchema):
+    """
+    This function executes the given code on the user's system using the local environment and returns the output.
+    """
 
     code: str = Field(..., json_schema_extra={"type": "string"})
 
+
+class applescript(OpenAISchema):
+    """
+    This function executes the given code on the user's system using the local environment and returns the output.
+    """
+
+    code: str = Field(..., json_schema_extra={"type": "string"})
 
 async def execution_mode_interpreter(
     context: ExecutionModeContext,
 ) -> AsyncGenerator[str, None]:
     global llm
 
-    system_message = create_full_prompt_from_sections(
+    system_message = create_full_prompt_with_materials(
         intro=get_agent_system_message(context.agent),
-        sections=context.relevant_materials,
+        materials=context.relevant_materials,
     )
 
     _log.debug(f"System message:\n{system_message}")
@@ -53,7 +70,12 @@ async def execution_mode_interpreter(
             gpt_mode=context.agent.gpt_mode,
             messages=[message for message in convert_messages(
                 context.messages)],
-            functions=[Run.openai_schema],
+            functions=[
+                python.openai_schema,
+                bash.openai_schema,
+                shell.openai_schema,
+                applescript.openai_schema
+            ],
             min_tokens=250,
             preferred_tokens=2000
         )
@@ -79,14 +101,13 @@ async def execution_mode_interpreter(
             arguments = function_call.arguments
             languages = language_map.keys()
 
-            # We need to handle incorrect OpenAI responses, sometmes arguments is a string containing the code
+            if language is None and function_call.name in languages:
+                # Languge is in the name of the function call
+                language = function_call.name
+                yield f'<<<< START CODE ({language}) >>>>'
+
             if isinstance(arguments, str):
-
-                if language is None and function_call.name in languages:
-                    # Languge is in the name of the function call
-                    language = function_call.name
-                    yield f'<<<< START CODE ({language}) >>>>'
-
+                # We need to handle incorrect OpenAI responses, sometmes arguments is a string containing the code
                 if arguments and not arguments.startswith("{"):
                     if language is None:
                         language = "python"
@@ -97,12 +118,7 @@ async def execution_mode_interpreter(
 
                     if code_delta:
                         yield code_delta
-
             else:
-                if language is None and arguments and arguments.get("lang", "") in languages:
-                    language = arguments["lang"]
-                    yield f'<<<< START CODE ({language}) >>>>'
-
                 if arguments and "code" in arguments:
                     if language is None:
                         language = "python"
@@ -122,5 +138,5 @@ async def execution_mode_interpreter(
         yield code[1:]
 
     if language:
-        yield f"<<<< END CODE >>>>"
+        yield "<<<< END CODE >>>>"
         language = None

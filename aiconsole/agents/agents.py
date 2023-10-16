@@ -6,12 +6,10 @@ from pydantic import ValidationError
 
 import watchdog.events
 import watchdog.observers
+from aiconsole.agents.types import Agent
 
-from aiconsole.aic_types import Agent
 from aiconsole.execution_modes.interpreter import execution_mode_interpreter
 from aiconsole.execution_modes.normal import execution_mode_normal
-from aiconsole.gpt.consts import GPTMode
-from aiconsole.settings import settings
 from aiconsole.utils.BatchingWatchDogHandler import BatchingWatchDogHandler
 from aiconsole.utils.list_files_in_file_system import list_files_in_file_system
 from aiconsole.utils.list_files_in_resource_path import list_files_in_resource_path
@@ -19,9 +17,11 @@ from aiconsole.websockets.messages import NotificationWSMessage
 
 _log = logging.getLogger(__name__)
 
+
 async def _notify_and_log(message: str):
     _log.info(message)
     await NotificationWSMessage(title="Agent not loaded", message=message).send_to_all()
+
 
 class Agents:
     """
@@ -30,12 +30,19 @@ class Agents:
 
     agents: Dict[str, Agent]
 
-    def __init__(self):
+    def __init__(self, core_resource, user_agents_directory):
+        self.core_resource = core_resource
+        self.user_directory = user_agents_directory
         self.agents = {}
 
-        observer = watchdog.observers.Observer()
-        observer.schedule(BatchingWatchDogHandler(self.reload), settings.AGENTS_DIRECTORY, recursive=True)
-        observer.start()
+        self.observer = watchdog.observers.Observer()
+        self.observer.schedule(
+            BatchingWatchDogHandler(self.reload), self.user_directory, recursive=True
+        )
+        self.observer.start()
+
+    def __del__(self):
+        self.observer.stop()
 
     def all_agents(self):
         """
@@ -53,19 +60,21 @@ class Agents:
 
         self.agents = {}
 
-        paths = [path for paths_yielding_function in [
-            list_files_in_resource_path(settings.AGENTS_CORE_RESOURCE),
-            list_files_in_file_system(settings.AGENTS_DIRECTORY)
-        ] for path in paths_yielding_function]
+        paths = [
+            path
+            for paths_yielding_function in [
+                list_files_in_resource_path(self.core_resource),
+                list_files_in_file_system(self.user_directory),
+            ]
+            for path in paths_yielding_function
+        ]
 
         for path in paths:
             filename = os.path.basename(path)
             if filename.endswith(".py"):
-
                 # Import the file and execute material function to get the material
                 module_name = os.path.splitext(filename)[0]
-                spec = importlib.util.spec_from_file_location(
-                    module_name, path)
+                spec = importlib.util.spec_from_file_location(module_name, path)
                 if not spec or spec.loader is None:
                     await _notify_and_log(f"Skipping invalid agent in file {filename}")
                     continue
@@ -81,25 +90,26 @@ class Agents:
                 agent = module.agent.copy()
                 id = filename[:-3]
                 if id in self.agents:
-                    await _notify_and_log(f"Skipping duplicate agent {id} in file {filename}")
+                    await _notify_and_log(
+                        f"Skipping duplicate agent {id} in file {filename}"
+                    )
                     continue
 
                 execution_mode_name = agent.pop("execution_mode", "")
 
-                try: 
+                try:
                     self.agents[id] = Agent(
                         id=id,
                         execution_mode=execution_modes[execution_mode_name],
                         **agent,
                     )
                 except ValidationError as e:
-                    await _notify_and_log(f"Skipping invalid agent in file {filename}: {e}")
+                    await _notify_and_log(
+                        f"Skipping invalid agent in file {filename}: {e}"
+                    )
                     continue
 
-        await NotificationWSMessage(title="Agents reloaded", message=f"Reloaded {len(self.agents)} agents").send_to_all()
+        await NotificationWSMessage(
+            title="Agents reloaded", message=f"Reloaded {len(self.agents)} agents"
+        ).send_to_all()
         _log.info(f"Reloaded {len(self.agents)} agents")
-
-
-agents = Agents()
-
-

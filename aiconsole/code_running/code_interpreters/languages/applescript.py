@@ -32,59 +32,42 @@
 # https://github.com/KillianLucas/open-interpreter
 # 
 
-import platform
-from ..subprocess_code_interpreter import SubprocessCodeInterpreter
-import ast
 import os
+from typing import List
 
-class Shell(SubprocessCodeInterpreter):
-    file_extension = "sh"
-    proper_name = "Shell"
+from aiconsole.materials.materials import Materials
+from ..subprocess_code_interpreter import SubprocessCodeInterpreter
+
+class AppleScript(SubprocessCodeInterpreter):
+    file_extension = "applescript"
+    proper_name = "AppleScript"
 
     def __init__(self):
         super().__init__()
+        self.start_cmd = os.environ.get('SHELL', '/bin/zsh')
 
-        # Determine the start command based on the platform
-        if platform.system() == 'Windows':
-            self.start_cmd = 'cmd.exe'
-        else:
-            self.start_cmd = os.environ.get('SHELL', 'bash')
+    def preprocess_code(self, code, materials: List[Materials]):
+        """
+        Inserts an end_of_execution marker and adds active line indicators.
+        """
 
-    def preprocess_code(self, code):
-        return preprocess_shell(code)
-    
-    def line_postprocessor(self, line):
-        return line
+        # Escape double quotes
+        code = code.replace('"', r'\"')
+        
+        # Wrap in double quotes
+        code = '"' + code + '"'
+        
+        # Prepend start command for AppleScript
+        code = "osascript -e " + code
+
+        # Append end of execution indicator
+        code += '; echo "## end_of_execution ##"'
+        
+        return code
+
 
     def detect_end_of_execution(self, line):
+        """
+        Detects end of execution marker in the output.
+        """
         return "## end_of_execution ##" in line
-        
-
-def preprocess_shell(code):
-    """
-    Add active line markers
-    Wrap in a try except (trap in shell)
-    Add end of execution marker
-    """
-    
-    # Wrap in a trap for errors
-    if platform.system() != 'Windows':
-        code = wrap_in_trap(code)
-    
-    # Add end command (we'll be listening for this so we know when it ends)
-    code += '\necho "## end_of_execution ##"'
-    
-    return code
-
-
-
-
-def wrap_in_trap(code):
-    """
-    Wrap Bash code with a trap to catch errors and display them.
-    """
-    trap_code = """
-trap 'echo "An error occurred on line $LINENO"; exit' ERR
-set -E
-"""
-    return trap_code + code

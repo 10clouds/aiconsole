@@ -5,7 +5,7 @@ import re
 import time
 from enum import Enum
 from io import BytesIO
-from typing import List, Literal
+from typing import List, Literal, Optional
 
 import requests
 from PIL import Image
@@ -21,13 +21,10 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
+from aiconsole import projects
 
 from aiconsole.materials.tools.credentials import load_credential
 from aiconsole.settings import settings
-
-_log = logging.getLogger(__name__)
-_log.setLevel(settings.LOG_LEVEL)
-
 
 class MidJourneyImageType(str, Enum):
     MIDJOURNEY_UPSCALE = "MIDJOURNEY_UPSCALE"
@@ -47,8 +44,8 @@ class DiscordMessage(BaseModel):
 
 
 class MidJourneyAPI:
-    driver: webdriver.Chrome | None = None
-    webdriver_service: Service | None = None
+    driver: Optional[webdriver.Chrome] = None
+    webdriver_service: Optional[Service] = None
 
     def __init__(self):
         self.email = load_credential("midjourney-discord", "email")
@@ -130,7 +127,7 @@ class MidJourneyAPI:
 
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument(
-            f'--user-data-dir={os.path.join(settings.CREDENTIALS_DIRECTORY, "selenium")}'
+            f'--user-data-dir={os.path.join(projects.get_credentials_directory(), "selenium")}'
         )
         chrome_options.add_argument("--headless")
 
@@ -218,7 +215,7 @@ class MidJourneyAPI:
             self.driver.switch_to.active_element.send_keys(prompt)
             self.driver.switch_to.active_element.send_keys(Keys.RETURN)
 
-            _log.info("Prompt sent, monitoring for results ...")
+            print("Prompt sent, monitoring for results ...")
             image_paths = self._wait_for_image(old_message_ids, prompt)
         finally:
             self.driver.quit()
@@ -252,7 +249,7 @@ class MidJourneyAPI:
                     ):
                         download_url = message.images[0]
                         file_name = download_url.split("/")[-1].split("?")[0]
-                        _log.info(f"Downloading image: {file_name}")
+                        print(f"Downloading image: {file_name}")
                         # Assuming it should be a GET request
                         response = requests.get(download_url)
                         image = Image.open(BytesIO(response.content))
@@ -264,11 +261,11 @@ class MidJourneyAPI:
                         image_paths = []
                         for i, image in enumerate(images):
                             image_name = f"{file_name}-{i}.png"
-                            image.save(image_name, **metadata)
-                            image_paths.append(os.path.join(os.getcwd(), image_name))
-                            _log.info(f"Saved image: {file_name}-{i}.png")
+                            image.save(os.path.join(projects.get_project_directory(), image_name), **metadata)
+                            image_paths.append(os.path.join(projects.get_project_directory(), image_name))
+                            print(f"Saved image: ./{file_name}-{i}.png")
 
-                        _log.info("Image generated: " + str(image))
+                        print("Image generated: " + str(image))
                         return image_paths
 
             time.sleep(1)
@@ -287,7 +284,7 @@ class MidJourneyAPI:
     @staticmethod
     def classify_midjourney_message(
         message: DiscordMessage,
-    ) -> MidJourneyImageTypeLiteral | None:
+    ) -> Optional[MidJourneyImageTypeLiteral]:
 
         progress_regexp = r"\((100|[1-9]?\d)%\)"
         image_number_regexp = r"\*\* - Image #(\d+) <@"

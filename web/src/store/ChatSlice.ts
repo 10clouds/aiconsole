@@ -26,11 +26,18 @@ export const createChatSlice: StateCreator<AICStore, [], [], ChatSlice> = (
   agent: undefined,
   materials: [],
   initChatHistory: async () => {
-    const history: ChatHeadline[] = await (await Api.getChatsHistory()).json();
-
-    set(() => ({
-      chatHeadlines: [...history],
-    }));
+    try {
+      const history: ChatHeadline[] = await (await Api.getChatsHistory()).json();
+      set(() => ({
+        chatHeadlines: [...history],
+      }));
+    } catch (e) {
+      set(() => ({
+        chatHeadlines: [],
+      }));
+      console.log(e);
+    }
+    
   },
   deleteChat: async (id: string) => {
     await Api.deleteChat(id);
@@ -49,9 +56,9 @@ export const createChatSlice: StateCreator<AICStore, [], [], ChatSlice> = (
     const chat = await Api.getChat(id);
 
     set(() => ({
-      messages: (chat.messages || []).map(({ materials, ...rest }) => {
+      messages: (chat.messages || []).map(({ materials_ids, ...rest }) => {
         return {
-          materials: materials ? materials : [],
+          materials_ids: materials_ids ? materials_ids : [],
           ...rest,
         };
       }),

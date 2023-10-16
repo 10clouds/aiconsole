@@ -5,7 +5,7 @@ export type AICMessage = {
   task?: string;
   content: string;
   timestamp: string;
-  materials: Material[];
+  materials_ids: string[];
   language?: string;
   code?: boolean;
   code_executed?: boolean;
@@ -23,14 +23,31 @@ export type AICMessageGroup = {
   agent_id: string;
   role: string;
   task: string;
-  materials: Material[];
+  materials_ids: string[];
   sections: AICMessageSection[];
 };
+
+export type MaterialDefinedIn = "aiconsole" | "project";
+export const materialDefinedInOptions: MaterialDefinedIn[] = ["aiconsole", "project"];
+export type MaterialStatus = "disabled" | "enabled" | "forced";
+export const materialStatusOptions: MaterialStatus[] = ["disabled", "enabled", "forced"];
+export type MaterialContentType = "static_text" | "dynamic_text" | "api";
+export const materialContenTypeOptions: MaterialContentType[] = ["static_text", "dynamic_text", "api"];
 
 export type Material = {
   id: string;
   usage: string;
-  content: string;
+  defined_in: MaterialDefinedIn;
+  status: MaterialStatus;
+  content_type: MaterialContentType;
+  content_static_text: string;
+  content_dynamic_text: string;
+  content_api: string;
+};
+
+export type MaterialInfo = {
+  id: string;
+  usage: string;
 };
 
 export type ChatHeadline = {
@@ -42,7 +59,6 @@ export type ChatHeadline = {
 export type Chat = {
   id: string;
   messages: AICMessage[];
-  timestamp: string;
 };
 
 export type Agent = {

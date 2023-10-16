@@ -1,11 +1,10 @@
 import json
 import os
-
-from aiconsole.settings import settings
+from aiconsole import projects
 
 def save_credential(module: str, credential: str, value: str):
     # Specify the path for the credential file
-    file_path = os.path.join(settings.CREDENTIALS_DIRECTORY, module + ".json")
+    file_path = os.path.join(projects.get_credentials_directory(), module + ".json")
     
     # Ensure the directory for the file exists
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -33,7 +32,7 @@ def load_credential(module: str, credential: str) -> str:
     
     # Try file
     try: 
-        with open(os.path.join(settings.CREDENTIALS_DIRECTORY, module + ".json"), "r") as f:
+        with open(os.path.join(projects.get_credentials_directory(), module + ".json"), "r") as f:
             value = str(json.loads(f.read())[credential])
             if value:
                 return value
@@ -45,8 +44,8 @@ def load_credential(module: str, credential: str) -> str:
     raise Exception(f'''
 Could not find credential {credential} for module {module}.
 
-Ask the user to give you {credential} and then save it like this:
+Ask the user to give you {credential} and then save it like this, don't use 'getpass' or anything that reads from the console, ask them using text:
 
-from aiconsole.credentials import save_credential
+from aiconsole.materials.tools.credentials import save_credential
 save_credential("{module}", "{credential}", your_value)
     '''.strip())

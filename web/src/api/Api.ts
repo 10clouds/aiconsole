@@ -1,6 +1,6 @@
 import ky from 'ky';
 
-import { Agent, Chat, Material } from '../store/types';
+import { Agent, Chat, Material, MaterialInfo } from '../store/types';
 
 export const BASE_URL = `http://${window.location.hostname}:8000`;
 
@@ -22,6 +22,7 @@ const runCode = ({
   chatId: string;
   language: string;
   code: string;
+  materials_ids: string[];
   signal?: AbortSignal;
 }) =>
   ky.post(`${BASE_URL}/chats/${chatId}/run_code`, {
@@ -39,6 +40,13 @@ const getAgents: () => Promise<Agent[]> = async () =>
 
 const getChat: (id: string) => Promise<Chat> = async (id: string) =>
   await ky.get(`${BASE_URL}/chats/history/${id}`).json();
+
+const chooseProject = () => ky.post(`${BASE_URL}/api/projects/choose`);
+
+const getCurrentProject = () => ky.get(`${BASE_URL}/api/projects/current`);
+
+const getMaterials = async () =>
+  ky.get(`${BASE_URL}/api/materials/`).json() as Promise<MaterialInfo[]>;
 
 const getMaterial = async (id: string) =>
   ky.get(`${BASE_URL}/api/materials/${id}`).json() as Promise<Material>;
@@ -60,12 +68,8 @@ const saveCommandToHistory = (body: object) =>
 const saveHistory = (body: object) =>
   ky.post(`${BASE_URL}/chats/history`, { json: { ...body }, timeout: 60000 });
 
-const analyse = (body: object, signal?: AbortSignal) =>
-  ky.post(`${BASE_URL}/analyse`, {
-    json: { ...body },
-    signal,
-    timeout: 60000,
-  });
+const analyse = (body: Chat, signal?: AbortSignal) =>
+  ky.post(`${BASE_URL}/analyse`, { json: { ...body }, signal, timeout: 60000 });
 
 const updateChatHeadline = (id: string, headline: string) =>
   ky.post(`${BASE_URL}/chats/headlines/${id}`, {
@@ -86,4 +90,7 @@ export default {
   saveHistory,
   deleteChat,
   updateChatHeadline,
+  chooseProject,
+  getCurrentProject,
+  getMaterials,
 };

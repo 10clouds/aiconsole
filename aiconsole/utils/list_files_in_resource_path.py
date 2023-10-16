@@ -1,16 +1,19 @@
-from importlib import resources
+from aiconsole.utils.resource_to_path import resource_to_path
 
 
-def list_files_in_resource_path(path: str):
+def list_files_in_resource_path(resource: str):
     """
-    Recursivelly list all paths to files in path
+    Recursively list all paths to files in path
     """
 
-    for entry in resources.contents(path):
-        if resources.is_resource(path, entry):
-            with resources.path(path, entry) as source_path:
-                yield source_path
+    abs_path = resource_to_path(resource)
+
+
+    if not abs_path.exists():
+        return
+
+    for entry in abs_path.iterdir():
+        if entry.is_file():
+            yield entry
         else:
-            yield from list_files_in_resource_path(f"{path}.{entry}")
-
-
+            yield from list_files_in_resource_path(str(entry).replace('/', '.'))
