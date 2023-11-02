@@ -13,6 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
+
 from appdirs import user_config_dir
 from pydantic import BaseModel
 import tomlkit
@@ -32,6 +34,7 @@ from aiconsole.websockets.outgoing_messages import SettingsWSMessage
 
 class PartialSettingsData(BaseModel):
     code_autorun: Optional[bool] = None
+    openai_api_key: Optional[str] = None
     disabled_materials: Optional[List[str]] = None
     disabled_agents: Optional[List[str]] = None
     enabled_materials: Optional[List[str]] = None
@@ -43,6 +46,7 @@ class PartialSettingsData(BaseModel):
 
 class SettingsData(BaseModel):
     code_autorun: bool = False
+    openai_api_key: Optional[str] = None
     disabled_materials: List[str] = []
     disabled_agents: List[str] = []
     enabled_materials: List[str] = []
@@ -138,7 +142,14 @@ class Settings:
         self._settings.code_autorun = code_autorun
         self.save(PartialSettingsData(code_autorun=self._settings.code_autorun), to_global=to_global)
 
-    def __load_from_path(self, file_path: Path) -> Dict[str, Any]:
+    @staticmethod
+    def __set_openai_api_key_environment(settings: Dict[str, Any]) -> None:
+        openai_api_key = settings.get('settings', {}).get('openai_api_key', None)
+        if os.environ.get("OPENAI_API_KEY", None) != openai_api_key:
+            os.environ["OPENAI_API_KEY"] = openai_api_key
+
+    @staticmethod
+    def __load_from_path(file_path: Path) -> Dict[str, Any]:
         if not file_path.exists():
             return {}
 
@@ -152,8 +163,11 @@ class Settings:
         for file_path in [self._global_settings_file_path, self._project_settings_file_path]:
             settings = recursive_merge(settings, self.__load_from_path(file_path))
 
+        self.__set_openai_api_key_environment(settings)
+
         return SettingsData(
-            code_autorun=settings.get('code_autorun', False),
+            code_autorun=settings.get('settings', {}).get('code_autorun', False),
+            openai_api_key=settings.get('settings', {}).get('openai_api_key', None),
             disabled_materials=[
                 material for material, status in settings.get('materials', {}).items() if
                 status == MaterialStatus.DISABLED.value
@@ -196,6 +210,9 @@ class Settings:
 
         if settings_data.code_autorun is not None:
             document['settings']['code_autorun'] = settings_data.code_autorun
+
+        if settings_data.openai_api_key is not None:
+            document['settings']['openai_api_key'] = settings_data.openai_api_key
 
         if settings_data.disabled_materials is not None:
             for material in settings_data.disabled_materials:
