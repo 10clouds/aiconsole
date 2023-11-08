@@ -19,18 +19,18 @@ from contextlib import asynccontextmanager
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from aiconsole.core.project import project
+from aiconsole import projects
 from aiconsole.api.routers import app_router
-from aiconsole.core.settings import project_settings
+from aiconsole.project_settings import project_settings
 from aiconsole.consts import ORIGINS, log_config
-from aiconsole.api.websockets.outgoing_messages import NotificationWSMessage
+from aiconsole.websockets.outgoing_messages import NotificationWSMessage
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await project_settings.init()
-    if project.is_project_initialized():
-        await project.reinitialize_project()
+    if projects.is_project_initialized():
+        await projects.reinitialize_project()
     yield
 
 

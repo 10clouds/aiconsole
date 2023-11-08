@@ -15,9 +15,9 @@
 # limitations under the License.
     
 import json
-from aiconsole.core.chat.types import AICCodeMessage, AICMessage, AICMessageGroup, Chat
+from aiconsole.chat.types import AICCodeMessage, AICMessage, AICMessageGroup, Chat
 from aiconsole.consts import FUNCTION_CALL_OUTPUT_LIMIT
-from aiconsole.core.gpt.types import GPTFunctionCall, GPTMessage, GPTRole
+from aiconsole.gpt.types import GPTFunctionCall, GPTMessage, GPTRole
 
 
 from typing import List

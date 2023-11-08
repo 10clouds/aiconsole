@@ -16,10 +16,10 @@
     
 import logging
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from aiconsole.core.project import project
+from aiconsole import projects
 
-from aiconsole.api.websockets import connection_manager
-from aiconsole.api.websockets.handle_incoming_message import handle_incoming_message
+from aiconsole.websockets import connection_manager
+from aiconsole.websockets.handle_incoming_message import handle_incoming_message
 
 router = APIRouter()
 
@@ -29,7 +29,7 @@ _log = logging.getLogger(__name__)
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     connection = await connection_manager.connect(websocket)
-    await project.send_project_init(connection)
+    await projects.send_project_init(connection)
 
     try:
         while True:

@@ -15,10 +15,11 @@
 # limitations under the License.
 
 from fastapi import APIRouter
-from aiconsole.core.project import project
+from aiconsole import projects
+from aiconsole.websockets.outgoing_messages import NotificationWSMessage
 
 router = APIRouter()
 
 @router.post("/close")
 async def close():
-    await project.close_project()
+    await projects.close_project()
