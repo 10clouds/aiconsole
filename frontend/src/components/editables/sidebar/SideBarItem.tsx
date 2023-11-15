@@ -105,7 +105,6 @@ const SideBarItem = ({
       let editableObjectWithType = {
         ...editableObject,
         name: inputText,
-        type: editableObjectType,
       };
       if (editableObjectType === 'chat') {
         const chat = await EditablesAPI.fetchEditableObject<ChatHeadline>(

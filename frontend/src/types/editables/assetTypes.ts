@@ -56,7 +56,6 @@ export type EditableObjectTypePlural = 'materials' | 'agents' | 'chats';
 export type EditableObject = {
   id: string;
   name: string;
-  type: EditableObjectType;
 };
 
 export type Asset = EditableObject & {

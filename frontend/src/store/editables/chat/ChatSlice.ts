@@ -66,7 +66,6 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (
         {
           id: chat.id,
           name: chat.name,
-          type: 'chat',
           last_modified: new Date().toISOString(),
         },
         ...useEditablesStore.getState().chats.filter((c) => c.id !== chat.id),
