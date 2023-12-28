@@ -1,0 +1,16 @@
+name = "How to install python packages"
+version = "0.0.2"
+usage = "Use this when need to install python package"
+usage_examples = []
+default_status = "enabled"
+content_type = "static_text"
+content_static_text = """
+To install Python package, run the following script using Python, replacing 'package' with the name of the desired package:
+
+```python
+import subprocess
+import sys
+
+subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+```
+"""
