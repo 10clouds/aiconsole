@@ -2,19 +2,18 @@ import logging
 import os
 import platform
 import tarfile
-
 import requests
 
 _log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+PYTHON_VERSION = "3.10.13+20231002"
 
 
 def download_python():
     _log.info("Detecting machine architecture...")
     arch_name = platform.machine()
     system_name = platform.system()
-
-    file_name = None
-    download_url = None
 
     if system_name == "Darwin":
         if arch_name == "x86_64":
@@ -24,8 +23,8 @@ def download_python():
             _log.info("Detected Apple M1 architecture.")
             variant = "aarch64-apple-darwin"
         else:
-            _log.info(f"Unknown architecture: {arch_name}")
-            exit(1)
+            _log.error(f"Unknown architecture: {arch_name}")
+            return False
 
     elif system_name == "Linux":
         _log.info("Detected Linux architecture.")
@@ -36,19 +35,34 @@ def download_python():
         variant = "x86_64-pc-windows-msvc-shared"
 
     else:
-        _log.info(f"Unknown operating system: {system_name}")
-        exit(1)
+        _log.error(f"Unknown operating system: {system_name}")
+        return False
 
-    file_name = f"cpython-3.10.13+20231002-{variant}-install_only.tar.gz"
+    file_name = f"cpython-{PYTHON_VERSION}-{variant}-install_only.tar.gz"
     download_url = f"https://github.com/indygreg/python-build-standalone/releases/download/20231002/{file_name}"
 
-    _log.info(f"Downloading standalone Python for {system_name} {arch_name}...")
-    response = requests.get(download_url)
-    with open(file_name, "wb") as file:
-        file.write(response.content)
+    try:
+        _log.info(f"Downloading standalone Python for {system_name} {arch_name}...")
+        response = requests.get(download_url, stream=True)
+        response.raise_for_status()
+
+        with open(file_name, "wb") as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                file.write(chunk)
+
+    except requests.RequestException as e:
+        _log.error(f"Download failed: {e}")
+        return False
 
     _log.info("Extracting Python...")
-    with tarfile.open(file_name) as tar:
-        tar.extractall(path=".")
+    try:
+        with tarfile.open(file_name) as tar:
+            tar.extractall(path=".")
+    except tarfile.TarError as e:
+        _log.error(f"Extraction failed: {e}")
+        return False
+    finally:
+        os.remove(file_name)
 
-    os.remove(file_name)
+    _log.info("Python installation completed successfully.")
+    return True

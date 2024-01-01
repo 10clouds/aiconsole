@@ -16,7 +16,9 @@
 
 import json
 import logging
+from dataclasses import dataclass
 from typing import cast
+from uuid import uuid4
 
 from aiconsole.consts import DIRECTOR_MIN_TOKENS, DIRECTOR_PREFERRED_TOKENS
 from aiconsole.core.analysis.agents_to_choose_from import agents_to_choose_from
@@ -24,14 +26,14 @@ from aiconsole.core.analysis.create_plan_class import create_plan_class
 from aiconsole.core.assets.agents.agent import Agent
 from aiconsole.core.assets.asset import AssetLocation, AssetStatus
 from aiconsole.core.assets.materials.material import Material
-from aiconsole.core.chat.chat_outgoing_messages import SequenceStage, UpdateAnalysisWSMessage
+from aiconsole.core.chat.chat_mutator import ChatMutator
+from aiconsole.core.chat.convert_messages import convert_messages
 from aiconsole.core.chat.types import Chat
 from aiconsole.core.gpt.consts import GPTMode
 from aiconsole.core.gpt.gpt_executor import GPTExecutor
 from aiconsole.core.gpt.request import GPTRequest, ToolDefinition, ToolFunctionDefinition
 from aiconsole.core.gpt.types import EnforcedFunctionCall, EnforcedFunctionCallFuncSpec, GPTRequestTextMessage
 from aiconsole.core.project import project
-from aiconsole.utils.convert_messages import convert_messages
 
 _log = logging.getLogger(__name__)
 
@@ -88,15 +90,31 @@ def _get_relevant_materials(relevant_material_ids: list[str]) -> list[Material]:
     return relevant_materials
 
 
+@dataclass
+class AnalysisResult:
+    agent: Agent
+    relevant_materials: list[Material]
+    next_step: str
+
+
 async def gpt_analysis_function_step(
-    chat: Chat,
-    request_id: str,
+    chat_mutator: ChatMutator,
     gpt_mode: GPTMode,
     initial_system_prompt: str,
     last_system_prompt: str,
     force_call: bool,
-):
+) -> AnalysisResult:
     gpt_executor = GPTExecutor()
+
+    # Create a new message group for analysis
+    message_group = chat_mutator.op_create_message_group(
+        message_group_id=str(uuid4()),
+        agent_id="director",
+        role="system",
+        materials_ids=[],
+        analysis="",
+        task="",
+    )
 
     # Pick from forced or enabled agents if no agent is forced
     possible_agent_choices = agents_to_choose_from()
@@ -122,7 +140,10 @@ async def gpt_analysis_function_step(
     request = GPTRequest(
         system_message=initial_system_prompt,
         gpt_mode=gpt_mode,
-        messages=[*convert_messages(chat), GPTRequestTextMessage(role="system", content=last_system_prompt)],
+        messages=[
+            *convert_messages(chat_mutator.chat),
+            GPTRequestTextMessage(role="system", content=last_system_prompt),
+        ],
         tools=[ToolDefinition(type="function", function=ToolFunctionDefinition(**plan_class.openai_schema))],
         presence_penalty=2,
         min_tokens=DIRECTOR_MIN_TOKENS,
@@ -134,7 +155,14 @@ async def gpt_analysis_function_step(
             type="function", function=EnforcedFunctionCallFuncSpec(name=plan_class.__name__)
         )
 
-    await UpdateAnalysisWSMessage(request_id=request_id, stage=SequenceStage.START).send_to_chat(chat.id)
+    chat_mutator.op_set_is_analysis_in_progress(
+        is_analysis_in_progress=True,
+    )
+
+    chat_mutator.op_set_message_group_analysis(
+        message_group_id=message_group.id,
+        analysis="",
+    )
 
     try:
         async for chunk in gpt_executor.execute(request):
@@ -145,23 +173,37 @@ async def gpt_analysis_function_step(
                     arguments_dict = function_call.arguments_dict
 
                     if arguments_dict:
-                        await UpdateAnalysisWSMessage(
-                            stage=SequenceStage.MIDDLE,
-                            request_id=request_id,
-                            agent_id=arguments_dict.get("agent_id", None),
-                            relevant_material_ids=arguments_dict.get("relevant_material_ids", None),
-                            next_step=arguments_dict.get("next_step", None),
-                            thinking_process=arguments_dict.get("thinking_process", None),
-                        ).send_to_chat(chat.id)
+                        if "agent_id" in arguments_dict:
+                            chat_mutator.op_set_message_group_agent_id(
+                                message_group_id=message_group.id,
+                                agent_id=arguments_dict["agent_id"],
+                            )
+
+                        if "relevant_material_ids" in arguments_dict:
+                            chat_mutator.op_set_message_group_materials_ids(
+                                message_group_id=message_group.id,
+                                materials_ids=arguments_dict["relevant_material_ids"],
+                            )
+
+                        if "next_step" in arguments_dict:
+                            chat_mutator.op_set_message_group_task(
+                                message_group_id=message_group.id,
+                                task=arguments_dict["next_step"],
+                            )
+
+                        if "thinking_process" in arguments_dict:
+                            chat_mutator.op_set_message_group_analysis(
+                                message_group_id=message_group.id,
+                                analysis=arguments_dict["thinking_process"],
+                            )
                 if not tool_calls:
-                    await UpdateAnalysisWSMessage(
-                        stage=SequenceStage.MIDDLE,
-                        request_id=request_id,
-                        agent_id=None,
-                        relevant_material_ids=None,
-                        next_step=None,
-                        thinking_process=gpt_executor.partial_response.choices[0].message.content,
-                    ).send_to_chat(chat.id)
+                    analysis = gpt_executor.partial_response.choices[0].message.content
+
+                    if analysis:
+                        chat_mutator.op_set_message_group_analysis(
+                            message_group_id=message_group.id,
+                            analysis=analysis,
+                        )
             else:
                 _log.warning("No choices in partial response")
                 _log.warning(chunk)
@@ -169,13 +211,10 @@ async def gpt_analysis_function_step(
         result = gpt_executor.response.choices[0].message
 
         if len(result.tool_calls) == 0:
-            await UpdateAnalysisWSMessage(
-                request_id=request_id,
-                next_step=result.content or "",
-                stage=SequenceStage.MIDDLE,
-            ).send_to_chat(chat.id)
-            return
-
+            chat_mutator.op_set_message_group_analysis(
+                message_group_id=message_group.id,
+                analysis=result.content or "",
+            )
         if len(result.tool_calls) > 1:
             raise ValueError(f"Expected one tool call, got {len(result.tool_calls)}")
 
@@ -186,19 +225,34 @@ async def gpt_analysis_function_step(
 
         plan = plan_class(**arguments_dict)
 
-        picked_agent = pick_agent(plan, chat, possible_agent_choices)
+        picked_agent = pick_agent(plan, chat_mutator.chat, possible_agent_choices)
+        chat_mutator.op_set_message_group_agent_id(
+            message_group_id=message_group.id,
+            agent_id=picked_agent.id,
+        )
 
         relevant_materials = _get_relevant_materials(plan.relevant_material_ids)
+        chat_mutator.op_set_message_group_materials_ids(
+            message_group_id=message_group.id,
+            materials_ids=[material.id for material in relevant_materials],
+        )
 
-        await UpdateAnalysisWSMessage(
-            request_id=request_id,
+        chat_mutator.op_set_message_group_task(
+            message_group_id=message_group.id,
+            task=plan.next_step,
+        )
+
+        chat_mutator.op_set_message_group_analysis(
+            message_group_id=message_group.id,
+            analysis=plan.thinking_process,
+        )
+
+        return AnalysisResult(
+            agent=picked_agent,
+            relevant_materials=relevant_materials,
             next_step=plan.next_step,
-            agent_id=picked_agent.id,
-            relevant_material_ids=[material.id for material in relevant_materials],
-            stage=SequenceStage.MIDDLE,
-        ).send_to_chat(chat.id)
+        )
     finally:
-        await UpdateAnalysisWSMessage(
-            request_id=request_id,
-            stage=SequenceStage.END,
-        ).send_to_chat(chat.id)
+        chat_mutator.op_set_is_analysis_in_progress(
+            is_analysis_in_progress=False,
+        )

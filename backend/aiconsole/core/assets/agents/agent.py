@@ -15,8 +15,9 @@
 # limitations under the License.
 
 from aiconsole.core.assets.asset import Asset, AssetStatus, AssetType
+from aiconsole.core.chat.chat_mutator import ChatMutator
 from pydantic import BaseModel
-from aiconsole.core.chat.types import Chat
+from aiconsole.core.chat.types import AICMessageGroup, Chat
 
 from aiconsole.core.gpt.consts import GPTMode
 from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
@@ -26,7 +27,7 @@ class Agent(Asset):
     type: AssetType = AssetType.AGENT
     system: str
     gpt_mode: GPTMode = GPTMode.QUALITY
-    execution_mode: str = "aiconsole.core.execution_modes.normal:execution_mode_normal"
+    execution_mode: str = "aiconsole.core.chat.execution_modes.normal:execution_mode_normal"
 
 
 class AgentWithStatus(Agent):
@@ -34,8 +35,7 @@ class AgentWithStatus(Agent):
 
 
 class ExecutionModeContext(BaseModel):
-    request_id: str
-    chat: Chat
+    chat_mutator: ChatMutator
+    message_group: AICMessageGroup
     agent: Agent
-    gpt_mode: GPTMode
-    relevant_materials: list[RenderedMaterial]
+    rendered_materials: list[RenderedMaterial]

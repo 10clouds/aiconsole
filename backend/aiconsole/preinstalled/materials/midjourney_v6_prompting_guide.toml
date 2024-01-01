@@ -4,7 +4,7 @@ usage = "Use when the user wants to create mid journey prompts"
 usage_examples = []
 default_status = "enabled"
 content_type = "static_text"
-content_static_text = """
+content = """
 Prompting with V6 is significantly different than V5. You will need to ‘relearn’ how to prompt. V6 is much more sensitive to your prompt. Avoid 'junk' like 'award winning, photorealistic, 4k, 8k'. Be explicit about what you want. It may be less vibey but if you are explicit it’s now much better at understanding you. If you want something more photographic / less opinionated / more literal you should probably default to using --style raw. Lower values of --stylize (default 100) may have better prompt understanding while higher values (up to 1000) may have better aesthetics.
 
 When it comes to text prompting, there is no single right or wrong way to do it. But generally, my prompts follow a similar structure:

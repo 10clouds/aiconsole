@@ -10,11 +10,11 @@ import { ErrorObject, TextInput } from './TextInput';
 
 const executionModes = [
   {
-    value: 'aiconsole.core.execution_modes.normal:execution_mode_normal',
+    value: 'aiconsole.core.chat.execution_modes.normal:execution_mode_normal',
     label: 'Normal - conversational agent',
   },
   {
-    value: 'aiconsole.core.execution_modes.interpreter:execution_mode_interpreter',
+    value: 'aiconsole.core.chat.execution_modes.interpreter:execution_mode_interpreter',
     label: 'Interpreter - code running agent',
   },
   {

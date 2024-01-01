@@ -26,18 +26,20 @@ import {
   getMessage,
   getToolCall,
 } from '@/utils/editables/chatUtils';
-import { v4 as uuidv4 } from 'uuid';
 
 export type MessageSlice = {
   loadingMessages: boolean;
   isViableForRunningCode: (toolCallId: string) => boolean;
-  removeMessageFromGroup: (messageId: string) => void;
-  removeToolCallFromMessage: (outputId: string) => void;
+  setIsAnalysisInProgress(isAnalysisInProgress: boolean): void;
+  editGroup: (change: (group: AICMessageGroup) => void, groupId: string) => void;
   editMessage: (change: (message: AICMessage) => void, messageId: string) => void;
   editToolCall: (change: (output: AICToolCall) => void, outputId: string) => void;
-  appendToolCall: (toolCall: Omit<AICToolCall, 'timestamp'>, messageId?: string) => void;
-  appendGroup: (group: Omit<AICMessageGroup, 'id'>) => void;
-  appendMessage: (message: Omit<AICMessage, 'timestamp'>, groupId?: string) => void;
+  appendToolCall: (toolCall: AICToolCall, messageId?: string) => void;
+  appendMessage: (message: AICMessage, groupId?: string) => void;
+  appendGroup: (group: AICMessageGroup) => void;
+  deleteToolCall: (toolCallId: string) => void;
+  deleteGroup: (groupId: string) => void;
+  deleteMessage: (messageId: string) => void;
 };
 
 export const createMessageSlice: StateCreator<ChatStore, [], [], MessageSlice> = (set, get) => ({
@@ -62,49 +64,38 @@ export const createMessageSlice: StateCreator<ChatStore, [], [], MessageSlice> =
     }
   },
   loadingMessages: false,
-  removeMessageFromGroup: (messageId: string) => {
+  setIsAnalysisInProgress: (isAnalysisInProgress: boolean) => {
     set((state) => {
+      console.log(state.chat);
       const chat = deepCopyChat(state.chat);
-      const messageLocation = getMessage(chat, messageId);
 
-      if (!messageLocation || !chat) {
-        throw new Error('Message not found');
+      if (!chat) {
+        throw new Error('Chat is not initialized');
       }
 
-      messageLocation.group.messages.splice(messageLocation.messageIndex, 1);
-
-      if (messageLocation.group.messages.length === 0) {
-        chat.message_groups.splice(chat.message_groups.indexOf(messageLocation.group), 1);
-      }
+      chat.is_analysis_in_progress = isAnalysisInProgress;
 
       return {
         chat,
       };
     });
-    get().saveCurrentChatHistory();
   },
-  removeToolCallFromMessage: (toolCallId: string) => {
+  editGroup: (change: (group: AICMessageGroup) => void, groupId: string) => {
     set((state) => {
       const chat = deepCopyChat(state.chat);
-      const toolCallLocation = getToolCall(chat, toolCallId);
+      const groupLocation = getGroup(chat, groupId);
 
-      if (!toolCallLocation) {
-        throw new Error(`Tool Call with id ${toolCallId} not found`);
+      if (!groupLocation) {
+        console.log(`Group ${groupId} found in`, chat);
+        throw new Error(`Group ${groupId} found in ${chat}`);
       }
 
-      console.log(`Removing tool call ${toolCallId} from message ${toolCallLocation.message.id}`);
-      toolCallLocation.message.tool_calls.splice(toolCallLocation.toolCallIndex, 1);
-
-      if (toolCallLocation.message.tool_calls.length === 0 && toolCallLocation.message.content === '') {
-        toolCallLocation.group.messages.splice(toolCallLocation.messageIndex, 1);
-      }
+      if (change) change(groupLocation.group);
 
       return {
         chat,
       };
     });
-
-    get().saveCurrentChatHistory();
   },
   editMessage: (change: (message: AICMessage) => void, messageId: string) => {
     set((state) => {
@@ -165,7 +156,7 @@ export const createMessageSlice: StateCreator<ChatStore, [], [], MessageSlice> =
       };
     });
   },
-  appendGroup: (group: Omit<AICMessageGroup, 'id'>) => {
+  appendGroup: (group: AICMessageGroup) => {
     set((state) => {
       const chat = deepCopyChat(state.chat);
 
@@ -174,7 +165,6 @@ export const createMessageSlice: StateCreator<ChatStore, [], [], MessageSlice> =
       }
 
       chat.message_groups.push({
-        id: uuidv4(),
         ...group,
       });
 
@@ -183,18 +173,39 @@ export const createMessageSlice: StateCreator<ChatStore, [], [], MessageSlice> =
       };
     });
   },
-  appendMessage: (message: Omit<AICMessage, 'timestamp'>, groupId?: string) => {
+  deleteGroup: (groupId: string) => {
+    set((state) => {
+      const chat = deepCopyChat(state.chat);
+
+      if (!chat) {
+        throw new Error('Chat is not initialized');
+      }
+
+      const groupLocation = getGroup(chat, groupId);
+
+      if (!groupLocation) {
+        throw new Error(`Group ${groupId} found in ${chat}`);
+      }
+
+      chat.message_groups.splice(chat.message_groups.indexOf(groupLocation.group), 1);
+
+      return {
+        chat,
+      };
+    });
+    get().saveCurrentChatHistory();
+  },
+  appendMessage: (message: AICMessage, groupId?: string) => {
     set((state) => {
       const chat = deepCopyChat(state.chat);
 
       const groupLocation = groupId === undefined ? getLastGroup(chat) : getGroup(chat, groupId);
 
       if (!groupLocation) {
-        throw new Error('Group not found');
+        throw new Error(`Group ${groupId} found in ${chat}`);
       }
 
       groupLocation.group.messages.push({
-        timestamp: new Date().toISOString(),
         ...message,
       });
 
@@ -202,5 +213,53 @@ export const createMessageSlice: StateCreator<ChatStore, [], [], MessageSlice> =
         chat,
       };
     });
+  },
+  deleteMessage: (messageId: string) => {
+    set((state) => {
+      const chat = deepCopyChat(state.chat);
+
+      if (!chat) {
+        throw new Error('Chat is not initialized');
+      }
+
+      const messageLocation = getMessage(chat, messageId);
+
+      if (!messageLocation) {
+        throw new Error('Message not found');
+      }
+
+      messageLocation.group.messages.splice(messageLocation.messageIndex, 1);
+
+      if (messageLocation.group.messages.length === 0) {
+        chat.message_groups.splice(chat.message_groups.indexOf(messageLocation.group), 1);
+      }
+
+      return {
+        chat,
+      };
+    });
+    get().saveCurrentChatHistory();
+  },
+  deleteToolCall: (toolCallId: string) => {
+    set((state) => {
+      const chat = deepCopyChat(state.chat);
+
+      const toolCallLocation = getToolCall(chat, toolCallId);
+
+      if (!toolCallLocation) {
+        throw new Error(`Tool call with id ${toolCallId} not found`);
+      }
+
+      toolCallLocation.message.tool_calls.splice(toolCallLocation.toolCallIndex, 1);
+
+      if (toolCallLocation.message.tool_calls.length === 0 && toolCallLocation.message.content === '') {
+        toolCallLocation.group.messages.splice(toolCallLocation.messageIndex, 1);
+      }
+
+      return {
+        chat,
+      };
+    });
+    get().saveCurrentChatHistory();
   },
 });

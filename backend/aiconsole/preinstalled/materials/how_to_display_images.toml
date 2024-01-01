@@ -4,7 +4,7 @@ usage = "Information on how to display images. Outputing ![image info](./path/im
 usage_examples = []
 default_status = "enabled"
 content_type = "static_text"
-content_static_text = """
+content = """
 When asked to display images, display them by outputing: ![image info](./pictures/image.png) in plain text, no function call required for displaying.
 
 Don't use IPython.display or mathplotlib to display images.

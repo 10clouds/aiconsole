@@ -4,7 +4,7 @@ usage = "Use this when you need to extract insights from a YouTube video"
 usage_examples = []
 default_status = "enabled"
 content_type = "static_text"
-content_static_text = """
+content = """
 If there will be an error "ModuleNotFoundError: No module named 'youtube_transcript_api'" say command to install it:
 pip install youtube-transcript-api
 

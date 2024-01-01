@@ -60,7 +60,7 @@ As a director I have assigned you ({group.agent_id}) and given you access to the
         GPTToolCall(
             id=tool_call.id,
             function=GPTFunctionCall(
-                name=tool_call.language,
+                name=tool_call.language if tool_call.language else "python",
                 arguments=json.dumps(
                     {
                         "code": tool_call.code,

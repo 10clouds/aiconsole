@@ -49,7 +49,7 @@ export const useAssetStore = create<AssetStore>((set) => ({
           defined_in: 'aiconsole',
           status: 'enabled',
           gpt_mode: 'quality',
-          execution_mode: 'aiconsole.core.execution_modes.normal:execution_mode_normal',
+          execution_mode: 'aiconsole.core.chat.execution_modes.normal:execution_mode_normal',
           default_status: 'enabled',
           override: false,
         };
@@ -69,13 +69,17 @@ export const useAssetStore = create<AssetStore>((set) => ({
           defined_in: 'project',
           status: 'enabled',
           gpt_mode: 'quality',
-          execution_mode: 'aiconsole.core.execution_modes.normal:execution_mode_normal',
+          execution_mode: 'aiconsole.core.chat.execution_modes.normal:execution_mode_normal',
           default_status: 'enabled',
           override: false,
         };
 
         return agent;
       }
+
+      //
+      // I just realized that client needs to be able to send modification messages in the same way the server does to a client ... which warants a slightly different setup than what I already have ...
+      //
 
       return useEditablesStore.getState().agents.find((agent) => agent.id === id);
     }

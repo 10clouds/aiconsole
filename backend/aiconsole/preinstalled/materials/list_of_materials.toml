@@ -4,7 +4,7 @@ usage = "Contains an index of materials. Do not use if not tasked to list materi
 usage_examples = []
 default_status = "enabled"
 content_type = "dynamic_text"
-content_dynamic_text = """
+content = """
 from aiconsole.dev import project
 
 async def content(context):

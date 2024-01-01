@@ -94,7 +94,7 @@ class Settings:
         self._observer.schedule(
             BatchingWatchDogHandler(self.reload, self._global_settings_file_path.name),
             str(self._global_settings_file_path.parent),
-            recursive=True,
+            recursive=False,
         )
 
         if self._project_settings_file_path:
@@ -102,7 +102,7 @@ class Settings:
             self._observer.schedule(
                 BatchingWatchDogHandler(self.reload, self._project_settings_file_path.name),
                 str(self._project_settings_file_path.parent),
-                recursive=True,
+                recursive=False,
             )
 
         self._observer.start()

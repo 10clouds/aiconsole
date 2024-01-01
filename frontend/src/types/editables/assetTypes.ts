@@ -39,6 +39,8 @@ export type AssetType = 'material' | 'agent';
 
 export type GPTMode = 'quality' | 'speed' | 'cost';
 
+export type GPTRole = 'user' | 'system' | 'assistant' | 'tool';
+
 export type EditableObjectType = 'material' | 'agent' | 'chat';
 
 export type EditableObjectTypePlural = 'materials' | 'agents' | 'chats';

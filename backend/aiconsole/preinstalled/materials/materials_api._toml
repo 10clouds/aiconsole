@@ -54,7 +54,7 @@ def create_material(id: str, usage: str, content_type: str, content: str) -> str
     Example static_text material:
 usage = "Use this to get to know how to get weather information."
 content_type = "static_text"
-content_static_text = ""\\"
+content = ""\\"
 # How to get weather information
 
 In order to get weather data use the following python script:
@@ -70,7 +70,7 @@ response.json()
 
 usage = "When you need to know what is the Today's date"
 content_type = "dynamic_text"
-content_dynamic_text = ""\\"
+content = ""\\"
 from datetime import datetime
 
 async def content(context):

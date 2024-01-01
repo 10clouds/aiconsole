@@ -20,10 +20,6 @@ from typing import TYPE_CHECKING
 from aiconsole.core.assets.asset import Asset, AssetLocation, AssetStatus, AssetType
 from aiconsole.core.assets.materials.documentation_from_code import documentation_from_code
 from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
-from aiconsole.core.code_running.virtual_env.venv import (
-    get_current_project_venv_available_packages,
-    get_current_project_venv_python_path,
-)
 
 if TYPE_CHECKING:
     from aiconsole.core.assets.materials.content_evaluation_context import ContentEvaluationContext
@@ -75,15 +71,7 @@ class Material(Asset):
             if self.content_type == MaterialContentType.DYNAMIC_TEXT:
                 # Try compiling the python code and run it
                 source_code = compile(inline_content, "<string>", "exec")
-                # local vars should provide all the virtualenv specific stuff like:
-                # - interpreter path
-                # - installed packages
-                local_vars = {
-                    # this list should be updated with all needed variables from venv
-                    "available_packages": get_current_project_venv_available_packages(),
-                    "python_path": get_current_project_venv_python_path(),
-                }
-                # TODO add try/cache to catch potential plain text execution errors
+                local_vars = {}
                 exec(source_code, local_vars)
                 # currently, getting the python object from another interpreter is quite limited, and
                 # using the dedicated local_vars is the easiest way (otherwise we would need to pickle

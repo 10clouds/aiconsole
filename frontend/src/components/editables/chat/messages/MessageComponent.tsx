@@ -20,14 +20,14 @@ interface MessageProps {
 }
 
 export function MessageComponent({ message, group }: MessageProps) {
-  const removeMessageFromGroup = useChatStore((state) => state.removeMessageFromGroup);
+  const deleteMessage = useChatStore((state) => state.deleteMessage);
   const editMessage = useChatStore((state) => state.editMessage);
   const saveCommandAndMessagesToHistory = useChatStore((state) => state.saveCommandAndMessagesToHistory);
   const getBaseURL = useAPIStore((state) => state.getBaseURL);
 
   const handleRemoveClick = useCallback(() => {
-    removeMessageFromGroup(message.id);
-  }, [message.id, removeMessageFromGroup]);
+    deleteMessage(message.id);
+  }, [message.id, deleteMessage]);
 
   const handleSaveClick = useCallback(
     (content: string) => {

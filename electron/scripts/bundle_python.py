@@ -41,7 +41,9 @@ def check_installation():
     if python_dir.is_dir():
         _log.info("Python already installed.")
     else:
-        download_python()
+        if not download_python():
+            _log.error("Python download and extraction failed.")
+            exit(1)
     install_dependencies(python_dir)
     _log.info("Build process completed!")
 

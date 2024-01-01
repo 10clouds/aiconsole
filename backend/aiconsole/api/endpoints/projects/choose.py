@@ -49,7 +49,7 @@ async def _ask_directory():
 
 
 class ChooseParams(BaseModel):
-    directory: str | None = None
+    directory: str
 
 
 @router.post("/is_project")
@@ -70,9 +70,8 @@ async def is_project(params: ChooseParams):
 
 @router.post("/choose")
 async def choose_project(params: ChooseParams, background_tasks: BackgroundTasks):
-    directory = Path(params.directory) if params.directory else None
+    directory = Path(params.directory)
 
-    if directory:
-        await change_project_directory(directory)
-        # this will speed up the project creating a process
-        background_tasks.add_task(create_dedicated_venv)
+    await change_project_directory(directory)
+
+    background_tasks.add_task(create_dedicated_venv)

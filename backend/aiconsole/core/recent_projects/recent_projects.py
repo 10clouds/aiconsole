@@ -17,9 +17,9 @@
 import os
 from pathlib import Path
 
-from aiconsole.core.chats.load_chat_history import load_chat_history
+from aiconsole.core.chat.load_chat_history import load_chat_history
 from aiconsole.consts import MAX_RECENT_PROJECTS
-from aiconsole.core.chats.list_possible_historic_chat_ids import list_possible_historic_chat_ids
+from aiconsole.core.chat.list_possible_historic_chat_ids import list_possible_historic_chat_ids
 from aiconsole.core.recent_projects.recent_project import RecentProject
 from appdirs import user_config_dir
 

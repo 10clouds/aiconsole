@@ -4,7 +4,7 @@ usage = "Use this to get to help users when they ask about Materials as a suppor
 usage_examples = []
 default_status = "enabled"
 content_type = "static_text"
-content_static_text = """
+content = """
 ## The Preamble: Of TOML and its Purpose In the realm of machines and marvellous AI, TOML stands as a beacon of order. That's Tom's Obvious, Minimal Language for those unacquainted with its simple elegance. Picture a scribe, meticulously recording the attributes and characteristics needed to summon forth an AI agent in your personal Console kingdom—this is TOML!
 
 Now, lean in closer, for I tell you this: you need not be a scholar of esoteric technomancy to master it. If the very thought of scripting such a file sends shivers down your spine, fear not! The wise AI Console can craft these files on your command, ready for you to simply copy, paste, and engage!

@@ -21,10 +21,9 @@ from typing import cast
 
 from aiconsole.api.websockets.outgoing_messages import ErrorWSMessage
 from aiconsole.core.assets.materials.material import Material
-from aiconsole.core.chat.chat_outgoing_messages import (
-    SequenceStage,
-    UpdateToolCallOutputWSMessage,
-)
+from aiconsole.core.chat.chat_mutator import ChatMutator
+from aiconsole.core.chat.load_chat_history import load_chat_history
+from aiconsole.core.chat.ws_chat_listener import WSChatListener
 from aiconsole.core.code_running.run_code import get_code_interpreter
 from aiconsole.core.project import project
 from aiconsole.utils.cancel_on_disconnect import cancelable_endpoint
@@ -52,36 +51,44 @@ async def run_code(request: Request, data: RunCodeData, chat_id: str):
     try:
         _log.debug("Running code: %s", data.code)
 
-        await UpdateToolCallOutputWSMessage(
-            request_id=data.request_id, stage=SequenceStage.START, id=data.tool_call_id
-        ).send_to_chat(chat_id)
+        chat = await load_chat_history(chat_id)
 
-        mats = [project.get_project_materials().get_asset(mid) for mid in data.materials_ids]
-        mats = [cast(Material, mat) for mat in mats if mat is not None]
+        listener = WSChatListener(chat_id=chat_id, request_id=data.request_id)
+        chat_mutator = ChatMutator(chat=chat, listener=listener)
+
+        chat_mutator.op_set_tool_call_output(
+            tool_call_id=data.tool_call_id,
+            output="",
+        )
 
         try:
+            chat_mutator.op_set_tool_call_is_streaming(
+                tool_call_id=data.tool_call_id,
+                is_streaming=True,
+            )
+
+            mats = [project.get_project_materials().get_asset(mid) for mid in data.materials_ids]
+            mats = [cast(Material, mat) for mat in mats if mat is not None]
+
             async for token in get_code_interpreter(data.language).run(data.code, mats):
-                await UpdateToolCallOutputWSMessage(
-                    request_id=data.request_id,
-                    stage=SequenceStage.MIDDLE,
-                    id=data.tool_call_id,
+                chat_mutator.op_append_to_tool_call_output(
+                    tool_call_id=data.tool_call_id,
                     output_delta=token,
-                ).send_to_chat(chat_id)
+                )
         except asyncio.CancelledError:
             get_code_interpreter(data.language).terminate()
             _log.info("Run cancelled")
         except Exception:
             await ErrorWSMessage(error=traceback.format_exc().strip()).send_to_chat(chat_id)
-            await UpdateToolCallOutputWSMessage(
-                request_id=data.request_id,
-                stage=SequenceStage.MIDDLE,
-                id=data.tool_call_id,
+            chat_mutator.op_append_to_tool_call_output(
+                tool_call_id=data.tool_call_id,
                 output_delta=traceback.format_exc().strip(),
-            ).send_to_chat(chat_id)
+            )
     except Exception as e:
         await ErrorWSMessage(error=str(e)).send_to_chat(chat_id)
         raise e
     finally:
-        await UpdateToolCallOutputWSMessage(
-            request_id=data.request_id, stage=SequenceStage.END, id=data.tool_call_id
-        ).send_to_chat(chat_id)
+        chat_mutator.op_set_tool_call_is_streaming(
+            tool_call_id=data.tool_call_id,
+            is_streaming=False,
+        )

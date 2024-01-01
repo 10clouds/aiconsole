@@ -43,7 +43,7 @@ from aiconsole.core.assets.materials.material import Material
 from .base_code_interpreter import BaseCodeInterpreter
 import logging
 
-from aiconsole.core.code_running.virtual_env.venv import (
+from aiconsole_toolkit.env import (
     get_current_project_venv_bin_path,
     get_current_project_venv_path,
 )

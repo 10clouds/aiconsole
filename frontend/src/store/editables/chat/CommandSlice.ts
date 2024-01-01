@@ -94,15 +94,18 @@ export const createCommandSlice: StateCreator<ChatStore, [], [], CommandSlice> =
 
     if (command.trim() !== '') {
       get().appendGroup({
+        id: uuid(),
         agent_id: 'user',
         task: '',
         materials_ids: [],
         role: 'user',
         messages: [],
+        analysis: '',
       });
 
       get().appendMessage({
         id: uuid(),
+        timestamp: new Date().toISOString(),
         content: command,
         tool_calls: [],
         is_streaming: false,
@@ -118,6 +121,6 @@ export const createCommandSlice: StateCreator<ChatStore, [], [], CommandSlice> =
       });
     }
 
-    await get().doAnalysis();
+    await get().doProcess();
   },
 });

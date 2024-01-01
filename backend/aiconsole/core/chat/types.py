@@ -14,7 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from dataclasses import dataclass
 from datetime import datetime
+from typing import Callable
 from aiconsole.core.assets.asset import EditableObject
 
 from aiconsole.core.code_running.code_interpreters.language_map import LanguageStr
@@ -25,10 +27,13 @@ from pydantic import BaseModel, Field, model_validator
 
 class AICToolCall(BaseModel):
     id: str
-    language: LanguageStr
+    language: LanguageStr | None = None
     code: str
     headline: str
     output: str | None = None
+
+    is_streaming: bool = False
+    is_executing: bool = False
 
 
 class AICMessage(BaseModel):
@@ -37,6 +42,8 @@ class AICMessage(BaseModel):
     content: str
     tool_calls: list[AICToolCall]
 
+    is_streaming: bool = False
+
 
 class AICMessageGroup(BaseModel):
     id: str
@@ -44,8 +51,11 @@ class AICMessageGroup(BaseModel):
     username: str | None = None
     email: str | None = None
     role: GPTRole
+    analysis: str
     task: str
+    agent_id: str
     materials_ids: list[str]
+    role: GPTRole
     messages: list[AICMessage]
 
     @model_validator(mode="after")
@@ -73,9 +83,44 @@ class ChatHeadline(EditableObject):
         }
 
 
+@dataclass
+class AICMessageInfo:
+    message_group: AICMessageGroup
+    message: AICMessage
+
+
+@dataclass
+class AICToolCallInfo:
+    message_group: AICMessageGroup
+    message: AICMessage
+    tool_call: AICToolCall
+
+
 class Chat(ChatHeadline):
     title_edited: bool = False
     message_groups: list[AICMessageGroup]
+    is_analysis_in_progress: bool = False
+
+    def get_message_group(self, message_group_id: str) -> AICMessageGroup | None:
+        for message_group in self.message_groups:
+            if message_group.id == message_group_id:
+                return message_group
+        return None
+
+    def get_message(self, message_id: str) -> AICMessageInfo | None:
+        for message_group in self.message_groups:
+            for message in message_group.messages:
+                if message.id == message_id:
+                    return AICMessageInfo(message_group=message_group, message=message)
+        return None
+
+    def get_tool_call(self, tool_call_id: str) -> AICToolCallInfo | None:
+        for message_group in self.message_groups:
+            for message in message_group.messages:
+                for tool_call in message.tool_calls:
+                    if tool_call.id == tool_call_id:
+                        return AICToolCallInfo(message_group=message_group, message=message, tool_call=tool_call)
+        return None
 
 
 class Command(BaseModel):

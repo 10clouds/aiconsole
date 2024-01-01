@@ -4,7 +4,7 @@ usage = "When you need to know what are the top trending repos on GitHub"
 usage_examples = []
 default_status = "enabled"
 content_type = "api"
-content_api = """
+content = """
 from typing import List, Literal, Dict
 import requests
 from bs4 import BeautifulSoup

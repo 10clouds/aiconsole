@@ -3,7 +3,7 @@ version = "0.0.7"
 usage = "Contains info about all the agents in AIConsole, useful when you want to know what agents are available and what they can do."
 usage_examples = []
 content_type = "dynamic_text"
-content_dynamic_text = """
+content = """
 from aiconsole.dev import project
 
 async def content(context):

@@ -26,6 +26,7 @@ import { useProjectStore } from '@/store/projects/useProjectStore';
 import { useEditablesStore } from '@/store/editables/useEditablesStore';
 import { handleChatMessage } from './chat/handleChatMessage';
 import { useToastsStore } from '@/store/common/useToastsStore';
+import { handleRequestProcessingFinishedWSMessage } from './chat/handleRequestProcessingFinishedWSMessage';
 
 export type WebSockeStore = {
   ws: ReconnectingWebSocket | null;
@@ -62,6 +63,8 @@ export const useWebSocketStore = create<WebSockeStore>((set, get) => ({
 
     ws.onmessage = async (e: MessageEvent) => {
       const data: IncomingWSMessage = JSON.parse(e.data);
+
+      console.log('WebSocket message: ', data);
 
       switch (data.type) {
         case 'ErrorWSMessage':
@@ -138,12 +141,36 @@ export const useWebSocketStore = create<WebSockeStore>((set, get) => ({
             });
           }
           break;
-        case 'ResetMessageWSMessage':
-        case 'UpdateAnalysisWSMessage':
-        case 'UpdateMessageWSMessage':
-        case 'UpdateToolCallWSMessage':
-        case 'UpdateToolCallOutputWSMessage':
         case 'RequestProcessingFinishedWSMessage':
+          await handleRequestProcessingFinishedWSMessage(data);
+          break;
+        case 'OpCreateMessageGroupWSMessage':
+        case 'OpDeleteMessageGroupWSMessage':
+        case 'OpSetIsAnalysisInProgressWSMessage':
+        case 'OpSetMessageGroupTaskWSMessage':
+        case 'OpAppendToMessageGroupTaskWSMessage':
+        case 'OpSetMessageGroupRoleWSMessage':
+        case 'OpSetMessageGroupAgentIdWSMessage':
+        case 'OpSetMessageGroupMaterialsIdsWSMessage':
+        case 'OpAppendToMessageGroupMaterialsIdsWSMessage':
+        case 'OpSetMessageGroupAnalysisWSMessage':
+        case 'OpAppendToMessageGroupAnalysisWSMessage':
+        case 'OpCreateMessageWSMessage':
+        case 'OpDeleteMessageWSMessage':
+        case 'OpAppendToMessageContentWSMessage':
+        case 'OpSetMessageContentWSMessage':
+        case 'OpSetMessageIsStreamingWSMessage':
+        case 'OpCreateToolCallWSMessage':
+        case 'OpDeleteToolCallWSMessage':
+        case 'OpSetToolCallHeadlineWSMessage':
+        case 'OpAppendToToolCallHeadlineWSMessage':
+        case 'OpSetToolCallCodeWSMessage':
+        case 'OpAppendToToolCallCodeWSMessage':
+        case 'OpSetToolCallLanguageWSMessage':
+        case 'OpSetToolCallOutputWSMessage':
+        case 'OpAppendToToolCallOutputWSMessage':
+        case 'OpSetToolCallIsStreamingWSMessage':
+        case 'OpSetToolCallIsExecutingWSMessage':
           await handleChatMessage(data);
           break;
         default:

@@ -18,7 +18,11 @@ from pydantic import BaseModel
 
 
 class BaseIncomingWSMessage(BaseModel):
-    pass
+    def get_type(self):
+        return self.__class__.__name__
+
+    def send(self, websocket):
+        websocket.send_json({"type": self.get_type(), **self.model_dump()})
 
 
 class SetChatIdWSMessage(BaseIncomingWSMessage):

@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { EditableObject } from './assetTypes';
+import { EditableObject, GPTRole } from './assetTypes';
 
 // The AIConsole Project
 //
@@ -35,8 +35,8 @@ import { EditableObject } from './assetTypes';
 export type AICToolCall = {
   id: string;
   language: string;
-  is_code_executing: boolean; //HACK: For now this is frontend only, but if we move message management to backend, this should be moved there as well.
-  is_streaming: boolean; //HACK: For now this is frontend only, but if we move message management to backend, this should be moved there as well.
+  is_executing: boolean;
+  is_streaming: boolean;
   code: string;
   headline: string;
   output?: string;
@@ -47,7 +47,7 @@ export type AICMessage = {
   timestamp: string;
   content: string;
   tool_calls: AICToolCall[];
-  is_streaming: boolean; //HACK: For now this is frontend only, but if we move message management to backend, this should be moved there as well.
+  is_streaming: boolean;
 };
 
 export type AICMessageGroup = {
@@ -55,10 +55,11 @@ export type AICMessageGroup = {
   agent_id: string;
   username: string;
   email: string;
-  role: string;
+  role: GPTRole;
   task: string;
   materials_ids: string[];
   messages: AICMessage[];
+  analysis: string;
 };
 
 export type ChatHeadline = EditableObject & {
@@ -69,4 +70,5 @@ export type Chat = EditableObject & {
   title_edited: boolean;
   last_modified: string;
   message_groups: AICMessageGroup[];
+  is_analysis_in_progress: boolean;
 };

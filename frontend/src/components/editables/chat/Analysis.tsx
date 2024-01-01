@@ -2,7 +2,7 @@ import { useChatStore } from '@/store/editables/chat/useChatStore';
 import { BlinkingCursor } from './BlinkingCursor';
 import { cn } from '@/utils/common/cn';
 
-export const GuideMe = () => {
+export const Analysis = () => {
   const thinkingProcess = useChatStore((store) => store.analysis.thinking_process);
   const nextStep = useChatStore((store) => store.analysis.next_step);
 

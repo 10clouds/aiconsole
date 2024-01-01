@@ -1,9 +1,9 @@
-import { useState, ChangeEvent, useRef, MouseEvent } from 'react';
-import { Loader, Plus, Shapes, Trash, Upload } from 'lucide-react';
-import { Icon } from './icons/Icon';
-import { ContextMenu, ContextMenuRef } from './ContextMenu';
 import { ContextMenuItems } from '@/types/common/contextMenu';
 import { cn } from '@/utils/common/cn';
+import { Loader, Plus, Shapes, Trash, Upload } from 'lucide-react';
+import { ChangeEvent, MouseEvent, useRef, useState } from 'react';
+import { ContextMenu, ContextMenuRef } from './ContextMenu';
+import { Icon } from './icons/Icon';
 
 // TODO: update this component with generating ai logic and connect with backend
 const ImageUploader = () => {

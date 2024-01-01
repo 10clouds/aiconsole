@@ -17,7 +17,7 @@
 import { StateCreator } from 'zustand';
 
 import { AICToolCall } from '@/types/editables/chatTypes';
-import { getLastGroup, getLastMessage, getToolCall } from '@/utils/editables/chatUtils';
+import { getToolCall } from '@/utils/editables/chatUtils';
 import { ChatAPI } from '../../../api/api/ChatAPI';
 import { ChatStore, useChatStore } from './useChatStore';
 
@@ -34,9 +34,7 @@ export type RunninngProcess = {
 };
 
 export type ActionSlice = {
-  doExecute: () => Promise<void>;
   doRun: (toolCallId: string) => Promise<void>;
-  isAnalysisRunning: () => boolean;
   isExecutionRunning: () => boolean;
   isOngoing(requestId: string): boolean;
   finishProcess: (requestId: string, aborted: boolean) => void;
@@ -56,15 +54,12 @@ export type ActionSlice = {
     next_step?: string;
     thinking_process?: string;
   };
-  doAnalysis: () => Promise<void>;
+  doProcess: () => Promise<void>;
 };
 
 export const createActionSlice: StateCreator<ChatStore, [], [], ActionSlice> = (set, get) => ({
   isOngoing: (requestId: string) => {
     return get().runningProcesses.some((process) => process.requestId === requestId);
-  },
-  isAnalysisRunning: () => {
-    return get().runningProcesses.some((process) => process.type === 'analyse');
   },
   isExecutionRunning: () => {
     return get().runningProcesses.some((process) => process.type === 'execute' || process.type === 'run');
@@ -123,7 +118,7 @@ export const createActionSlice: StateCreator<ChatStore, [], [], ActionSlice> = (
 
     useChatStore.getState().editToolCall((toolCall: AICToolCall) => {
       toolCall.output = '';
-      toolCall.is_code_executing = true;
+      toolCall.is_executing = true;
     }, toolCallId);
 
     get().runApiWithProcess(
@@ -139,7 +134,7 @@ export const createActionSlice: StateCreator<ChatStore, [], [], ActionSlice> = (
       toolCallId,
       (process) => {
         useChatStore.getState().editToolCall((toolCall) => {
-          toolCall.is_code_executing = false;
+          toolCall.is_executing = false;
           // Enforce limit on output length, and put info that it was truncated only if limit was reached, truncate so the last part remains (not the first)
           if (toolCall.output && toolCall.output?.length > TOOL_CALL_OUTPUT_LIMIT) {
             toolCall.output = `Output truncated to last ${TOOL_CALL_OUTPUT_LIMIT} characters:\n...\n${toolCall.output?.substring(
@@ -170,65 +165,6 @@ export const createActionSlice: StateCreator<ChatStore, [], [], ActionSlice> = (
     });
   },
 
-  /**
-   * doExecute expects that the last message group is the one it should be filling in.
-   */
-  doExecute: async () => {
-    const chat = get().chat;
-
-    const lastGroupLocation = getLastGroup(chat);
-
-    if (!lastGroupLocation || !chat) {
-      throw new Error('No group or chat found');
-    }
-
-    const lastGroup = lastGroupLocation.group;
-
-    //reset analysis
-    useChatStore.setState(() => ({
-      analysis: {
-        agent_id: undefined,
-        relevant_material_ids: undefined,
-        next_step: undefined,
-        thinking_process: undefined,
-      },
-    }));
-
-    get().runApiWithProcess(
-      {
-        chat,
-        relevant_materials_ids: lastGroup.materials_ids,
-        agent_id: lastGroup.agent_id,
-      },
-      ChatAPI.execute,
-      'execute',
-      lastGroup.id,
-      async () => {
-        const chat = useChatStore.getState().chat;
-        const messageLocation = getLastMessage(chat);
-
-        //If the message is still empty, remove it
-
-        if (messageLocation) {
-          if (messageLocation.message.content === '' && messageLocation.message.tool_calls.length === 0) {
-            useChatStore.getState().removeMessageFromGroup(messageLocation.message.id);
-          } else {
-            useChatStore.getState().editMessage((message) => {
-              message.is_streaming = false;
-
-              for (const toolCall of message.tool_calls) {
-                toolCall.is_streaming = false;
-              }
-            }, messageLocation.message.id);
-          }
-
-          await useChatStore.getState().saveCurrentChatHistory();
-        } else {
-          console.warn(`Last Message not found`, chat);
-        }
-      },
-    );
-  },
   stopWork: async () => {
     for (const process of get().runningProcesses.slice()) {
       get().finishProcess(process.requestId, true);
@@ -240,7 +176,7 @@ export const createActionSlice: StateCreator<ChatStore, [], [], ActionSlice> = (
     next_step: undefined,
     thinking_process: undefined,
   },
-  doAnalysis: async () => {
+  doProcess: async () => {
     try {
       const chat = get().chat;
       if (!chat) {
@@ -251,7 +187,7 @@ export const createActionSlice: StateCreator<ChatStore, [], [], ActionSlice> = (
         {
           chat: chat,
         },
-        ChatAPI.analyse,
+        ChatAPI.process,
         'analyse',
         chat.id,
         () => {

@@ -1,6 +1,6 @@
 usage = "Use this when you need to access my asana"
 content_type = "api"
-content_api = """
+content = """
 ""\"
 Assume that you already have the access token and try to execute, only ask about setup if it fails.
 

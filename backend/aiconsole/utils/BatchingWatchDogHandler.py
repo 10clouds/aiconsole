@@ -23,7 +23,7 @@ import threading
 
 class BatchingWatchDogHandler(watchdog.events.FileSystemEventHandler):
     def __init__(self, reload, extension=".toml"):
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.timer = None
         self.reload = reload
         self.extension = extension

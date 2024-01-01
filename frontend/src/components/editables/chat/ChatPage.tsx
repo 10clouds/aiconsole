@@ -30,7 +30,7 @@ import ScrollToBottom, { useAnimating, useScrollToBottom, useSticky } from 'reac
 import { v4 as uuidv4 } from 'uuid';
 import { EditorHeader } from '../EditorHeader';
 import { CommandInput } from './CommandInput';
-import { GuideMe } from './GuideMe';
+import { Analysis } from './Analysis';
 import { ArrowDown } from 'lucide-react';
 import { SendRotated } from '@/components/common/icons/SendRotated';
 import { useToastsStore } from '@/store/common/useToastsStore';
@@ -87,7 +87,7 @@ export function ChatPage() {
   const chat = useChatStore((state) => state.chat);
   const setLastUsedChat = useChatStore((state) => state.setLastUsedChat);
   const loadingMessages = useChatStore((state) => state.loadingMessages);
-  const isAnalysisRunning = useChatStore((state) => state.isAnalysisRunning());
+  const isAnalysisRunning = useChatStore((state) => state.chat?.is_analysis_in_progress);
   const isExecutionRunning = useChatStore((state) => state.isExecutionRunning());
   const stopWork = useChatStore((state) => state.stopWork);
   const submitCommand = useChatStore((state) => state.submitCommand);
@@ -264,7 +264,7 @@ export function ChatPage() {
                 </div>
               )}
 
-              {isAnalysisRunning ? <GuideMe /> : null}
+              {isAnalysisRunning ? <Analysis /> : null}
             </ScrollToBottom>
           ) : (
             <div className="h-full overflow-y-auto flex flex-col"></div>

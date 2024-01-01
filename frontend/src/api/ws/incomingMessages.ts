@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ChatWSMessage } from '@/types/editables/chatWebSocketTypes';
+import { ChatWSMessage, RequestProcessingFinishedWSMessage } from '@/types/editables/chatWebSocketTypes';
 import {
   InitialProjectStatusWSMessage,
   ProjectClosedWSMessage,
@@ -51,4 +51,5 @@ export type IncomingWSMessage =
   | ProjectLoadingWSMessage
   | AssetsUpdatedWSMessage
   | SettingsWSMessage
+  | RequestProcessingFinishedWSMessage
   | ChatWSMessage;

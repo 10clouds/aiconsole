@@ -1,14 +1,42 @@
 import { useChatStore } from '@/store/editables/chat/useChatStore';
-import { useSettingsStore } from '@/store/settings/useSettingsStore';
 import { RequestProcessingFinishedWSMessage } from '@/types/editables/chatWebSocketTypes';
-import { getLastMessage } from '@/utils/editables/chatUtils';
+
+/*
+
+if (data.stage === 'end') {
+      useChatStore.getState().editToolCall((toolCall) => {
+        toolCall.is_executing = false;
+      }, data.id);
+
+      useChatStore.getState().finishProcess(data.request_id, false);
+      const chat = useChatStore.getState().chat;
+
+      //if all code in the current message is ran, continue operation with the same agent
+      const toolCallLocation = getToolCall(chat, data.id);
+      const lastMessage = getLastMessage(chat);
+
+      const message = toolCallLocation?.message;
+
+      if (message?.id === lastMessage?.message.id) {
+        // if all tools have finished running, continue operation with the same agent
+        const finishedRunnigCode = message?.tool_calls.every(
+          (toolCall) => toolCall.is_executing === false && toolCall.output !== undefined,
+        );
+
+        if (finishedRunnigCode) {
+          await useChatStore.getState().doExecute(); // Resume operation with the same agent
+        }
+      }
+    }
+
+*/
 
 export async function handleRequestProcessingFinishedWSMessage(data: RequestProcessingFinishedWSMessage) {
-  if (data.aborted) {
-    useChatStore.getState().finishProcess(data.request_id, true);
-    return;
-  }
+  useChatStore.getState().finishProcess(data.request_id, data.aborted);
 
+  console.log('Running processes: ', useChatStore.getState().runningProcesses);
+
+  /*
   if (useChatStore.getState().analysis.agent_id) {
     //if analysis ended
     if (useChatStore.getState().analysis.agent_id !== 'user' && useChatStore.getState().analysis.next_step) {
@@ -18,6 +46,8 @@ export async function handleRequestProcessingFinishedWSMessage(data: RequestProc
         materials_ids: useChatStore.getState().analysis.relevant_material_ids || [],
         role: 'assistant',
         messages: [],
+        analysis: '',
+        id: data.request_id,
       });
 
       useChatStore.getState().finishProcess(data.request_id, false);
@@ -49,5 +79,5 @@ export async function handleRequestProcessingFinishedWSMessage(data: RequestProc
     } else {
       console.error('Received request processing finished message without request id');
     }
-  }
+  }*/
 }

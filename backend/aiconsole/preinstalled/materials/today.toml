@@ -4,7 +4,7 @@ usage = "When you need to know what is the Today's date"
 usage_examples = []
 default_status = "enabled"
 content_type = "dynamic_text"
-content_dynamic_text = """
+content = """
 from datetime import datetime
 
 async def content(context):

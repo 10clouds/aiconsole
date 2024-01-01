@@ -44,7 +44,7 @@ interface MessageProps {
 }
 
 export function ToolCall({ group, toolCall: tool_call }: MessageProps) {
-  const removeToolCallFromMessage = useChatStore((state) => state.removeToolCallFromMessage);
+  const deleteToolCall = useChatStore((state) => state.deleteToolCall);
   const editToolCall = useChatStore((state) => state.editToolCall);
   const saveCommandAndMessagesToHistory = useChatStore((state) => state.saveCommandAndMessagesToHistory);
 
@@ -75,12 +75,11 @@ export function ToolCall({ group, toolCall: tool_call }: MessageProps) {
   );
 
   const handleRemoveClick = useCallback(() => {
-    removeToolCallFromMessage(tool_call.id);
-  }, [tool_call.id, removeToolCallFromMessage]);
+    deleteToolCall(tool_call.id);
+  }, [tool_call.id, deleteToolCall]);
 
   //Either executing or streaming while there are still no output messages
-  const shouldDisplaySpinner =
-    tool_call.is_code_executing || (tool_call.is_streaming && tool_call.output === undefined);
+  const shouldDisplaySpinner = tool_call.is_executing || (tool_call.is_streaming && tool_call.output === undefined);
 
   const isError =
     tool_call.output?.toLowerCase().includes('traceback') ||

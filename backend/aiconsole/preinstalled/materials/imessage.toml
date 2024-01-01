@@ -4,7 +4,7 @@ usage = "Use this to get to know how to handle iMessage and Contacts apps in mac
 usage_examples = []
 default_status = "enabled"
 content_type = "static_text"
-content_static_text = """
+content = """
 ## How to get contact information from contacts
 
 Example: looking for a contact with a name Agata:

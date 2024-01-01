@@ -4,7 +4,7 @@ usage = "Use this to get to know how to get weather information."
 usage_examples = []
 default_status = "enabled"
 content_type = "static_text"
-content_static_text = """
+content = """
 In order to get weather data use the following python script:
 
 ```python

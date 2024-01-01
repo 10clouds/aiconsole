@@ -4,29 +4,4 @@ usage = "Use this always when code is about to be executed. Execution environmen
 usage_examples = []
 default_status = "enabled"
 content_type = "dynamic_text"
-content_dynamic_text = """
-from datetime import datetime
-import getpass
-import os
-import platform
-import getpass
-import os
-import platform
-import subprocess
-import datetime
-
-async def content(context):
-    return f""\"
-## Execution environment
-
-os: {platform.system()}
-cwd: {os.getcwd()}
-user_name: {getpass.getuser()}
-time_stamp: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-python_version: {platform.python_version()}
-default_shell: {os.environ.get('SHELL')}
-
-## Python Packages
-{available_packages}
-""\"
-"""
+content = "file://./environment.py"

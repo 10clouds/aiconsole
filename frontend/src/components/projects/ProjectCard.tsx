@@ -15,27 +15,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { cn } from '@/utils/common/cn';
-import { Button } from '@/components/common/Button';
 import { useRecentProjectsStore } from '@/store/projects/useRecentProjectsStore';
-import {
-  Blocks,
-  Copy,
-  Edit,
-  EyeOff,
-  LucideIcon,
-  MessageSquare,
-  MoreVertical,
-  ScanText,
-  StickyNote,
-  Trash,
-} from 'lucide-react';
+import { ContextMenuItems } from '@/types/common/contextMenu';
+import { cn } from '@/utils/common/cn';
+import { LucideIcon, MoreVertical, Trash } from 'lucide-react';
 import { MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useProjectStore } from '../../store/projects/useProjectStore';
-import { Icon } from '../common/icons/Icon';
 import { ContextMenu, ContextMenuRef } from '../common/ContextMenu';
-import { ContextMenuItems } from '@/types/common/contextMenu';
-import { AgentAvatar } from '../editables/chat/AgentAvatar';
+import { Icon } from '../common/icons/Icon';
 
 const MAX_CHATS_TO_DISPLAY = 3;
 interface CounterItemProps {
