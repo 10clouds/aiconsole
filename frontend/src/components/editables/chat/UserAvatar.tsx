@@ -4,7 +4,7 @@ import { useAPIStore } from '@/store/useAPIStore';
 import { cn } from '@/utils/common/cn';
 
 interface UserAvatarProps {
-  email?: string;
+  email?: string | null;
   title?: string;
   type: 'large' | 'small' | 'extraSmall';
   className?: string;
@@ -29,17 +29,18 @@ export function UserAvatar({ email, title, type, className }: UserAvatarProps) {
           setAvatarURL(avatarCache.get(email));
           return;
         }
-
-        try {
-          const response = await ky.get(`${getBaseURL()}/profile`, { searchParams: { email } }).json<AvatarResponse>();
-          if (response.avatar_url) {
-            // Store in cache
-            avatarCache.set(email, response.avatar_url);
-            setAvatarURL(response.avatar_url);
-          }
-        } catch (error) {
-          console.error('Error fetching avatar URL:', error);
+      }
+      try {
+        const response = await ky
+          .get(`${getBaseURL()}/profile`, { searchParams: email ? { email } : undefined })
+          .json<AvatarResponse>();
+        if (response.avatar_url) {
+          // Store in cache
+          avatarCache.set(email, response.avatar_url);
+          setAvatarURL(response.avatar_url);
         }
+      } catch (error) {
+        console.error('Error fetching avatar URL:', error);
       }
     };
 

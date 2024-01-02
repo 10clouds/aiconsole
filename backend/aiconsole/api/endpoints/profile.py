@@ -13,10 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Optional
 import requests
 from pydantic import BaseModel
 from fastapi import APIRouter
 from libgravatar import Gravatar
+
+DEFAULT_AVATAR_URL = "https://gravatar.com/avatar/?d=mp"
 
 
 class UserProfile(BaseModel):
@@ -28,7 +31,10 @@ router = APIRouter()
 
 
 @router.get("/profile", response_model=UserProfile)
-def profile(email: str):
+def profile(email: Optional[str] = None):
+    if not email:
+        return UserProfile(username=f"user", avatar_url=DEFAULT_AVATAR_URL)
+
     gravatar = Gravatar(email)
     url_profile_json = gravatar.get_profile(data_format="json")
     response = requests.get(url_profile_json)
@@ -42,4 +48,4 @@ def profile(email: str):
         )
         return user_profile
     else:
-        return UserProfile(username=f"{email}", avatar_url="https://gravatar.com/avatar/?d=mm")
+        return UserProfile(username=f"{email}", avatar_url=DEFAULT_AVATAR_URL)
