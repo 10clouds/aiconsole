@@ -13,6 +13,7 @@ interface UserAvatarProps {
 interface AvatarResponse {
   avatar_url: string;
   username: string;
+  gravatar: boolean;
 }
 
 // Global cache for avatar URLs
@@ -34,11 +35,11 @@ export function UserAvatar({ email, title, type, className }: UserAvatarProps) {
         const response = await ky
           .get(`${getBaseURL()}/profile`, { searchParams: email ? { email } : undefined })
           .json<AvatarResponse>();
-        if (response.avatar_url) {
-          // Store in cache
+        if (!response.gravatar) {
+          response.avatar_url = `${getBaseURL()}${response.avatar_url}`;
+        } 
           avatarCache.set(email, response.avatar_url);
           setAvatarURL(response.avatar_url);
-        }
       } catch (error) {
         console.error('Error fetching avatar URL:', error);
       }
