@@ -8,6 +8,8 @@ from aiconsole.core.settings.project_settings import get_aiconsole_settings
 
 AVATARS_PATH = "aiconsole.preinstalled.avatars"
 
+DEFAULT_USERNAME = "User"
+
 
 class UserProfileService:
     @staticmethod
@@ -16,7 +18,7 @@ class UserProfileService:
             return profile
 
         return UserProfile(
-            username=email if email else "User",
+            username=email if email else DEFAULT_USERNAME,
             email=email,
             avatar_url=UserProfileService._get_default_avatar(email=email)
             if email
