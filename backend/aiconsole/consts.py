@@ -15,7 +15,6 @@
 # limitations under the License.
 from pathlib import Path
 
-
 # this is a path to the root of the project - usually the installed one
 # this is pointing to the backend/aiconsole directory
 AICONSOLE_PATH = Path(__file__).parent
@@ -37,12 +36,6 @@ DIR_WITH_AICONSOLE_PACKAGE = Path(__file__).parent.parent
 HISTORY_LIMIT: int = 1000
 COMMANDS_HISTORY_JSON: str = "command_history.json"
 
-try:
-    from aiconsole.core.gpt.consts import GPTMode
-
-    DEFAULT_MODE: str = GPTMode.SPEED.value
-except ImportError as error:
-    pass
 
 DIRECTOR_MIN_TOKENS: int = 250
 DIRECTOR_PREFERRED_TOKENS: int = 1000
