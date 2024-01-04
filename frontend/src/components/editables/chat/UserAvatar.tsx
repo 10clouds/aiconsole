@@ -4,7 +4,7 @@ import { useAPIStore } from '@/store/useAPIStore';
 import { cn } from '@/utils/common/cn';
 
 interface UserAvatarProps {
-  email?: string | undefined;
+  email?: string;
   title?: string;
   type: 'large' | 'small' | 'extraSmall';
   className?: string;
