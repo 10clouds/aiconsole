@@ -4,7 +4,7 @@ import { useAPIStore } from '@/store/useAPIStore';
 import { cn } from '@/utils/common/cn';
 
 interface UserAvatarProps {
-  email?: string | null;
+  email?: string | undefined;
   title?: string;
   type: 'large' | 'small' | 'extraSmall';
   className?: string;
@@ -16,7 +16,6 @@ interface AvatarResponse {
   gravatar: boolean;
 }
 
-// Global cache for avatar URLs
 const avatarCache = new Map();
 
 export function UserAvatar({ email, title, type, className }: UserAvatarProps) {
@@ -25,11 +24,9 @@ export function UserAvatar({ email, title, type, className }: UserAvatarProps) {
 
   useEffect(() => {
     const fetchAvatar = async () => {
-      if (email) {
-        if (avatarCache.has(email)) {
-          setAvatarURL(avatarCache.get(email));
-          return;
-        }
+      if (email && avatarCache.has(email)) {
+        setAvatarURL(avatarCache.get(email));
+        return;
       }
       try {
         const response = await ky
@@ -37,9 +34,9 @@ export function UserAvatar({ email, title, type, className }: UserAvatarProps) {
           .json<AvatarResponse>();
         if (!response.gravatar) {
           response.avatar_url = `${getBaseURL()}${response.avatar_url}`;
-        } 
-          avatarCache.set(email, response.avatar_url);
-          setAvatarURL(response.avatar_url);
+        }
+        avatarCache.set(email, response.avatar_url);
+        setAvatarURL(response.avatar_url);
       } catch (error) {
         console.error('Error fetching avatar URL:', error);
       }

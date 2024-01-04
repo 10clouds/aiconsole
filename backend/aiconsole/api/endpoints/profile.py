@@ -14,16 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import hashlib
-import requests
-from typing import Optional
 from pathlib import Path
-from pydantic import BaseModel
+from typing import Optional
+
+import requests
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
+from libgravatar import Gravatar
+from pydantic import BaseModel
 
 from aiconsole.core.settings.project_settings import get_aiconsole_settings
 from aiconsole.utils.resource_to_path import resource_to_path
-from libgravatar import Gravatar
 
 AVATARS_PATH = "aiconsole.preinstalled.avatars"
 
