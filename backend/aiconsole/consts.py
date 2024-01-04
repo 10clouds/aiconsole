@@ -39,6 +39,7 @@ COMMANDS_HISTORY_JSON: str = "command_history.json"
 
 try:
     from aiconsole.core.gpt.consts import GPTMode
+
     DEFAULT_MODE: str = GPTMode.SPEED.value
 except ImportError as error:
     pass
