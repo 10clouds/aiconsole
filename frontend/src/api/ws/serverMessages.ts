@@ -101,7 +101,7 @@ export type NotifyAboutChatMutationServerMessage = z.infer<typeof NotifyAboutCha
 
 export const ChatOpenedServerMessageSchema = BaseServerMessageSchema.extend({
   type: z.literal('ChatOpenedServerMessage'),
-  chat: ChatSchema, // Assuming ChatSchema is defined
+  chat: ChatSchema,
 });
 
 export type ChatOpenedServerMessage = z.infer<typeof ChatOpenedServerMessageSchema>;

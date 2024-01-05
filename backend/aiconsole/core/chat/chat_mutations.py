@@ -125,9 +125,9 @@ class CreateToolCallMutation(BaseModel):
     message_id: str
     tool_call_id: str
     code: str
-    language: LanguageStr | None
+    language: LanguageStr | None = None
     headline: str
-    output: str | None
+    output: str | None = None
 
 
 class DeleteToolCallMutation(BaseModel):
@@ -168,7 +168,7 @@ class SetLanguageToolCallMutation(BaseModel):
 class SetOutputToolCallMutation(BaseModel):
     type: Literal["SetOutputToolCallMutation"] = "SetOutputToolCallMutation"
     tool_call_id: str
-    output: str | None
+    output: str | None = None
 
 
 class AppendToOutputToolCallMutation(BaseModel):
