@@ -1,0 +1,38 @@
+from datetime import datetime
+
+from pydantic import BaseModel, HttpUrl
+
+
+class Photo(BaseModel):
+    value: HttpUrl
+    type: str
+
+
+class ProfileBackground(BaseModel):
+    color: str
+    url: HttpUrl
+
+
+class URLItem(BaseModel):
+    value: HttpUrl
+    title: str
+
+
+class ShareFlags(BaseModel):
+    search_engines: bool
+
+
+class GravatarUserProfile(BaseModel):
+    hash: str
+    requestHash: str
+    profileUrl: HttpUrl
+    preferredUsername: str
+    thumbnailUrl: HttpUrl
+    photos: list[Photo]
+    last_profile_edit: datetime
+    profileBackground: ProfileBackground
+    displayName: str
+    aboutMe: str
+    currentLocation: str
+    urls: list[URLItem]
+    share_flags: ShareFlags

@@ -1,10 +1,9 @@
-from typing import Optional
-
-from pydantic import BaseModel
+from pathlib import Path
+from pydantic import BaseModel, HttpUrl
 
 
 class UserProfile(BaseModel):
-    username: Optional[str]
-    email: Optional[str]
-    avatar_url: Optional[str]
-    gravatar: Optional[bool]
+    username: str
+    email: str | None
+    avatar_url: str | HttpUrl | None
+    gravatar: bool

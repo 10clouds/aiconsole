@@ -27,7 +27,7 @@ router = APIRouter()
 
 @router.get("/profile", response_model=UserProfile)
 def profile(email: Optional[str] = None) -> UserProfile:
-    return UserProfileService.get_profile(email=email)
+    return UserProfileService().get_profile(email=email)
 
 
 @router.get("/profile_image")
