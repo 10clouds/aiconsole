@@ -19,19 +19,19 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
 from aiconsole.core.users.models import UserProfile
-from aiconsole.core.users.user import UserProfileService
+from aiconsole.core.users.user import user_profile_service
 
 router = APIRouter()
 
 
 @router.get("/profile", response_model=UserProfile)
 def profile(email: Optional[str] = None) -> UserProfile:
-    return UserProfileService().get_profile(email=email)
+    return user_profile_service().get_profile(email=email)
 
 
 @router.get("/profile_image")
 def profile_image(img_filename: str) -> FileResponse:
-    file_path = UserProfileService.get_profile_image_path(img_filename)
+    file_path = user_profile_service().get_profile_image_path(img_filename)
     if not file_path.is_file():
         raise HTTPException(status_code=404, detail="Image not found")
     return FileResponse(str(file_path))

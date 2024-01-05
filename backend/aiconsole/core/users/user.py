@@ -2,7 +2,7 @@ import hashlib
 from functools import lru_cache
 from pathlib import Path
 
-from aiconsole.core.clients.gravatar import GravatarClient, GravatarUserProfile
+from aiconsole.core.clients.gravatar import GravatarUserProfile, gravatar_client
 from aiconsole.core.settings.project_settings import get_aiconsole_settings
 from aiconsole.core.users.models import UserProfile
 from aiconsole.utils.resource_to_path import resource_to_path
@@ -14,7 +14,7 @@ DEFAULT_USERNAME = "User"
 class UserProfileService:
     def get_profile(self, email: str | None = None) -> UserProfile:
         if email:
-            gravatar_profile = GravatarClient().get_profile(email)
+            gravatar_profile = gravatar_client().get_profile(email)
             if gravatar_profile:
                 return self._create_user_profile_from_gravatar(email, gravatar_profile)
 
