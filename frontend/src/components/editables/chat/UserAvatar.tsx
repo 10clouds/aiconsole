@@ -33,7 +33,7 @@ export function UserAvatar({ email, title, type, className }: UserAvatarProps) {
           .get(`${getBaseURL()}/profile`, { searchParams: email ? { email } : undefined })
           .json<AvatarResponse>();
         if (!response.gravatar) {
-          response.avatar_url = `${getBaseURL()}${response.avatar_url}`;
+          response.avatar_url = `${getBaseURL()}/${response.avatar_url}`;
         }
         avatarCache.set(email, response.avatar_url);
         setAvatarURL(response.avatar_url);

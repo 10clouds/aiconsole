@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel, HttpUrl
 
@@ -19,7 +20,7 @@ class URLItem(BaseModel):
 
 
 class ShareFlags(BaseModel):
-    search_engines: bool
+    search_engines: Optional[bool]
 
 
 class GravatarUserProfile(BaseModel):
@@ -30,9 +31,9 @@ class GravatarUserProfile(BaseModel):
     thumbnailUrl: HttpUrl
     photos: list[Photo]
     last_profile_edit: datetime
-    profileBackground: ProfileBackground
+    profileBackground: Optional[ProfileBackground] = None
     displayName: str
-    aboutMe: str
-    currentLocation: str
-    urls: list[URLItem]
+    aboutMe: Optional[str] = None
+    currentLocation: Optional[str] = None
+    urls: Optional[list[URLItem]] = []
     share_flags: ShareFlags
