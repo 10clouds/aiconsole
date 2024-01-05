@@ -1,7 +1,7 @@
 import hashlib
+from functools import lru_cache
 from pathlib import Path
 
-from aiconsole.base.singleton import Singleton
 from aiconsole.core.clients.gravatar import GravatarClient, GravatarUserProfile
 from aiconsole.core.settings.project_settings import get_aiconsole_settings
 from aiconsole.core.users.models import UserProfile
@@ -11,7 +11,7 @@ AVATARS_PATH = "aiconsole.preinstalled.avatars"
 DEFAULT_USERNAME = "User"
 
 
-class UserProfileService(Singleton):
+class UserProfileService:
     def get_profile(self, email: str | None = None) -> UserProfile:
         if email:
             gravatar_profile = GravatarClient().get_profile(email)
@@ -48,3 +48,8 @@ class UserProfileService(Singleton):
         hash_value = hashlib.sha256(string=blob.encode()).hexdigest()
         choice_index = int(hash_value, base=16) % len(choices)
         return choices[choice_index]
+
+
+@lru_cache
+def user_profile_service() -> UserProfileService:
+    return UserProfileService()

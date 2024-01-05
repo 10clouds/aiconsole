@@ -1,15 +1,15 @@
 import hashlib
 import logging
+from functools import lru_cache
 
 import requests
 
-from aiconsole.base.singleton import Singleton
 from aiconsole.core.clients.models.gravatar import GravatarUserProfile
 
 _log = logging.getLogger(__name__)
 
 
-class GravatarClient(Singleton):
+class GravatarClient:
     def __init__(self):
         self.base_url = "https://www.gravatar.com"
 
@@ -24,3 +24,8 @@ class GravatarClient(Singleton):
         except requests.RequestException as e:
             _log.exception(f"[{self.__class__.__name__}] Request to {gravatar_url} failed.")
             return None
+
+
+@lru_cache
+def gravatar_client() -> GravatarClient:
+    return GravatarClient()

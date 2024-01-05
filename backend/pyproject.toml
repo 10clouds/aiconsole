@@ -26,6 +26,14 @@ appdirs = "^1.4.4"
 rtoml = "^0.10.0"
 send2trash = "^1.8.2"
 libgravatar = "^1.0.4"
+
+[tool.poetry.group.dev.dependencies]
+isort = "^5.13.2"
+black = "^23.12.1"
+pre-commit = "^3.6.0"
+
+
+[tool.poetry.group.test.dependencies]
 pytest = "^7.4.4"
 pytest-asyncio = "^0.23.3"
 

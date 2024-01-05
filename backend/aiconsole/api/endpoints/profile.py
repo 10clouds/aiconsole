@@ -21,7 +21,6 @@ from fastapi.responses import FileResponse
 from aiconsole.core.users.models import UserProfile
 from aiconsole.core.users.user import UserProfileService
 
-
 router = APIRouter()
 
 
