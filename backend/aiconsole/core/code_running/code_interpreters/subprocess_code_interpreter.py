@@ -31,22 +31,22 @@
 # This file has been taken and slighly modified from the wonderful project
 # "open-interpreter" by Killian Lucas https://github.com/KillianLucas/open-interpreter
 #
+import logging
 import os
+import queue
 import subprocess
 import threading
-import queue
 import time
 import traceback
 from typing import AsyncGenerator
 
 from aiconsole.core.assets.materials.material import Material
-from .base_code_interpreter import BaseCodeInterpreter
-import logging
-
 from aiconsole_toolkit.env import (
     get_current_project_venv_bin_path,
     get_current_project_venv_path,
 )
+
+from .base_code_interpreter import BaseCodeInterpreter
 
 _log = logging.getLogger(__name__)
 

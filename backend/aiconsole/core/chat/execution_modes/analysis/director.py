@@ -15,9 +15,15 @@
 # limitations under the License.
 
 from aiconsole.core.chat.chat_mutator import ChatMutator
-from aiconsole.core.chat.execution_modes.analysis.create_agents_str import create_agents_str
-from aiconsole.core.chat.execution_modes.analysis.create_materials_str import create_materials_str
-from aiconsole.core.chat.execution_modes.analysis.gpt_analysis_function_step import gpt_analysis_function_step
+from aiconsole.core.chat.execution_modes.analysis.create_agents_str import (
+    create_agents_str,
+)
+from aiconsole.core.chat.execution_modes.analysis.create_materials_str import (
+    create_materials_str,
+)
+from aiconsole.core.chat.execution_modes.analysis.gpt_analysis_function_step import (
+    gpt_analysis_function_step,
+)
 from aiconsole.core.gpt.consts import GPTMode
 
 

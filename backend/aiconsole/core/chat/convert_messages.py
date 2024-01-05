@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import json
+
 from aiconsole.core.chat.types import AICMessage, AICMessageGroup, Chat
 from aiconsole.core.gpt.types import (
     GPTFunctionCall,
@@ -23,7 +24,6 @@ from aiconsole.core.gpt.types import (
     GPTRequestToolMessage,
     GPTToolCall,
 )
-
 
 last_system_message = None
 

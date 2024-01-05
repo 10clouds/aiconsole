@@ -26,21 +26,33 @@ from aiconsole.core.assets.asset import AssetLocation, AssetStatus
 from aiconsole.core.assets.materials.material import Material
 from aiconsole.core.chat.chat_mutations import (
     CreateMessageGroupMutation,
-    SetIsAnalysisInProgressMutation,
     SetAgentIdMessageGroupMutation,
     SetAnalysisMessageGroupMutation,
+    SetIsAnalysisInProgressMutation,
     SetMaterialsIdsMessageGroupMutation,
     SetTaskMessageGroupMutation,
 )
 from aiconsole.core.chat.chat_mutator import ChatMutator
 from aiconsole.core.chat.convert_messages import convert_messages
-from aiconsole.core.chat.execution_modes.analysis.agents_to_choose_from import agents_to_choose_from
-from aiconsole.core.chat.execution_modes.analysis.create_plan_class import create_plan_class
+from aiconsole.core.chat.execution_modes.analysis.agents_to_choose_from import (
+    agents_to_choose_from,
+)
+from aiconsole.core.chat.execution_modes.analysis.create_plan_class import (
+    create_plan_class,
+)
 from aiconsole.core.chat.types import Chat
 from aiconsole.core.gpt.consts import GPTMode
 from aiconsole.core.gpt.gpt_executor import GPTExecutor
-from aiconsole.core.gpt.request import GPTRequest, ToolDefinition, ToolFunctionDefinition
-from aiconsole.core.gpt.types import EnforcedFunctionCall, EnforcedFunctionCallFuncSpec, GPTRequestTextMessage
+from aiconsole.core.gpt.request import (
+    GPTRequest,
+    ToolDefinition,
+    ToolFunctionDefinition,
+)
+from aiconsole.core.gpt.types import (
+    EnforcedFunctionCall,
+    EnforcedFunctionCallFuncSpec,
+    GPTRequestTextMessage,
+)
 from aiconsole.core.project import project
 
 _log = logging.getLogger(__name__)

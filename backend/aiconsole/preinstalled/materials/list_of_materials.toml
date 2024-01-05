@@ -5,7 +5,7 @@ usage_examples = []
 default_status = "enabled"
 content_type = "dynamic_text"
 content = """
-from aiconsole.dev import project
+from aiconsole_toolkit import project
 
 async def content(context):
     newline = "\\n"

@@ -14,9 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aiconsole.core.chat.chat_mutations import ChatMutation
 from pydantic import BaseModel
 from starlette.testclient import WebSocketTestSession
+
+from aiconsole.core.chat.chat_mutations import ChatMutation
 
 
 class BaseClientMessage(BaseModel):

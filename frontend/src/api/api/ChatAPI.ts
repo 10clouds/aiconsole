@@ -18,7 +18,6 @@
 
 import ky from 'ky';
 import { API_HOOKS, getBaseURL } from '../../store/useAPIStore';
-import { Chat } from '@/types/editables/chatTypes';
 
 const runCode = async ({
   chatId,
@@ -52,18 +51,8 @@ const saveCommandToHistory = (body: object) =>
     hooks: API_HOOKS,
   });
 
-const process = async ({ chat, request_id, signal }: { chat: Chat; request_id: string; signal?: AbortSignal }) => {
-  await ky.post(`${getBaseURL()}/api/chats/${chat.id}/process`, {
-    json: { request_id: request_id },
-    signal,
-    timeout: 60000,
-    hooks: API_HOOKS,
-  });
-};
-
 export const ChatAPI = {
   runCode,
-  process,
   getCommandHistory,
   saveCommandToHistory,
 };

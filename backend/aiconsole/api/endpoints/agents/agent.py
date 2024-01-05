@@ -14,27 +14,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import FileResponse, JSONResponse
+
+from aiconsole.api.endpoints.registry import agents
+from aiconsole.api.endpoints.services import Agents, AssetWithGivenNameAlreadyExistError
 from aiconsole.api.utils.asset_exists import asset_exists, asset_path
 from aiconsole.api.utils.asset_get import asset_get
-from aiconsole.api.utils.asset_save import asset_patch, asset_post
 from aiconsole.api.utils.asset_status_change import asset_status_change
 from aiconsole.api.utils.status_change_post_body import StatusChangePostBody
 from aiconsole.core.assets.agents.agent import Agent, AgentWithStatus
 from aiconsole.core.assets.asset import AssetLocation, AssetStatus, AssetType
 from aiconsole.core.gpt.consts import GPTMode
 from aiconsole.core.project import project
-from aiconsole.core.assets.asset import AssetType
-from aiconsole.core.project.paths import get_core_assets_directory, get_project_assets_directory
+from aiconsole.core.project.paths import (
+    get_core_assets_directory,
+    get_project_assets_directory,
+)
 from aiconsole.core.project.project import is_project_initialized
-from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import JSONResponse, FileResponse
-
 
 router = APIRouter()
 
 
 @router.get("/{agent_id}")
-async def agent_get(request: Request, agent_id: str):
+async def get_agent(request: Request, agent_id: str):
     return await asset_get(
         request,
         AssetType.AGENT,
@@ -54,13 +57,19 @@ async def agent_get(request: Request, agent_id: str):
 
 
 @router.patch("/{agent_id}")
-async def agent_patch(agent_id: str, agent: Agent):
-    return await asset_patch(AssetType.AGENT, agent, agent_id)
+async def partially_update_agent(agent_id: str, agent: Agent, agents_service: Agents = Depends(agents)):
+    try:
+        await agents_service.partially_update_agent(agent_id=agent_id, agent=agent)
+    except AssetWithGivenNameAlreadyExistError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Agent with given name already exists")
 
 
 @router.post("/{agent_id}")
-async def agent_post(agent_id: str, agent: Agent):
-    return await asset_post(AssetType.AGENT, agent, agent_id)
+async def create_agent(agent_id: str, agent: Agent, agents_service: Agents = Depends(agents)):
+    try:
+        await agents_service.create_agent(agent_id=agent_id, agent=agent)
+    except AssetWithGivenNameAlreadyExistError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Agent with given name already exists")
 
 
 @router.post("/{agent_id}/status-change")

@@ -18,12 +18,13 @@ import os
 from contextlib import asynccontextmanager
 from logging import config
 
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from aiconsole.api.routers import app_router
 from aiconsole.consts import log_config
 from aiconsole.core.project import project
 from aiconsole.core.settings import project_settings
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
 
 @asynccontextmanager

@@ -16,7 +16,9 @@
 
 import random
 
-from aiconsole.core.chat.execution_modes.analysis.agents_to_choose_from import agents_to_choose_from
+from aiconsole.core.chat.execution_modes.analysis.agents_to_choose_from import (
+    agents_to_choose_from,
+)
 
 
 def create_agents_str() -> str:

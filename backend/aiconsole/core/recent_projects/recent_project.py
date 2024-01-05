@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aiconsole.utils.serializable_path import SerializablePath
-
 from pydantic import BaseModel
+
+from aiconsole.utils.serializable_path import SerializablePath
 
 
 class RecentProject(BaseModel):

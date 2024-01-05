@@ -14,13 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pydantic import BaseModel
+
 from aiconsole.core.assets.agents.agent import Agent
+from aiconsole.core.assets.materials.material import Material
 from aiconsole.core.chat.types import Chat
 from aiconsole.core.gpt.consts import GPTMode
-from aiconsole.core.assets.materials.material import Material
-
-
-from pydantic import BaseModel
 
 
 class ContentEvaluationContext(BaseModel):

@@ -100,7 +100,7 @@ export const createCommandSlice: StateCreator<ChatStore, [], [], CommandSlice> =
 
       const messageGroupId = uuid();
 
-      get().userMutateChat([
+      await get().userMutateChat([
         {
           type: 'CreateMessageGroupMutation',
           message_group_id: messageGroupId,
@@ -121,7 +121,7 @@ export const createCommandSlice: StateCreator<ChatStore, [], [], CommandSlice> =
         },
       ]);
 
-      get().saveCommandAndMessagesToHistory(command, true);
+      await get().saveCommandAndMessagesToHistory(command, true);
     }
     const scrollChatToBottom = get().scrollChatToBottom;
 

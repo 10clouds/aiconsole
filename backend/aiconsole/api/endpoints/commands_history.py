@@ -14,15 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 import json
+import logging
 import os
+
+from fastapi import APIRouter, HTTPException
 
 from aiconsole.consts import COMMANDS_HISTORY_JSON, HISTORY_LIMIT
 from aiconsole.core.chat.types import Command
 from aiconsole.core.project.paths import get_aic_directory
-from fastapi import APIRouter, HTTPException
-
 
 _log = logging.getLogger(__name__)
 

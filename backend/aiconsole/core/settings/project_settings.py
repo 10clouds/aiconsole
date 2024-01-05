@@ -22,6 +22,11 @@ import litellm
 import tomlkit
 import tomlkit.container
 import tomlkit.exceptions
+from appdirs import user_config_dir
+from pydantic import BaseModel
+from tomlkit import TOMLDocument
+from watchdog.observers import Observer
+
 from aiconsole.api.websockets.server_messages import SettingsServerMessage
 from aiconsole.core.assets.asset import AssetStatus, AssetType
 from aiconsole.core.project import project
@@ -29,10 +34,6 @@ from aiconsole.core.project.paths import get_project_directory
 from aiconsole.core.project.project import is_project_initialized
 from aiconsole.utils.BatchingWatchDogHandler import BatchingWatchDogHandler
 from aiconsole.utils.recursive_merge import recursive_merge
-from appdirs import user_config_dir
-from pydantic import BaseModel
-from tomlkit import TOMLDocument
-from watchdog.observers import Observer
 
 _log = logging.getLogger(__name__)
 

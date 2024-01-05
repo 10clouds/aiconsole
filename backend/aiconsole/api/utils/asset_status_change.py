@@ -1,8 +1,9 @@
+from fastapi import HTTPException
+from fastapi.responses import JSONResponse
+
 from aiconsole.api.utils.status_change_post_body import StatusChangePostBody
 from aiconsole.core.assets.asset import AssetType
 from aiconsole.core.settings.project_settings import get_aiconsole_settings
-from fastapi import HTTPException
-from fastapi.responses import JSONResponse
 
 
 async def asset_status_change(asset_type: AssetType, asset_id: str, body: StatusChangePostBody):

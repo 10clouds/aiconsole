@@ -118,9 +118,8 @@ async function saveNewEditableObject(editableObjectType: EditableObjectType, ass
         json: { ...asset },
         timeout: 60000,
         hooks: API_HOOKS,
-      })
-      .json()) as { renamed: boolean }
-  ).renamed;
+      }))
+  );
 }
 
 async function updateEditableObject(

@@ -14,15 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aiconsole.core.assets.asset import AssetStatus
-from aiconsole.core.project import project
-from aiconsole.core.gpt.function_calls import OpenAISchema
-
+import random
 
 from pydantic import Field
 
-
-import random
+from aiconsole.core.assets.asset import AssetStatus
+from aiconsole.core.gpt.function_calls import OpenAISchema
+from aiconsole.core.project import project
 
 
 def create_plan_class(available_agents):

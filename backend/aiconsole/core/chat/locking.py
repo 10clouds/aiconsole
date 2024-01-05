@@ -1,17 +1,23 @@
+import asyncio
 from collections import defaultdict
 from typing import Dict
-import asyncio
+
+from fastapi import HTTPException
+
 from aiconsole.api.websockets.connection_manager import AICConnection
 from aiconsole.api.websockets.server_messages import (
     NotifyAboutChatMutationServerMessage,
 )
 from aiconsole.core.chat.apply_mutation import apply_mutation
-from aiconsole.core.chat.chat_mutations import ChatMutation, LockAcquiredMutation, LockReleasedMutation
+from aiconsole.core.chat.chat_mutations import (
+    ChatMutation,
+    LockAcquiredMutation,
+    LockReleasedMutation,
+)
 from aiconsole.core.chat.chat_mutator import ChatMutator
 from aiconsole.core.chat.load_chat_history import load_chat_history
 from aiconsole.core.chat.save_chat_history import save_chat_history
 from aiconsole.core.chat.types import Chat
-from fastapi import HTTPException
 
 chats: Dict[str, Chat] = {}
 lock_events: Dict[str, asyncio.Event] = defaultdict(asyncio.Event)
@@ -39,6 +45,7 @@ async def acquire_lock(chat_id: str, request_id: str, skip_mutating_clients: boo
         chats[chat_id] = chat_history
 
     if chats[chat_id].lock_id:
+        raise Exception("Lock already acquired")
         await wait_for_lock(chat_id)
 
     chats[chat_id].lock_id = request_id
@@ -76,9 +83,8 @@ class DefaultChatMutator(ChatMutator):
 
     async def mutate(self, mutation: ChatMutation) -> None:
         if self.chat_id not in chats or chats[self.chat_id].lock_id != self.request_id:
-            raise HTTPException(
-                status_code=403,
-                detail=f"Lock not acquired for chat {self.chat_id} request_id={self.request_id} lock_id={self.chat.lock_id}",
+            raise Exception(
+                f"Lock not acquired for chat {self.chat_id} request_id={self.request_id} lock_id={self.chat.lock_id}",
             )
 
         apply_mutation(self.chat, mutation)

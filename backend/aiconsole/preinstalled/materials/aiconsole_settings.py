@@ -7,8 +7,9 @@ Available settings are:
 Tell user what setting are available if user will want to set something.
 
 """
-from aiconsole_toolkit import settings
 from typing import Any
+
+from aiconsole_toolkit import settings
 
 
 def set_code_autorun(autorun: bool) -> None:

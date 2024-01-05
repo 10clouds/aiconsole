@@ -2,6 +2,7 @@ import logging
 import os
 import platform
 import tarfile
+
 import requests
 
 _log = logging.getLogger(__name__)

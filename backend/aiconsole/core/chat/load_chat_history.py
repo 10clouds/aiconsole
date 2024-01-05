@@ -16,12 +16,11 @@
 
 import json
 import os
-from pathlib import Path
 import uuid
 from datetime import datetime
+from pathlib import Path
 
 from aiconsole.core.chat.types import Chat
-
 from aiconsole.core.project.paths import get_history_directory
 
 

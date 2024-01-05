@@ -14,13 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pydantic import PlainSerializer
-
-
 from pathlib import Path
 from typing import Annotated
 
+from pydantic import PlainSerializer
 
-SerializablePath = Annotated[
-    Path, PlainSerializer(lambda x: str(x), return_type=str)
-]
+SerializablePath = Annotated[Path, PlainSerializer(lambda x: str(x), return_type=str)]

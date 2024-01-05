@@ -15,10 +15,15 @@
 # limitations under the License.
 
 from pathlib import Path
-from aiconsole.core.recent_projects.recent_projects import get_recent_project, remove_from_recent_projects
+
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+
+from aiconsole.core.recent_projects.recent_projects import (
+    get_recent_project,
+    remove_from_recent_projects,
+)
 
 
 class _DeleteProjectPayload(BaseModel):

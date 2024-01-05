@@ -15,14 +15,18 @@
 # limitations under the License.
 
 from datetime import datetime
-from aiconsole.core.assets.asset import AssetLocation
+
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
+
 from aiconsole.core.assets.agents.agent import Agent
+from aiconsole.core.assets.asset import AssetLocation
+from aiconsole.core.assets.materials.content_evaluation_context import (
+    ContentEvaluationContext,
+)
+from aiconsole.core.assets.materials.material import Material
 from aiconsole.core.chat.types import Chat
 from aiconsole.core.gpt.consts import GPTMode
-from aiconsole.core.assets.materials.content_evaluation_context import ContentEvaluationContext
-from aiconsole.core.assets.materials.material import Material
 
 router = APIRouter()
 

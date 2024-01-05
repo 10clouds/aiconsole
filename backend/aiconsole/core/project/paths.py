@@ -16,6 +16,7 @@
 
 import os
 from pathlib import Path
+
 from aiconsole.core.assets.asset import AssetType
 from aiconsole.core.project.project import is_project_initialized
 from aiconsole.utils.resource_to_path import resource_to_path

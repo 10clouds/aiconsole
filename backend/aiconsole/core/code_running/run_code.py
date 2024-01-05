@@ -15,9 +15,10 @@
 # limitations under the License.
 
 
-from aiconsole.core.code_running.code_interpreters.base_code_interpreter import BaseCodeInterpreter
+from aiconsole.core.code_running.code_interpreters.base_code_interpreter import (
+    BaseCodeInterpreter,
+)
 from aiconsole.core.code_running.code_interpreters.language_map import language_map
-
 
 code_interpreters = {}
 

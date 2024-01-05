@@ -13,10 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-    
+
+
 class NoOpenAPIKeyException(Exception):
     def __str__(self):
-        return "No API key provided or is invalid. " \
-               "You must set the environment variable OPENAI_API_KEY=<API-KEY>. " \
-               "Generate API keys in the OpenAI web interface. " \
-               "See https://platform.openai.com/account/api-keys for details."
+        return (
+            "No API key provided or is invalid. "
+            "You must set the environment variable OPENAI_API_KEY=<API-KEY>. "
+            "Generate API keys in the OpenAI web interface. "
+            "See https://platform.openai.com/account/api-keys for details."
+        )

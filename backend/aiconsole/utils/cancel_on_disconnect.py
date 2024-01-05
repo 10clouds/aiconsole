@@ -13,18 +13,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-    
+
 
 import asyncio
-from functools import wraps
 import logging
 import threading
 import time
+from functools import wraps
+
 from fastapi import Request
 from fastapi.concurrency import run_until_first_complete
 from fastapi.responses import StreamingResponse
 
 _log = logging.getLogger(__name__)
+
 
 def disconnect_aware_generator(original_gen, request):
     client_disconnected = threading.Event()
@@ -44,7 +46,7 @@ def disconnect_aware_generator(original_gen, request):
             loop.close()
 
     async def async_gen():
-        if hasattr(original_gen, '__aiter__'):
+        if hasattr(original_gen, "__aiter__"):
             # Asynchronous generator
             async for chunk in original_gen:
                 if client_disconnected.is_set():
@@ -72,23 +74,21 @@ async def raise_if_disconnected(request: Request):
             raise asyncio.CancelledError("Client disconnected")
         await asyncio.sleep(0.1)  # Check every 0.1 seconds
 
+
 def cancelable_endpoint(func):
     @wraps(func)
     async def wrapper(*args, **kwargs):
-        request = kwargs.get('request')
+        request = kwargs.get("request")
         if not request:
             raise ValueError("The endpoint must have a 'request' argument")
-        
+
         response = None
 
         async def func_wrapper():
             nonlocal response
             response = await func(*args, **kwargs)
 
-        await run_until_first_complete(
-            (func_wrapper, {}),
-            (raise_if_disconnected, {"request": request})
-        )
+        await run_until_first_complete((func_wrapper, {}), (raise_if_disconnected, {"request": request}))
 
         if isinstance(response, StreamingResponse):
             response.body_iterator = disconnect_aware_generator(response.body_iterator, request)

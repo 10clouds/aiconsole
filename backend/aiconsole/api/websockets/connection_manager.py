@@ -20,10 +20,12 @@ Connection manager for websockets. Keeps track of all active connections
 
 """
 
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 from uuid import uuid4
+
 from fastapi import WebSocket
+
 from aiconsole.api.websockets.server_messages import BaseServerMessage
 
 _log = logging.getLogger(__name__)

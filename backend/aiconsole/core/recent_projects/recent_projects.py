@@ -17,11 +17,14 @@
 import os
 from pathlib import Path
 
-from aiconsole.core.chat.load_chat_history import load_chat_history
-from aiconsole.consts import MAX_RECENT_PROJECTS
-from aiconsole.core.chat.list_possible_historic_chat_ids import list_possible_historic_chat_ids
-from aiconsole.core.recent_projects.recent_project import RecentProject
 from appdirs import user_config_dir
+
+from aiconsole.consts import MAX_RECENT_PROJECTS
+from aiconsole.core.chat.list_possible_historic_chat_ids import (
+    list_possible_historic_chat_ids,
+)
+from aiconsole.core.chat.load_chat_history import load_chat_history
+from aiconsole.core.recent_projects.recent_project import RecentProject
 
 
 def _get_user_recent_projects_file():
@@ -64,7 +67,7 @@ async def remove_from_recent_projects(project_path: Path):
     _save_recent_projects(recent_projects)
 
 
-async def get_recent_project():
+async def get_recent_project() -> list[RecentProject]:
     recent_projects = _read_recent_projects()
 
     recent_projects_real = []

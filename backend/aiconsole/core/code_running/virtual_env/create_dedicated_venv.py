@@ -2,8 +2,12 @@ import logging
 import subprocess
 import sys
 
-from aiconsole.core.code_running.virtual_env.install_and_upgrade_pip import install_and_update_pip
-from aiconsole.core.code_running.virtual_env.install_dependencies import install_dependencies
+from aiconsole.core.code_running.virtual_env.install_and_upgrade_pip import (
+    install_and_update_pip,
+)
+from aiconsole.core.code_running.virtual_env.install_dependencies import (
+    install_dependencies,
+)
 from aiconsole_toolkit.env import get_current_project_venv_path
 
 _log = logging.getLogger(__name__)

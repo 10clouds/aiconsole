@@ -39,10 +39,10 @@ const SideBar = ({ initialTab }: { initialTab: string }) => {
 
   return (
     <div
-      className={`min-w-[336px] w-[336px] h-full  bg-gray-900 pl-[20px] py-[20px] drop-shadow-md flex flex-col border-r  border-gray-600`}
+      className={`min-w-[336px] w-[336px] h-full  bg-gray-900 py-[20px] drop-shadow-md flex flex-col border-r  border-gray-600`}
     >
       <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-        <Tabs.List className="mb-[15px] mr-[20px]">
+        <Tabs.List className="mb-[15px] px-5">
           {TABS.map(({ label, key }) => (
             <Tab key={key} value={key} label={label} activeTab={activeTab} />
           ))}
@@ -51,10 +51,10 @@ const SideBar = ({ initialTab }: { initialTab: string }) => {
         <Tabs.Content value="chats" className="flex-1 overflow-hidden">
           <ChatsSidebarTab />
         </Tabs.Content>
-        <Tabs.Content value="materials" className="flex-1 overflow-hidden">
+        <Tabs.Content value="materials" className="flex-1 overflow-hidden px-5">
           <AssetsSidebarTab assetType="material" assets={materials || []} />
         </Tabs.Content>
-        <Tabs.Content value="agents" className="flex-1 overflow-hidden">
+        <Tabs.Content value="agents" className="flex-1 overflow-hidden px-5">
           <AssetsSidebarTab assetType="agent" assets={agents} />
         </Tabs.Content>
       </Tabs.Root>

@@ -61,9 +61,10 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     if (!key) {
       return false;
     }
-    const { key_ok } = (await SettingsAPI.checkKey(key).json()) as {
-      key_ok: boolean;
+    const { key: returnedKey } = (await SettingsAPI.checkKey(key).json()) as {
+      key?: string;
     };
+    const key_ok = returnedKey !== undefined && returnedKey !== null && returnedKey !== '';
 
     if (!key_ok && useProjectStore.getState().isProjectOpen) {
       ProjectsAPI.closeProject();

@@ -15,8 +15,9 @@
 # limitations under the License.
 
 
-from aiconsole.api.endpoints.chats import chat, index
 from fastapi import APIRouter
+
+from aiconsole.api.endpoints.chats import chat, index
 
 router = APIRouter()
 

@@ -18,11 +18,15 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 from aiconsole.core.assets.asset import Asset, AssetLocation, AssetStatus, AssetType
-from aiconsole.core.assets.materials.documentation_from_code import documentation_from_code
+from aiconsole.core.assets.materials.documentation_from_code import (
+    documentation_from_code,
+)
 from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
 
 if TYPE_CHECKING:
-    from aiconsole.core.assets.materials.content_evaluation_context import ContentEvaluationContext
+    from aiconsole.core.assets.materials.content_evaluation_context import (
+        ContentEvaluationContext,
+    )
 
 
 class MaterialContentType(str, Enum):
@@ -49,7 +53,10 @@ class Material(Asset):
         if self.content.startswith("file://"):
             content_file = self.content[len("file://") :]
 
-            from aiconsole.core.project.paths import get_core_assets_directory, get_project_assets_directory
+            from aiconsole.core.project.paths import (
+                get_core_assets_directory,
+                get_project_assets_directory,
+            )
 
             project_dir_path = get_project_assets_directory(self.type)
             core_resource_path = get_core_assets_directory(self.type)

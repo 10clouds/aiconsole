@@ -15,10 +15,13 @@
 # limitations under the License.
 
 import logging
-from aiconsole.core.chat.types import ChatHeadline
+
 from aiconsole.api.endpoints.chats.chat import router
-from aiconsole.core.chat.list_possible_historic_chat_ids import list_possible_historic_chat_ids
+from aiconsole.core.chat.list_possible_historic_chat_ids import (
+    list_possible_historic_chat_ids,
+)
 from aiconsole.core.chat.load_chat_history import load_chat_history
+from aiconsole.core.chat.types import ChatHeadline
 
 _log = logging.getLogger(__name__)
 

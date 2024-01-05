@@ -17,13 +17,17 @@
 import json
 import logging
 from typing import Any, Literal
-from pydantic import BaseModel
 
 import tiktoken
+from pydantic import BaseModel
 
 from aiconsole.core.gpt.consts import MODEL_DATA, GPTMode, GPTModel
-from aiconsole.core.gpt.types import EnforcedFunctionCall, GPTRequestMessage, GPTRequestTextMessage
 from aiconsole.core.gpt.token_error import TokenError
+from aiconsole.core.gpt.types import (
+    EnforcedFunctionCall,
+    GPTRequestMessage,
+    GPTRequestTextMessage,
+)
 
 _log = logging.getLogger(__name__)
 

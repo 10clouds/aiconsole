@@ -35,7 +35,6 @@
 import os
 from typing import TYPE_CHECKING
 
-
 if TYPE_CHECKING:
     from aiconsole.core.assets.assets import Assets
 

@@ -14,11 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aiconsole.core.gpt.consts import MODEL_DATA
-from openai import OpenAI
-import logging
 
-_log = logging.getLogger(__name__)
+from openai import AuthenticationError, OpenAI
+
+from aiconsole.core.gpt.consts import MODEL_DATA
 
 cached_good_keys = set()
 
@@ -29,7 +28,10 @@ async def check_key(key: str) -> bool:
         return True
 
     client = OpenAI(api_key=key)
-    models = client.models.list().data
+    try:
+        models = client.models.list().data
+    except AuthenticationError:
+        return False
     available_models = [model.id for model in models]
     needed_models = MODEL_DATA.keys()
 

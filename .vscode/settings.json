@@ -14,8 +14,14 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter"
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    },
   },
+  "isort.args":["--settings-file", "backend/pyproject.toml"],
+  "isort.importStrategy": "fromEnvironment",
   "black-formatter.args": ["--line-length", "119"],
   "python.analysis.exclude": [
     "./electron/python/**",

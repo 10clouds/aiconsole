@@ -18,9 +18,11 @@ import { useEditablesStore } from '@/store/editables/useEditablesStore';
 import useGroupByDate from '@/utils/editables/useGroupByDate';
 import SideBarItem from './SideBarItem';
 import ChatOptions from '../assets/ChatOptions';
+import { useChatStore } from '@/store/editables/chat/useChatStore';
 
 export const ChatsSidebarTab = () => {
   const chatHeadlines = useEditablesStore((state) => state.chats);
+  const chat = useChatStore((state) => state.chat);
   const { today, yesterday, previous7Days, older } = useGroupByDate(chatHeadlines);
 
   const sections = [
@@ -31,8 +33,8 @@ export const ChatsSidebarTab = () => {
   ];
 
   return (
-    <div className="flex flex-col justify-between content-between pr-[20px] overflow-y-auto h-full">
-      <div className="overflow-y-auto mb-5 min-h-[100px]">
+    <div className="flex flex-col justify-between content-between overflow-y-auto h-full">
+      <div className="overflow-y-auto mb-5 min-h-[100px] px-5">
         {sections.map(
           (section) =>
             section.headlines.length > 0 && (
@@ -48,9 +50,15 @@ export const ChatsSidebarTab = () => {
         )}
       </div>
 
-      <div className="w-full h-[375px] lg:h-[465px]">
-        <ChatOptions />
-      </div>
+      {chat?.id && (
+        <div>
+          <hr className=" border-gray-600" />
+
+          <div className="w-full px-5">
+            <ChatOptions />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

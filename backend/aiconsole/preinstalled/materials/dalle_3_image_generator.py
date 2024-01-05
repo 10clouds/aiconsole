@@ -1,12 +1,13 @@
 import asyncio
 import os
 from typing import Literal
+from urllib.parse import unquote, urlparse
+
+import openai
+import requests
 from pydantic import BaseModel
 
-import requests
 from aiconsole.core.settings.project_settings import Settings
-import openai
-from urllib.parse import urlparse, unquote
 
 
 class Image(BaseModel):

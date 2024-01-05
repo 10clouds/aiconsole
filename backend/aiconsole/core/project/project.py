@@ -19,6 +19,8 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from fastapi import BackgroundTasks
+
 from aiconsole.api.websockets.connection_manager import AICConnection
 from aiconsole.api.websockets.server_messages import (
     InitialProjectStatusServerMessage,
@@ -28,6 +30,9 @@ from aiconsole.api.websockets.server_messages import (
 )
 from aiconsole.core.assets.asset import AssetType
 from aiconsole.core.code_running.run_code import reset_code_interpreters
+from aiconsole.core.code_running.virtual_env.create_dedicated_venv import (
+    create_dedicated_venv,
+)
 
 if TYPE_CHECKING:
     from aiconsole.core.assets import assets
@@ -121,7 +126,7 @@ async def reinitialize_project():
     await reload_settings(initial=True)
 
 
-async def change_project_directory(path: Path):
+async def choose_project(path: Path, background_tasks: BackgroundTasks):
     if not path.exists():
         raise ValueError(f"Path {path} does not exist")
 
@@ -130,3 +135,5 @@ async def change_project_directory(path: Path):
     sys.path[0] = str(path)
 
     await reinitialize_project()
+
+    background_tasks.add_task(create_dedicated_venv)

@@ -57,7 +57,7 @@ Material, Agent and settings files are monitored and automatically loaded, then 
 
 # Accessing AIConsole internals from the Python APIs
 
-The only module you can safelly access is aiconsole.dev, it's built with running it from the interpreter subprocess and has a stable interface. The stable interface is documented in the core materials referring to those APIs.
+The only module you can safelly access is aiconsole_toolkit, it's built with running it from the interpreter subprocess and has a stable interface. The stable interface is documented in the core materials referring to those APIs.
 
 # Roadmap
 

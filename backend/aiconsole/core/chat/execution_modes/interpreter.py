@@ -16,30 +16,53 @@
 
 import json
 import logging
+import traceback
 from datetime import datetime
 from typing import cast
 from uuid import uuid4
 
+from pydantic import Field
+
+from aiconsole.api.websockets.server_messages import ErrorServerMessage
+from aiconsole.core.assets.materials.material import Material
 from aiconsole.core.chat.chat_mutations import (
-    AppendToContentMessageMutation,
     AppendToCodeToolCallMutation,
+    AppendToContentMessageMutation,
     AppendToHeadlineToolCallMutation,
+    AppendToOutputToolCallMutation,
     CreateMessageMutation,
     CreateToolCallMutation,
     SetContentMessageMutation,
+    SetIsExecutingToolCallMutation,
     SetLanguageToolCallMutation,
+    SetOutputToolCallMutation,
 )
 from aiconsole.core.chat.convert_messages import convert_messages
-from aiconsole.core.chat.execution_modes.execution_mode import AcceptCodeContext, ExecutionMode, ProcessChatContext
-from aiconsole.core.chat.execution_modes.get_agent_system_message import get_agent_system_message
+from aiconsole.core.chat.execution_modes.execution_mode import (
+    AcceptCodeContext,
+    ExecutionMode,
+    ProcessChatContext,
+)
+from aiconsole.core.chat.execution_modes.get_agent_system_message import (
+    get_agent_system_message,
+)
+from aiconsole.core.chat.types import AICMessageGroup
 from aiconsole.core.code_running.code_interpreters.language import LanguageStr
 from aiconsole.core.code_running.code_interpreters.language_map import language_map
-from aiconsole.core.gpt.create_full_prompt_with_materials import create_full_prompt_with_materials
+from aiconsole.core.code_running.run_code import get_code_interpreter
+from aiconsole.core.gpt.create_full_prompt_with_materials import (
+    create_full_prompt_with_materials,
+)
 from aiconsole.core.gpt.function_calls import OpenAISchema
 from aiconsole.core.gpt.gpt_executor import GPTExecutor
-from aiconsole.core.gpt.request import GPTRequest, ToolDefinition, ToolFunctionDefinition
+from aiconsole.core.gpt.request import (
+    GPTRequest,
+    ToolDefinition,
+    ToolFunctionDefinition,
+)
 from aiconsole.core.gpt.types import CLEAR_STR
-from pydantic import Field
+from aiconsole.core.project import project
+from aiconsole.core.settings.project_settings import get_aiconsole_settings
 
 _log = logging.getLogger(__name__)
 
@@ -73,11 +96,10 @@ class applescript(CodeTask):
     code: str = Field(..., json_schema_extra={"type": "string"})
 
 
-async def execution_mode_process(
+async def _execution_mode_process(
     context: ProcessChatContext,
 ):
-    global llm
-
+    # Assumes an existing message group that was created for us
     message_group = context.chat_mutator.chat.message_groups[-1]
 
     system_message = create_full_prompt_with_materials(
@@ -87,11 +109,81 @@ async def execution_mode_process(
 
     executor = GPTExecutor()
 
+    await _generate_response(message_group, context, system_message, executor)
+
+    last_message = context.chat_mutator.chat.message_groups[-1].messages[-1]
+
+    if last_message.tool_calls:
+        # Run all code in the last message
+        for tool_call in last_message.tool_calls:
+            if get_aiconsole_settings().get_code_autorun():
+                accept_context = AcceptCodeContext(
+                    chat_mutator=context.chat_mutator,
+                    tool_call_id=tool_call.id,
+                    agent=context.agent,
+                    materials=context.materials,
+                    rendered_materials=context.rendered_materials,
+                )
+                await _execution_mode_accept_code(accept_context)
+
+
+async def _run_code(context: ProcessChatContext, tool_call_id):
+    tool_call_location = context.chat_mutator.chat.get_tool_call_location(tool_call_id)
+
+    if not tool_call_location:
+        raise Exception(f"Tool call {tool_call_id} should have been created")
+
+    tool_call = tool_call_location.tool_call
+
+    try:
+        await context.chat_mutator.mutate(
+            SetIsExecutingToolCallMutation(
+                tool_call_id=tool_call_id,
+                is_executing=True,
+            )
+        )
+
+        await context.chat_mutator.mutate(
+            SetOutputToolCallMutation(
+                tool_call_id=tool_call_id,
+                output="",
+            )
+        )
+
+        try:
+            context.rendered_materials
+
+            async for token in get_code_interpreter(tool_call.language).run(tool_call.code, context.materials):
+                await context.chat_mutator.mutate(
+                    AppendToOutputToolCallMutation(
+                        tool_call_id=tool_call_id,
+                        output_delta=token,
+                    )
+                )
+        except Exception:
+            await ErrorServerMessage(error=traceback.format_exc().strip()).send_to_chat(context.chat_mutator.chat.id)
+            await context.chat_mutator.mutate(
+                AppendToOutputToolCallMutation(
+                    tool_call_id=tool_call_id,
+                    output_delta=traceback.format_exc().strip(),
+                )
+            )
+    finally:
+        await context.chat_mutator.mutate(
+            SetIsExecutingToolCallMutation(
+                tool_call_id=tool_call_id,
+                is_executing=False,
+            )
+        )
+
+
+async def _generate_response(
+    message_group: AICMessageGroup, context: ProcessChatContext, system_message: str, executor: GPTExecutor
+):
     tools_requiring_closing_parenthesis: list[str] = []
 
     message_id = str(uuid4())
 
-    # Assumes an existing message group that was created for us
     await context.chat_mutator.mutate(
         CreateMessageMutation(
             message_group_id=message_group.id,
@@ -262,13 +354,36 @@ async def execution_mode_process(
             )
 
 
-async def execution_mode_accept_code(
+async def _execution_mode_accept_code(
     context: AcceptCodeContext,
 ):
-    pass
+    tool_call_location = context.chat_mutator.chat.get_tool_call_location(context.tool_call_id)
+
+    if not tool_call_location:
+        raise Exception(f"Tool call {context.tool_call_id} should have been created")
+
+    tool_call = tool_call_location.tool_call
+
+    process_chat_context = ProcessChatContext(
+        chat_mutator=context.chat_mutator,
+        agent=context.agent,
+        materials=context.materials,
+        rendered_materials=context.rendered_materials,
+    )
+
+    await _run_code(process_chat_context, tool_call_id=tool_call.id)
+
+    # if all tools have finished running, continue operation with the same agent
+    finished_running_code = all(
+        (not tool_call.is_executing) and (tool_call.output is not None)
+        for tool_call in tool_call_location.message.tool_calls
+    )
+
+    if finished_running_code:
+        await _execution_mode_process(process_chat_context)  # Resume operation with the same agent
 
 
 execution_mode = ExecutionMode(
-    process_chat=execution_mode_process,
-    accept_code=execution_mode_accept_code,
+    process_chat=_execution_mode_process,
+    accept_code=_execution_mode_accept_code,
 )

@@ -151,15 +151,41 @@ body {
   line-height: 18px;
 }
 
-
 .message-gradient {
-  background: linear-gradient(150deg, #221C2C 2.06%, rgba(27, 24, 32, 0.00) 61.74%);
+  background: linear-gradient(150deg, #221c2c 2.06%, rgba(27, 24, 32, 0) 61.74%);
 }
 
 .guide-bg-shadow {
-  background: linear-gradient(0deg, #111 13.09%, rgba(17, 17, 17, 0.00) 99.9%);
+  background: linear-gradient(0deg, #111 13.09%, rgba(17, 17, 17, 0) 99.9%);
 }
 
 .guide-gradient {
-  background: linear-gradient(122deg, #221C2C 16.45%, #111 67.82%);
+  background: linear-gradient(122deg, #221c2c 16.45%, #111 67.82%);
+}
+
+/* Radix Collapsible */
+.CollapsibleContent {
+  overflow: hidden;
+}
+.CollapsibleContent[data-state='open'] {
+  animation: slideDown 150ms ease-out;
+}
+.CollapsibleContent[data-state='closed'] {
+  animation: slideUp 150ms ease-out;
+}
+@keyframes slideDown {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+  }
+}
+@keyframes slideUp {
+  from {
+    height: var(--radix-collapsible-content-height);
+  }
+  to {
+    height: 0;
+  }
 }

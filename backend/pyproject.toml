@@ -26,6 +26,9 @@ appdirs = "^1.4.4"
 rtoml = "^0.10.0"
 send2trash = "^1.8.2"
 libgravatar = "^1.0.4"
+pytest = "^7.4.4"
+pytest-asyncio = "^0.23.3"
+
 
 [tool.ruff]
 line-length = 119
@@ -40,3 +43,12 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.scripts]
 aiconsole = "aiconsole.init:aiconsole"
 dev = "aiconsole.init:aiconsole_dev"
+
+[tool.pytest.ini_options]
+python_files = "*_tests.py"
+
+[tool.isort]
+known_first_party = "aiconsole,aiconsole_toolkit"
+default_section = "THIRDPARTY"
+sections = ["FUTURE","STDLIB","THIRDPARTY","FIRSTPARTY","LOCALFOLDER"]
+profile = "black"

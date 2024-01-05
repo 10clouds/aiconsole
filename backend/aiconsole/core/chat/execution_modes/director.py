@@ -20,16 +20,29 @@ from typing import cast
 from uuid import uuid4
 
 from aiconsole.core.assets.agents.agent import Agent
-from aiconsole.core.assets.materials.content_evaluation_context import ContentEvaluationContext
+from aiconsole.core.assets.materials.content_evaluation_context import (
+    ContentEvaluationContext,
+)
 from aiconsole.core.assets.materials.material import Material
 from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
+from aiconsole.core.chat.chat_mutations import CreateMessageGroupMutation
 from aiconsole.core.chat.convert_messages import convert_messages
 from aiconsole.core.chat.execution_modes.analysis.director import director_analyse
-from aiconsole.core.chat.execution_modes.execution_mode import AcceptCodeContext, ExecutionMode, ProcessChatContext
-from aiconsole.core.chat.execution_modes.get_agent_system_message import get_agent_system_message
-from aiconsole.core.chat.execution_modes.import_and_validate_execution_mode import import_and_validate_execution_mode
+from aiconsole.core.chat.execution_modes.execution_mode import (
+    AcceptCodeContext,
+    ExecutionMode,
+    ProcessChatContext,
+)
+from aiconsole.core.chat.execution_modes.get_agent_system_message import (
+    get_agent_system_message,
+)
+from aiconsole.core.chat.execution_modes.import_and_validate_execution_mode import (
+    import_and_validate_execution_mode,
+)
 from aiconsole.core.chat.types import AICMessageGroup
-from aiconsole.core.gpt.create_full_prompt_with_materials import create_full_prompt_with_materials
+from aiconsole.core.gpt.create_full_prompt_with_materials import (
+    create_full_prompt_with_materials,
+)
 from aiconsole.core.gpt.gpt_executor import GPTExecutor
 from aiconsole.core.gpt.request import GPTRequest
 from aiconsole.core.gpt.types import CLEAR_STR
@@ -69,21 +82,11 @@ async def render_materials_from_message_group(
 async def execution_mode_process(
     context: ProcessChatContext,
 ):
+    _log.debug("execution_mode_director")
+
     analysis = await director_analyse(context.chat_mutator)
 
     if analysis.agent.id != "user" and analysis.next_step:
-        context.chat_mutator.chat.message_groups.append(
-            AICMessageGroup(
-                id=str(uuid4()),
-                agent_id=analysis.agent.id,
-                task=analysis.next_step,
-                materials_ids=[material.id for material in analysis.relevant_materials],
-                role="assistant",
-                messages=[],
-                analysis="",
-            )
-        )
-
         content_context = ContentEvaluationContext(
             chat=context.chat_mutator.chat,
             agent=analysis.agent,
@@ -98,14 +101,13 @@ async def execution_mode_process(
         context = ProcessChatContext(
             chat_mutator=context.chat_mutator,
             agent=analysis.agent,
+            materials=analysis.relevant_materials,
             rendered_materials=rendered_materials,
         )
 
         execution_mode = await import_and_validate_execution_mode(analysis.agent)
 
         await execution_mode.process_chat(context)
-
-    _log.debug("execution_mode_director")
 
 
 async def execution_mode_accept_code(

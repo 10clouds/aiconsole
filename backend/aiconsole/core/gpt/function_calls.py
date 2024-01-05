@@ -23,6 +23,7 @@
 import json
 from functools import wraps
 from typing import Any, Callable
+
 from pydantic import BaseModel, validate_arguments
 
 
@@ -67,13 +68,9 @@ class openai_function:
         self.validate_func = validate_arguments(func)
         parameters = self.validate_func.model.model_json_schema()
         parameters["properties"] = {
-            k: v
-            for k, v in parameters["properties"].items()
-            if k not in ("v__duplicate_kwargs", "args", "kwargs")
+            k: v for k, v in parameters["properties"].items() if k not in ("v__duplicate_kwargs", "args", "kwargs")
         }
-        parameters["required"] = sorted(
-            k for k, v in parameters["properties"].items() if not "default" in v
-        )
+        parameters["required"] = sorted(k for k, v in parameters["properties"].items() if not "default" in v)
         _remove_a_key(parameters, "additionalProperties")
         _remove_a_key(parameters, "title")
         self.openai_schema = {
@@ -105,9 +102,7 @@ class openai_function:
 
         if throw_error:
             assert "function_call" in message, "No function call detected"
-            assert (
-                message["function_call"]["name"] == self.openai_schema["name"]
-            ), "Function name does not match"
+            assert message["function_call"]["name"] == self.openai_schema["name"], "Function name does not match"
 
         function_call = message["function_call"]
         arguments = json.loads(function_call["arguments"], strict=False)
@@ -128,12 +123,8 @@ class OpenAISchema(BaseModel):
             model_json_schema (dict): A dictionary in the format of OpenAI's schema as jsonschema
         """
         schema = cls.model_json_schema()
-        parameters = {
-            k: v for k, v in schema.items() if k not in ("title", "description")
-        }
-        parameters["required"] = sorted(
-            k for k, v in parameters["properties"].items() if not "default" in v
-        )
+        parameters = {k: v for k, v in schema.items() if k not in ("title", "description")}
+        parameters["required"] = sorted(k for k, v in parameters["properties"].items() if not "default" in v)
 
         if "description" not in schema:
             schema[
@@ -164,7 +155,7 @@ class OpenAISchema(BaseModel):
         if throw_error:
             assert "function_call" in message, "No function call detected"
             assert (
-                message["function_call"]["name"] == cls.openai_schema["name"] # type: ignore
+                message["function_call"]["name"] == cls.openai_schema["name"]  # type: ignore
             ), "Function name does not match"
 
         function_call = message["function_call"]

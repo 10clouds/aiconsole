@@ -16,12 +16,13 @@
 
 import argparse
 import logging
-from logging import config
-from contextlib import asynccontextmanager
 import os
-from aiconsole.consts import log_config
+from contextlib import asynccontextmanager
+from logging import config
+
 from uvicorn import run
 
+from aiconsole.consts import log_config
 
 config.dictConfig(log_config)
 

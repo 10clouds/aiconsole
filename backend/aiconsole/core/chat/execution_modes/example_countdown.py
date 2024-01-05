@@ -15,8 +15,8 @@
 # limitations under the License.
 
 import asyncio
-from datetime import datetime
 import traceback
+from datetime import datetime
 from uuid import uuid4
 
 from aiconsole.api.websockets.server_messages import ErrorServerMessage
@@ -26,8 +26,11 @@ from aiconsole.core.chat.chat_mutations import (
     CreateMessageMutation,
     CreateToolCallMutation,
 )
-from aiconsole.core.chat.execution_modes.execution_mode import AcceptCodeContext, ProcessChatContext
-from aiconsole.core.chat.execution_modes.execution_mode import ExecutionMode
+from aiconsole.core.chat.execution_modes.execution_mode import (
+    AcceptCodeContext,
+    ExecutionMode,
+    ProcessChatContext,
+)
 from aiconsole.core.code_running.run_code import get_code_interpreter
 
 

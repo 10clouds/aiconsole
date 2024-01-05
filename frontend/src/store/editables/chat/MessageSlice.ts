@@ -29,8 +29,8 @@ export type MessageSlice = {
   loadingMessages: boolean;
   isViableForRunningCode: (toolCallId: string) => boolean;
   userMutateChat: (mutation: ChatMutation | ChatMutation[]) => Promise<void>;
-  lockChat: () => Promise<void>;
-  unlockChat: () => Promise<void>;
+  lockChat: (lockId: string) => Promise<void>;
+  unlockChat: (lockId: string) => Promise<void>;
 };
 
 export const createMessageSlice: StateCreator<ChatStore, [], [], MessageSlice> = (set, get) => ({
@@ -55,36 +55,45 @@ export const createMessageSlice: StateCreator<ChatStore, [], [], MessageSlice> =
     }
   },
   loadingMessages: false,
-  lockChat: async () => {
+  lockChat: async (lockId: string) => {
     const chat = get().chat;
 
     if (!chat) {
       throw new Error('Chat is not initialized');
     }
 
-    //TODO: Wait for confirmation from server
-    useWebSocketStore.getState().sendMessage({
-      type: 'AcquireLockClientMessage',
-      request_id: uuidv4(),
-      chat_id: chat.id,
-    });
+    const chat_id = chat.id;
+
+    await useWebSocketStore.getState().sendMessageAndWaitForResponse(
+      {
+        type: 'AcquireLockClientMessage',
+        request_id: lockId,
+        chat_id: chat.id,
+      },
+      (response) =>
+        response.type === 'NotifyAboutChatMutationServerMessage' &&
+        response.mutation.type === 'LockAcquiredMutation' &&
+        response.mutation.lock_id === lockId &&
+        response.chat_id === chat_id,
+    );
   },
-  unlockChat: async () => {
+  unlockChat: async (lockId: string) => {
     const chat = get().chat;
 
     if (!chat) {
       throw new Error('Chat is not initialized');
     }
 
-    useWebSocketStore.getState().sendMessage({
+    await useWebSocketStore.getState().sendMessage({
       type: 'ReleaseLockClientMessage',
-      request_id: uuidv4(),
+      request_id: lockId,
       chat_id: chat.id,
     });
   },
   userMutateChat: async (mutation: ChatMutation | ChatMutation[]) => {
     const mutations = Array.isArray(mutation) ? mutation : [mutation];
-    await get().lockChat();
+    const lockId = uuidv4();
+    await get().lockChat(lockId);
     try {
       set((state) => {
         const chat = deepCopyChat(state.chat);
@@ -99,7 +108,7 @@ export const createMessageSlice: StateCreator<ChatStore, [], [], MessageSlice> =
           // send to server
           useWebSocketStore.getState().sendMessage({
             type: 'InitChatMutationClientMessage',
-            request_id: uuidv4(),
+            request_id: lockId,
             chat_id: chat.id,
             mutation,
           });
@@ -110,7 +119,7 @@ export const createMessageSlice: StateCreator<ChatStore, [], [], MessageSlice> =
         };
       });
     } finally {
-      await get().unlockChat();
+      await get().unlockChat(lockId);
     }
   },
   clientEditMessage: (change: (message: AICMessage) => void, messageId: string) => {

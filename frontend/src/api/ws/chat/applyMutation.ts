@@ -1,6 +1,9 @@
 import { Chat, getMessageGroup, getMessageLocation, getToolCallLocation } from '@/types/editables/chatTypes';
 import { ChatMutation } from '@/api/ws/chat/chatMutations';
 
+/**
+ * KEEEP THIS IN SYNC WITH BACKEND apply_mutation!
+ */
 export function applyMutation(chat: Chat, mutation: ChatMutation) {
   switch (mutation.type) {
     case 'LockAcquiredMutation':
@@ -39,9 +42,16 @@ export function applyMutation(chat: Chat, mutation: ChatMutation) {
     case 'SetRoleMessageGroupMutation':
       getMessageGroup(chat, mutation.message_group_id).role = mutation.role;
       break;
-    case 'SetAgentIdMessageGroupMutation':
-      getMessageGroup(chat, mutation.message_group_id).agent_id = mutation.agent_id;
+    case 'SetAgentIdMessageGroupMutation': {
+      const messageGroup = getMessageGroup(chat, mutation.message_group_id);
+      messageGroup.agent_id = mutation.agent_id;
+      if (mutation.agent_id === 'user') {
+        messageGroup.role = 'user';
+      } else {
+        messageGroup.role = 'assistant';
+      }
       break;
+    }
     case 'SetMaterialsIdsMessageGroupMutation':
       getMessageGroup(chat, mutation.message_group_id).materials_ids = mutation.materials_ids;
       break;
@@ -66,8 +76,13 @@ export function applyMutation(chat: Chat, mutation: ChatMutation) {
       break;
     }
     case 'DeleteMessageMutation': {
-      const message = getMessageLocation(chat, mutation.message_id);
-      message.group.messages = message.group.messages.filter((m) => m.id !== message.message.id);
+      const messageLocation = getMessageLocation(chat, mutation.message_id);
+      messageLocation.group.messages = messageLocation.group.messages.filter(
+        (m) => m.id !== messageLocation.message.id,
+      );
+      if (messageLocation.group.messages.length === 0) {
+        chat.message_groups = chat.message_groups.filter((group) => group.id !== messageLocation.group.id);
+      }
       break;
     }
     case 'SetContentMessageMutation':

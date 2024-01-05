@@ -82,7 +82,7 @@ The user should provide those credentials, explain to them how to do it, and wha
 Don't use 'getpass' or anything that reads from the console, ask them using text,
 When they provide you with credentials, save the credentials for the user, using the following code:
 
-from aiconsole.dev.credentials import save_credential
+from aiconsole_toolkit.credentials import save_credential
 save_credential("{module}", "{missing_credentials[0]}", your_value)
     ...
         """.strip()

@@ -14,9 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from send2trash import send2trash
+
 from aiconsole.core.assets.asset import AssetType
 from aiconsole.core.project.paths import get_project_assets_directory
-from send2trash import send2trash
 
 
 def delete_asset_from_fs(asset_type: AssetType, id):

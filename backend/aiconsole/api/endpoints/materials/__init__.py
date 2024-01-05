@@ -17,7 +17,7 @@
 
 from fastapi import APIRouter
 
-from . import material, index, preview
+from . import index, material, preview
 
 router = APIRouter()
 

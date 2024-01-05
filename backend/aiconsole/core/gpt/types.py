@@ -15,10 +15,11 @@
 # limitations under the License.
 
 from typing import Literal
-from aiconsole.core.gpt.parse_partial_json import parse_partial_json
+
 from pydantic import BaseModel
 from typing_extensions import TypedDict
 
+from aiconsole.core.gpt.parse_partial_json import parse_partial_json
 
 CLEAR_STR = "<<<< CLEAR >>>>"
 CLEAR_STR_TYPE = Literal["<<<< CLEAR >>>>"]

@@ -15,26 +15,37 @@
 # limitations under the License.
 
 import asyncio
-from litellm.utils import StreamingChoices
 import logging
 from datetime import datetime
 from typing import cast
 from uuid import uuid4
+
+from litellm.utils import StreamingChoices
+
+from aiconsole.core.assets.agents.agent import Agent
+from aiconsole.core.assets.materials.content_evaluation_context import (
+    ContentEvaluationContext,
+)
+from aiconsole.core.assets.materials.material import Material
+from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
 from aiconsole.core.chat.chat_mutations import (
     AppendToContentMessageMutation,
     CreateMessageMutation,
     SetContentMessageMutation,
 )
-from aiconsole.core.chat.execution_modes.execution_mode import AcceptCodeContext, ExecutionMode, ProcessChatContext
-
-from aiconsole.core.assets.agents.agent import Agent
-from aiconsole.core.assets.materials.content_evaluation_context import ContentEvaluationContext
-from aiconsole.core.assets.materials.material import Material
-from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
 from aiconsole.core.chat.convert_messages import convert_messages
-from aiconsole.core.chat.execution_modes.get_agent_system_message import get_agent_system_message
+from aiconsole.core.chat.execution_modes.execution_mode import (
+    AcceptCodeContext,
+    ExecutionMode,
+    ProcessChatContext,
+)
+from aiconsole.core.chat.execution_modes.get_agent_system_message import (
+    get_agent_system_message,
+)
 from aiconsole.core.chat.types import AICMessageGroup
-from aiconsole.core.gpt.create_full_prompt_with_materials import create_full_prompt_with_materials
+from aiconsole.core.gpt.create_full_prompt_with_materials import (
+    create_full_prompt_with_materials,
+)
 from aiconsole.core.gpt.gpt_executor import GPTExecutor
 from aiconsole.core.gpt.request import GPTRequest
 from aiconsole.core.gpt.types import CLEAR_STR

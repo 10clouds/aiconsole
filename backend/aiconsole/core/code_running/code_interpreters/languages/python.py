@@ -106,7 +106,7 @@ def preprocess_python(code: str, materials: list[Material]):
 
     code = f"""
 import traceback
-from aiconsole.dev.credentials import MissingCredentialException
+from aiconsole_toolkit.credentials import MissingCredentialException
 try:
 {newline.join(("    " + line) for line in [*api_lines, *code_lines])}
 except MissingCredentialException as e:

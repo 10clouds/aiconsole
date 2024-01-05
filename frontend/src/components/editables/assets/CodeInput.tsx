@@ -205,7 +205,7 @@ export function CodeInput({
             width={24}
             height={24}
             className={cn(`absolute right-[25px] bottom-[80px] cursor-pointer text-gray-300 hover:text-white`, {
-              'right-[25px] bottom-[20px]': fullScreen,
+              'right-[25px] bottom-[75px]': fullScreen,
             })}
             onClick={toggleFullscreen}
           />

@@ -14,13 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aiconsole.core.chat.types import Chat
-from aiconsole.core.chat.load_chat_history import load_chat_history
-from aiconsole.core.chat.save_chat_history import save_chat_history
-from aiconsole.core.project.paths import get_history_directory
 from fastapi import APIRouter, Response, status
 from fastapi.responses import JSONResponse
 from send2trash import send2trash
+
+from aiconsole.core.chat.load_chat_history import load_chat_history
+from aiconsole.core.chat.save_chat_history import save_chat_history
+from aiconsole.core.chat.types import Chat
+from aiconsole.core.project.paths import get_history_directory
 
 router = APIRouter()
 

@@ -21,8 +21,8 @@ import ky from 'ky';
 
 
 const checkKey = (key: string) => {
-  return ky.post(`${getBaseURL()}/api/check_key`, {
-    json: { key },
+  return ky.get(`${getBaseURL()}/api/key`, {
+    searchParams: `key=${key}`,
     hooks: API_HOOKS,
   });
 };

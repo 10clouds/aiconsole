@@ -15,8 +15,8 @@
 # limitations under the License.
 
 import importlib.util
-import logging
 import inspect
+import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

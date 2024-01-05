@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from fastapi import APIRouter
+
 from aiconsole.core.project import project
 
 router = APIRouter()

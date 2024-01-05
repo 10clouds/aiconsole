@@ -1,9 +1,14 @@
 import argparse
 import asyncio
-from aiconsole.api.websockets.client_messages import OpenChatClientMessage, ProcessChatClientMessage
-from aiconsole.app import app
-from fastapi.testclient import TestClient
 import os
+
+from fastapi.testclient import TestClient
+
+from aiconsole.api.websockets.client_messages import (
+    OpenChatClientMessage,
+    ProcessChatClientMessage,
+)
+from aiconsole.app import app
 
 #
 # This is a playground for building a CLI for the backend.
@@ -40,8 +45,6 @@ async def main():
 
             print(chat_info["name"])
 
-            chat = client.get(f"/api/chats/{chat_info["id"]}").json()
-
             await OpenChatClientMessage(chat_id=chat_info["id"]).send(websocket)
 
             request_id = "test"
@@ -50,10 +53,8 @@ async def main():
             while True:
                 data = websocket.receive_json()
                 print(data)
-                if (data["type"] == "LockReleasedServerMessage" and data["request_id"] == "test"):
+                if data["type"] == "LockReleasedServerMessage" and data["request_id"] == "test":
                     break
-                
-
 
 
 if __name__ == "__main__":

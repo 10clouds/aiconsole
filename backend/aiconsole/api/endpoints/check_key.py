@@ -14,11 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aiconsole.core.gpt.check_key import check_key
-
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+
+from aiconsole.core.gpt.check_key import check_key
 
 router = APIRouter()
 
@@ -27,6 +27,11 @@ class KeyVerificationRequest(BaseModel):
     key: str
 
 
-@router.post("/api/check_key")
-async def analyse(key_verification_request: KeyVerificationRequest):
-    return JSONResponse({"key_ok": await check_key(key_verification_request.key)})
+class KeyResponse(BaseModel):
+    key: str | None
+
+
+@router.get("/api/key", response_model=KeyResponse)
+async def get_key(key: str) -> KeyResponse:
+    is_key_ok = await check_key(key)
+    return KeyResponse(key=key if is_key_ok else None)

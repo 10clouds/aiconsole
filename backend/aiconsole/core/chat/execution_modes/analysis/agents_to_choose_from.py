@@ -1,9 +1,8 @@
+from typing import cast
+
 from aiconsole.core.assets.agents.agent import Agent
 from aiconsole.core.assets.asset import AssetStatus
 from aiconsole.core.project import project
-
-
-from typing import cast
 
 
 def agents_to_choose_from() -> list[Agent]:

@@ -23,7 +23,7 @@ import { MessageComponent } from './messages/MessageComponent';
 export function MessageGroup({ group }: { group: AICMessageGroup }) {
   return (
     <div
-      className={cn('group flex flex-row shadow-md border-b border-gray-600 py-[30px] bg-gray-900 ', {
+      className={cn('group flex flex-row shadow-md border-b border-gray-600 py-[30px] px-[10px] bg-gray-900 ', {
         'message-gradient': group.role === 'assistant',
       })}
     >

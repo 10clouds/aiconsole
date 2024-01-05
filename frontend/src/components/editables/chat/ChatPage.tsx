@@ -262,8 +262,6 @@ export function ChatPage() {
                   ))}
                 </div>
               )}
-
-              {isAnalysisRunning ? <Analysis /> : null}
             </ScrollToBottom>
           ) : (
             <div className="h-full overflow-y-auto flex flex-col"></div>
