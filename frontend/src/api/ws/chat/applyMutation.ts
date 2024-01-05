@@ -80,6 +80,8 @@ export function applyMutation(chat: Chat, mutation: ChatMutation) {
       messageLocation.group.messages = messageLocation.group.messages.filter(
         (m) => m.id !== messageLocation.message.id,
       );
+
+      // Remove the message group if it is empty
       if (messageLocation.group.messages.length === 0) {
         chat.message_groups = chat.message_groups.filter((group) => group.id !== messageLocation.group.id);
       }
@@ -110,6 +112,20 @@ export function applyMutation(chat: Chat, mutation: ChatMutation) {
     case 'DeleteToolCallMutation': {
       const tool_call = getToolCallLocation(chat, mutation.tool_call_id);
       tool_call.message.tool_calls = tool_call.message.tool_calls.filter((tc) => tc.id !== tool_call.tool_call.id);
+
+      // Remove the message if it is empty
+      if (tool_call.message.tool_calls.length === 0 && tool_call.message.content === '') {
+        const messageLocation = getMessageLocation(chat, tool_call.message.id);
+        messageLocation.group.messages = messageLocation.group.messages.filter(
+          (m) => m.id !== messageLocation.message.id,
+        );
+      }
+
+      // Remove the message group if it is empty
+      if (tool_call.group.messages.length === 0) {
+        chat.message_groups = chat.message_groups.filter((group) => group.id !== tool_call.group.id);
+      }
+
       break;
     }
     case 'SetHeadlineToolCallMutation':

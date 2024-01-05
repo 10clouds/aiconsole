@@ -170,6 +170,7 @@ def _handle_DeleteMessageMutation(chat, mutation: DeleteMessageMutation) -> None
         m for m in message_location.message_group.messages if m.id != mutation.message_id
     ]
 
+    # Remove message group if it's empty
     if not message_location.message_group.messages:
         chat.message_groups = [group for group in chat.message_groups if group.id != message_location.message_group.id]
 
@@ -202,6 +203,16 @@ def _handle_CreateToolCallMutation(chat, mutation: CreateToolCallMutation) -> AI
 def _handle_DeleteToolCallMutation(chat, mutation: DeleteToolCallMutation) -> None:
     tool_call = _get_tool_call_location(chat, mutation.tool_call_id)
     tool_call.message.tool_calls = [tc for tc in tool_call.message.tool_calls if tc.id != mutation.tool_call_id]
+
+    # Remove message if it's empty
+    if not tool_call.message.tool_calls and not tool_call.message.content:
+        tool_call.message_group.messages = [
+            m for m in tool_call.message_group.messages if m.id != tool_call.message.id
+        ]
+
+    # Remove message group if it's empty
+    if not tool_call.message_group.messages:
+        chat.message_groups = [group for group in chat.message_groups if group.id != tool_call.message_group.id]
 
 
 def _handle_SetToolCallHeadlineMutation(chat, mutation: SetHeadlineToolCallMutation) -> None:
