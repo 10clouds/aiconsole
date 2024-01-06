@@ -17,10 +17,10 @@
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-        "source.organizeImports": true
-    },
+      "source.organizeImports": "explicit"
+    }
   },
-  "isort.args":["--settings-file", "backend/pyproject.toml"],
+  "isort.args": ["--settings-file", "backend/pyproject.toml"],
   "isort.importStrategy": "fromEnvironment",
   "black-formatter.args": ["--line-length", "119"],
   "python.analysis.exclude": [

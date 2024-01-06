@@ -15,23 +15,27 @@
 # limitations under the License.
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 
 from aiconsole.core.users.models import UserProfile
-from aiconsole.core.users.user import user_profile_service
+from aiconsole.core.users.user import UserProfileService, user_profile_service
 
 router = APIRouter()
 
 
 @router.get("/profile", response_model=UserProfile)
-def profile(email: Optional[str] = None) -> UserProfile:
-    return user_profile_service().get_profile(email=email)
+def profile(
+    email: Optional[str] = None, user_profile_service: UserProfileService = Depends(user_profile_service)
+) -> UserProfile:
+    return user_profile_service.get_profile(email=email)
 
 
 @router.get("/profile_image")
-def profile_image(img_filename: str) -> FileResponse:
-    file_path = user_profile_service().get_profile_image_path(img_filename)
+def profile_image(
+    img_filename: str, user_profile_service: UserProfileService = Depends(user_profile_service)
+) -> FileResponse:
+    file_path = user_profile_service.get_profile_image_path(img_filename)
     if not file_path.is_file():
         raise HTTPException(status_code=404, detail="Image not found")
     return FileResponse(str(file_path))
