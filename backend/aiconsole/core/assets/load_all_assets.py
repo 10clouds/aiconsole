@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from aiconsole.api.websockets.connection_manager import connection_manager
 from aiconsole.api.websockets.server_messages import ErrorServerMessage
 from aiconsole.core.assets.asset import Asset, AssetLocation, AssetType
 from aiconsole.core.assets.fs.load_asset_from_fs import load_asset_from_fs
@@ -35,9 +36,11 @@ async def load_all_assets(asset_type: AssetType) -> dict[str, list[Asset]]:
                     _assets[id] = []
                 _assets[id].append(asset)
             except Exception as e:
-                await ErrorServerMessage(
-                    error=f"Invalid {asset_type} {id} {e}",
-                ).send_to_all()
+                await connection_manager().broadcast(
+                    ErrorServerMessage(
+                        error=f"Invalid {asset_type} {id} {e}",
+                    )
+                )
                 continue
 
     return _assets

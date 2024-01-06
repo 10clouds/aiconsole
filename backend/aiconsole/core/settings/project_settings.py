@@ -17,6 +17,7 @@ import datetime
 import logging
 from pathlib import Path
 from typing import Any
+from aiconsole.api.websockets.connection_manager import connection_manager
 
 import litellm
 import tomlkit
@@ -116,12 +117,15 @@ class Settings:
 
     async def reload(self, initial: bool = False):
         self._settings = await self.__load()
-        await SettingsServerMessage(
-            initial=initial
-            or not (
-                not self._suppress_notification_until or self._suppress_notification_until < datetime.datetime.now()
+        await connection_manager().broadcast(
+            SettingsServerMessage(
+                initial=initial
+                or not (
+                    not self._suppress_notification_until
+                    or self._suppress_notification_until < datetime.datetime.now()
+                )
             )
-        ).send_to_all()
+        )
         self._suppress_notification_until = None
 
     def get_asset_status(self, asset_type: AssetType, id: str) -> AssetStatus:

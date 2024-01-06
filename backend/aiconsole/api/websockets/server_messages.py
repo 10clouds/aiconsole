@@ -13,36 +13,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import typing
-
-from aiconsole.core.chat.chat_mutations import ChatMutation
-from aiconsole.core.chat.types import Chat
-
-if typing.TYPE_CHECKING:
-    from aiconsole.api.websockets.connection_manager import AICConnection
-
 from pydantic import BaseModel
 
 from aiconsole.core.assets.asset import AssetType
+from aiconsole.core.chat.chat_mutations import ChatMutation
+from aiconsole.core.chat.types import Chat
 
 
 class BaseServerMessage(BaseModel):
     def get_type(self):
         return self.__class__.__name__
-
-    def send_to_connection(self, connection: "AICConnection"):
-        return connection.send(self)
-
-    def send_to_chat(self, chat_id: str, source_connection_to_ommit: "AICConnection | None" = None):
-        from aiconsole.api.websockets.connection_manager import send_message_to_chat
-
-        return send_message_to_chat(chat_id, self, source_connection_to_ommit)
-
-    def send_to_all(self, source_connection_to_ommit: "AICConnection | None" = None):
-        from aiconsole.api.websockets.connection_manager import send_message_to_all
-
-        return send_message_to_all(self, source_connection_to_ommit)
 
     def model_dump(self, **kwargs):
         # Don't include None values, call to super to avoid recursion

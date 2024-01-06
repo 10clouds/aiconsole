@@ -137,9 +137,11 @@ async def _handle_open_chat_ws_message(connection: AICConnection, message: OpenC
 
         connection.open_chats_ids.add(message.chat_id)
 
-        await ChatOpenedServerMessage(
-            chat=chat,
-        ).send_to_connection(connection)
+        await connection.send(
+            ChatOpenedServerMessage(
+                chat=chat,
+            )
+        )
     finally:
         await release_lock(chat_id=message.chat_id, request_id=temporary_request_id)
 

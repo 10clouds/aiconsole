@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING
 
 from fastapi import BackgroundTasks
 
-from aiconsole.api.websockets.connection_manager import AICConnection
+from aiconsole.api.websockets.connection_manager import AICConnection, connection_manager
 from aiconsole.api.websockets.server_messages import (
     InitialProjectStatusServerMessage,
     ProjectClosedServerMessage,
@@ -64,10 +64,12 @@ async def _clear_project():
 async def send_project_init(connection: AICConnection):
     from aiconsole.core.project.paths import get_project_directory, get_project_name
 
-    await InitialProjectStatusServerMessage(
-        project_name=get_project_name() if is_project_initialized() else None,
-        project_path=str(get_project_directory()) if is_project_initialized() else None,
-    ).send_to_connection(connection)
+    await connection.send(
+        InitialProjectStatusServerMessage(
+            project_name=get_project_name() if is_project_initialized() else None,
+            project_path=str(get_project_directory()) if is_project_initialized() else None,
+        )
+    )
 
 
 def get_project_materials() -> "assets.Assets":
@@ -91,7 +93,7 @@ async def close_project():
 
     await _clear_project()
 
-    await ProjectClosedServerMessage().send_to_all()
+    await connection_manager().broadcast(ProjectClosedServerMessage())
 
     await reload_settings(initial=True)
 
@@ -102,7 +104,7 @@ async def reinitialize_project():
     from aiconsole.core.recent_projects.recent_projects import add_to_recent_projects
     from aiconsole.core.settings.project_settings import reload_settings
 
-    await ProjectLoadingServerMessage().send_to_all()
+    await connection_manager().broadcast(ProjectLoadingServerMessage())
 
     global _materials
     global _agents
@@ -119,7 +121,9 @@ async def reinitialize_project():
     _agents = assets.Assets(asset_type=AssetType.AGENT)
     _materials = assets.Assets(asset_type=AssetType.MATERIAL)
 
-    await ProjectOpenedServerMessage(path=str(get_project_directory()), name=get_project_name()).send_to_all()
+    await connection_manager().broadcast(
+        ProjectOpenedServerMessage(path=str(get_project_directory()), name=get_project_name())
+    )
 
     await _materials.reload(initial=True)
     await _agents.reload(initial=True)
