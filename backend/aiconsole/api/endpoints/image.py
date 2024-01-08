@@ -20,7 +20,7 @@ from fastapi import APIRouter
 from fastapi.responses import FileResponse
 
 from aiconsole.consts import AICONSOLE_PATH
-from aiconsole.core.assets.asset import AssetType
+from aiconsole.core.assets.models import AssetType
 from aiconsole.core.project.paths import get_core_assets_directory
 
 router = APIRouter()

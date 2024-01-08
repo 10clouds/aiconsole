@@ -24,7 +24,7 @@ from aiconsole.api.utils.asset_get import asset_get
 from aiconsole.api.utils.asset_status_change import asset_status_change
 from aiconsole.api.utils.status_change_post_body import StatusChangePostBody
 from aiconsole.core.assets.agents.agent import Agent, AgentWithStatus
-from aiconsole.core.assets.asset import AssetLocation, AssetStatus, AssetType
+from aiconsole.core.assets.models import AssetLocation, AssetStatus, AssetType
 from aiconsole.core.gpt.consts import GPTMode
 from aiconsole.core.project import project
 from aiconsole.core.project.paths import (

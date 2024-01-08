@@ -13,8 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import json
 import logging
 from dataclasses import dataclass
 from typing import cast
@@ -22,8 +20,8 @@ from uuid import uuid4
 
 from aiconsole.consts import DIRECTOR_MIN_TOKENS, DIRECTOR_PREFERRED_TOKENS
 from aiconsole.core.assets.agents.agent import Agent
-from aiconsole.core.assets.asset import AssetLocation, AssetStatus
 from aiconsole.core.assets.materials.material import Material
+from aiconsole.core.assets.models import AssetLocation, AssetStatus
 from aiconsole.core.chat.chat_mutations import (
     CreateMessageGroupMutation,
     SetAgentIdMessageGroupMutation,

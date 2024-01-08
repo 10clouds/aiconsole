@@ -26,6 +26,8 @@ appdirs = "^1.4.4"
 rtoml = "^0.10.0"
 send2trash = "^1.8.2"
 libgravatar = "^1.0.4"
+email-validator = "^2.1.0.post1"
+deepmerge = "^1.1.1"
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.13.2"

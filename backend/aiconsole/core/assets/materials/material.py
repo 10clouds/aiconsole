@@ -17,11 +17,11 @@ import traceback
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from aiconsole.core.assets.asset import Asset, AssetLocation, AssetStatus, AssetType
 from aiconsole.core.assets.materials.documentation_from_code import (
     documentation_from_code,
 )
 from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
+from aiconsole.core.assets.models import Asset, AssetLocation, AssetStatus, AssetType
 
 if TYPE_CHECKING:
     from aiconsole.core.assets.materials.content_evaluation_context import (

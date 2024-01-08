@@ -21,7 +21,7 @@ from fastapi import APIRouter, BackgroundTasks
 from pydantic import BaseModel
 
 from aiconsole.core.project.paths import get_project_directory
-from aiconsole.core.project.project import choose_project, is_project_initialized
+from aiconsole.core.project.project import choose_project
 
 router = APIRouter()
 
@@ -38,7 +38,7 @@ async def _ask_directory():
     else:
         _root.deiconify()
     _root.withdraw()
-    initial_dir = get_project_directory() if is_project_initialized() else os.getcwd()
+    initial_dir = get_project_directory()
     directory = filedialog.askdirectory(initialdir=initial_dir)
 
     # Check if the dialog was cancelled (directory is an empty string)

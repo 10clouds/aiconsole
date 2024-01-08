@@ -2,8 +2,8 @@ import os
 from pathlib import Path
 
 from aiconsole.api.websockets.server_messages import ErrorServerMessage
-from aiconsole.core.assets.asset import Asset, AssetLocation, AssetType
 from aiconsole.core.assets.fs.load_asset_from_fs import load_asset_from_fs
+from aiconsole.core.assets.models import Asset, AssetLocation, AssetType
 from aiconsole.core.project.paths import (
     get_core_assets_directory,
     get_project_assets_directory,

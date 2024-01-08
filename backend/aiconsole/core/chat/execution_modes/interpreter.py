@@ -24,7 +24,6 @@ from uuid import uuid4
 from pydantic import Field
 
 from aiconsole.api.websockets.server_messages import ErrorServerMessage
-from aiconsole.core.assets.materials.material import Material
 from aiconsole.core.chat.chat_mutations import (
     AppendToCodeToolCallMutation,
     AppendToContentMessageMutation,
@@ -61,8 +60,7 @@ from aiconsole.core.gpt.request import (
     ToolFunctionDefinition,
 )
 from aiconsole.core.gpt.types import CLEAR_STR
-from aiconsole.core.project import project
-from aiconsole.core.settings.project_settings import get_aiconsole_settings
+from aiconsole.core.settings.project_settings import settings
 
 _log = logging.getLogger(__name__)
 
@@ -116,7 +114,7 @@ async def _execution_mode_process(
     if last_message.tool_calls:
         # Run all code in the last message
         for tool_call in last_message.tool_calls:
-            if get_aiconsole_settings().get_code_autorun():
+            if settings().settings_data.code_autorun:
                 accept_context = AcceptCodeContext(
                     chat_mutator=context.chat_mutator,
                     tool_call_id=tool_call.id,

@@ -23,7 +23,7 @@ cached_good_keys = set()
 
 
 # Verify the OpenAI key has access to the required models
-async def check_key(key: str) -> bool:
+def check_key(key: str) -> bool:
     if key in cached_good_keys:
         return True
 

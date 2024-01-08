@@ -28,7 +28,7 @@ from aiconsole.core.recent_projects.recent_project import RecentProject
 
 
 def _get_user_recent_projects_file():
-    return Path(user_config_dir("aiconsole")) / "recent"
+    return Path(user_config_dir("AIConsole")) / "recent"
 
 
 def _read_recent_projects():

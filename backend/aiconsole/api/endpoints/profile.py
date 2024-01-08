@@ -15,7 +15,7 @@
 # limitations under the License.
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
 from aiconsole.core.users.models import UserProfile
@@ -32,10 +32,25 @@ def profile(
 
 
 @router.get("/profile_image")
-def profile_image(
+def get_profile_image(
     img_filename: str, user_profile_service: UserProfileService = Depends(user_profile_service)
 ) -> FileResponse:
     file_path = user_profile_service.get_profile_image_path(img_filename)
+    if not file_path.exists():
+        file_path = user_profile_service.get_avatar(img_filename)
+
     if not file_path.is_file():
         raise HTTPException(status_code=404, detail="Image not found")
     return FileResponse(str(file_path))
+
+
+@router.post("/profile_image")
+async def set_profile_image(
+    avatar: UploadFile = File(...),
+    user_profile_service: UserProfileService = Depends(user_profile_service),
+):
+    file_path = user_profile_service.get_avatar(avatar.filename)
+    with open(file_path, "wb+") as file_object:
+        file_object.write(avatar.file.read())
+    user_profile_service.save_avatar(file_path=file_path)
+    return {"info": "Avatar uploaded successfully", "filename": avatar.filename}

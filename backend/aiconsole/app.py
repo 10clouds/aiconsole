@@ -24,12 +24,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from aiconsole.api.routers import app_router
 from aiconsole.consts import log_config
 from aiconsole.core.project import project
-from aiconsole.core.settings import project_settings
+from aiconsole.core.settings.project_settings import settings
+from aiconsole.core.settings.storage import settings_file_storage
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await project_settings.init()
+    settings_file_storage().configure()
+    settings().configure(storage=settings_file_storage())
     if project.is_project_initialized():
         await project.reinitialize_project()
     yield

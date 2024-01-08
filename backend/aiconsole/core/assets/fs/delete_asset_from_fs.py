@@ -16,7 +16,7 @@
 
 from send2trash import send2trash
 
-from aiconsole.core.assets.asset import AssetType
+from aiconsole.core.assets.models import AssetType
 from aiconsole.core.project.paths import get_project_assets_directory
 
 

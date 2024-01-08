@@ -17,22 +17,20 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from aiconsole.core.assets.asset import AssetType
+from aiconsole.core.assets.models import AssetType
 from aiconsole.core.project import project
-from aiconsole.core.settings.project_settings import get_aiconsole_settings
 
 router = APIRouter()
 
 
 @router.get("/")
 async def fetch_agents():
-    settings = get_aiconsole_settings()
     return JSONResponse(
         [
             *(
                 {
                     **agent.model_dump(),
-                    "status": settings.get_asset_status(AssetType.AGENT, agent.id),
+                    "status": project.get_project_agents().get_status(AssetType.AGENT, agent.id),
                 }
                 for agent in project.get_project_agents().all_assets()
             )

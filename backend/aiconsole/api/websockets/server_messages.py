@@ -24,7 +24,7 @@ if typing.TYPE_CHECKING:
 
 from pydantic import BaseModel
 
-from aiconsole.core.assets.asset import AssetType
+from aiconsole.core.assets.models import AssetType
 
 
 class BaseServerMessage(BaseModel):
