@@ -32,6 +32,6 @@ class KeyResponse(BaseModel):
 
 
 @router.get("/api/key", response_model=KeyResponse)
-async def get_key(key: str) -> KeyResponse:
+async def is_key_ok(key: str) -> KeyResponse:
     is_key_ok = await check_key(key)
     return KeyResponse(key=key if is_key_ok else None)

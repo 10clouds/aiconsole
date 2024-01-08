@@ -41,7 +41,7 @@ from aiconsole.core.chat.execution_modes.analysis.create_plan_class import (
     create_plan_class,
 )
 from aiconsole.core.chat.types import Chat
-from aiconsole.core.gpt.consts import GPTMode
+from aiconsole.core.gpt.consts import QUALITY_GPT_MODE, GPTMode
 from aiconsole.core.gpt.gpt_executor import GPTExecutor
 from aiconsole.core.gpt.request import (
     GPTRequest,
@@ -76,7 +76,7 @@ def pick_agent(arguments, chat: Chat, available_agents: list[Agent]) -> Agent:
             usage_examples=[],
             system="",
             defined_in=AssetLocation.AICONSOLE_CORE,
-            gpt_mode=GPTMode.QUALITY,
+            gpt_mode=QUALITY_GPT_MODE,
             override=False,
         )
     else:

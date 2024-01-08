@@ -33,7 +33,6 @@ import { unstable_useBlocker as useBlocker, useParams, useSearchParams } from 'r
 import ScrollToBottom, { useAnimating, useScrollToBottom, useSticky } from 'react-scroll-to-bottom';
 import { v4 as uuidv4 } from 'uuid';
 import { EditorHeader } from '../EditorHeader';
-import { Analysis } from './Analysis';
 import { CommandInput } from './CommandInput';
 import { Spinner } from './Spinner';
 

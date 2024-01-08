@@ -15,13 +15,14 @@
 # limitations under the License.
 
 from aiconsole.core.assets.asset import Asset, AssetStatus, AssetType
-from aiconsole.core.gpt.consts import GPTMode
+from aiconsole.core.gpt.consts import QUALITY_GPT_MODE, GPTMode
 
 
 class Agent(Asset):
     type: AssetType = AssetType.AGENT
     system: str
-    gpt_mode: GPTMode = GPTMode.QUALITY
+
+    gpt_mode: GPTMode = QUALITY_GPT_MODE
     execution_mode: str = "aiconsole.core.chat.execution_modes.normal:execution_mode"
 
 

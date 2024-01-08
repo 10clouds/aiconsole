@@ -35,12 +35,14 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   isApiKeyValid: false,
   alwaysExecuteCode: false,
   setAutoCodeExecution: async (autoRun: boolean) => {
-    await SettingsAPI.saveSettings({ code_autorun: autoRun, to_global: true });
+    await SettingsAPI.saveSettings({ code_autorun: autoRun, extra: {}, to_global: true });
     set({ alwaysExecuteCode: autoRun });
   },
   saveOpenAiApiKey: async (key: string) => {
     await SettingsAPI.saveSettings({
-      openai_api_key: key,
+      extra: {
+        openai_api_key: key,
+      },
       to_global: true,
     });
 
@@ -53,8 +55,8 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     const result = await SettingsAPI.getSettings();
     set({
       alwaysExecuteCode: result.code_autorun,
-      openAiApiKey: result.openai_api_key,
-      isApiKeyValid: await get().validateApiKey(result.openai_api_key || ''),
+      openAiApiKey: result.extra.openai_api_key,
+      isApiKeyValid: await get().validateApiKey(result.extra.openai_api_key || ''),
     });
   },
   validateApiKey: async (key: string) => {
