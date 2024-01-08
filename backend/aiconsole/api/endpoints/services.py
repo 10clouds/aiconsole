@@ -9,6 +9,10 @@ class AssetWithGivenNameAlreadyExistError(Exception):
     pass
 
 
+class InvalidAgentNameError(Exception):
+    pass
+
+
 class _Assets:
     async def _create(self, assets: Assets, asset_id: str, asset: Asset) -> None:
         self._validate_existance(assets, asset_id)
@@ -28,13 +32,23 @@ class _Assets:
 
 
 class Agents(_Assets):
+    _INVALID_AGENT_IDS = {"user"}
+
     async def create_agent(self, agent_id: str, agent: Agent) -> None:
+        self._validate_invalid_agent_ids(agent_id)
+
         agents = project.get_project_agents()
         await self._create(agents, agent_id, agent)
 
     async def partially_update_agent(self, agent_id: str, agent: Agent) -> None:
+        self._validate_invalid_agent_ids(agent.id)
+
         agents = project.get_project_agents()
         await self._partially_update(agents, agent_id, agent)
+
+    def _validate_invalid_agent_ids(self, agent_id: str) -> None:
+        if agent_id in self._INVALID_AGENT_IDS:
+            raise InvalidAgentNameError()
 
 
 class Materials(_Assets):

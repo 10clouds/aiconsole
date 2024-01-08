@@ -18,7 +18,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import FileResponse, JSONResponse
 
 from aiconsole.api.endpoints.registry import agents
-from aiconsole.api.endpoints.services import Agents, AssetWithGivenNameAlreadyExistError
+from aiconsole.api.endpoints.services import (
+    Agents,
+    AssetWithGivenNameAlreadyExistError,
+    InvalidAgentNameError,
+)
 from aiconsole.api.utils.asset_exists import asset_exists, asset_path
 from aiconsole.api.utils.asset_get import asset_get
 from aiconsole.api.utils.asset_status_change import asset_status_change
@@ -62,6 +66,10 @@ async def partially_update_agent(agent_id: str, agent: Agent, agents_service: Ag
         await agents_service.partially_update_agent(agent_id=agent_id, agent=agent)
     except AssetWithGivenNameAlreadyExistError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Agent with given name already exists")
+    except InvalidAgentNameError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid agent name. Try to use another one"
+        )
 
 
 @router.post("/{agent_id}")
@@ -70,6 +78,10 @@ async def create_agent(agent_id: str, agent: Agent, agents_service: Agents = Dep
         await agents_service.create_agent(agent_id=agent_id, agent=agent)
     except AssetWithGivenNameAlreadyExistError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Agent with given name already exists")
+    except InvalidAgentNameError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid agent name. Try to use another one"
+        )
 
 
 @router.post("/{agent_id}/status-change")
