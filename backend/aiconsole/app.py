@@ -17,8 +17,8 @@
 import os
 from contextlib import asynccontextmanager
 from logging import config
-import sentry_sdk
 
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -32,6 +32,7 @@ if "BE_SENTRY_DSN" in os.environ:
         dsn=os.environ.get("BE_SENTRY_DSN", ""),
         enable_tracing=True,
     )
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
