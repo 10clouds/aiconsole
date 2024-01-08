@@ -14,62 +14,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-from pathlib import Path
-
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends
 from pydantic import BaseModel
 
-from aiconsole.core.project.paths import get_project_directory
-from aiconsole.core.project.project import choose_project, is_project_initialized
+from aiconsole.api.endpoints.projects.registry import project_directory
+from aiconsole.api.endpoints.projects.services import ProjectDirectory
 
 router = APIRouter()
 
-_root = None
+
+class ProjectDirectoryParams(BaseModel):
+    directory: str
 
 
-async def _ask_directory():
-    from tkinter import Tk, filedialog
-
-    global _root
-
-    if not _root:
-        _root = Tk()
-    else:
-        _root.deiconify()
-    _root.withdraw()
-    initial_dir = get_project_directory() if is_project_initialized() else os.getcwd()
-    directory = filedialog.askdirectory(initialdir=initial_dir)
-
-    # Check if the dialog was cancelled (directory is an empty string)
-    if directory == "":
-        return None
-    else:
-        return Path(directory)
+@router.post("/choose_directory")
+async def choose_directory(project_directory: ProjectDirectory = Depends(project_directory)):
+    initial_directory = await project_directory.choose_directory()
+    return {"directory": None if initial_directory is None else str(initial_directory)}
 
 
-class ChooseParams(BaseModel):
-    directory: str | None = None
+@router.get("/is_in_directory")
+async def is_project_in_directory(directory: str, project_directory: ProjectDirectory = Depends(project_directory)):
+    return {"is_project": project_directory.is_project_in_directory(directory)}
 
 
-@router.post("/is_project")
-async def is_project(params: ChooseParams):
-    directory = Path(params.directory) if params.directory else None
-
-    if not directory:
-        # Show a system select directory dialog
-        directory = await _ask_directory()
-
-    if not directory:
-        return {"is_project": False, "path": None}
-
-    is_project = directory.joinpath("materials").is_dir() or directory.joinpath("agents").is_dir()
-
-    return {"is_project": is_project, "path": str(directory)}
-
-
-@router.post("/choose")
-async def choose_project_endpoint(params: ChooseParams, background_tasks: BackgroundTasks):
-    directory = Path(params.directory)
-
-    await choose_project(directory, background_tasks)
+@router.post("/switch")
+async def switch_project_endpoint(
+    params: ProjectDirectoryParams,
+    background_tasks: BackgroundTasks,
+    project_directory: ProjectDirectory = Depends(project_directory),
+):
+    await project_directory.switch_or_save_project(params.directory, background_tasks)

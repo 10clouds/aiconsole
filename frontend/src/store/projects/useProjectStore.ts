@@ -118,13 +118,13 @@ export const useProjectStore = create<ProjectSlice>((set, _) => ({
       }
     }
 
-    const path = pathToCheck || pathFromElectron;
-    const { is_project, path: tkPath } = await ProjectsAPI.isProjectDirectory(path);
+    const path = pathToCheck || pathFromElectron || (await ProjectsAPI.getInitialPath()).directory;
+    const { is_project } = await ProjectsAPI.isProjectDirectory(path);
     set({
       isProjectDirectory: is_project,
-      tempPath: tkPath,
+      tempPath: path,
     });
-    if (is_project === undefined && !tkPath) {
+    if (is_project === undefined && !path) {
       (await ProjectsAPI.chooseProject(path).json()) as {
         name: string;
         path: string;

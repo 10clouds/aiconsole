@@ -53,10 +53,10 @@ aiconsole = "aiconsole.init:aiconsole"
 dev = "aiconsole.init:aiconsole_dev"
 
 [tool.pytest.ini_options]
-python_files = "*_tests.py"
+python_files = "*_tests.py test_*.py"
 
 [tool.isort]
 known_first_party = "aiconsole,aiconsole_toolkit"
 default_section = "THIRDPARTY"
-sections = ["FUTURE","STDLIB","THIRDPARTY","FIRSTPARTY","LOCALFOLDER"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 profile = "black"
