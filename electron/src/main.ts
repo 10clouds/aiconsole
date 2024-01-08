@@ -245,7 +245,7 @@ function findPathToPython() {
   if (process.platform === 'win32') {
     pythonPath = path.join('python', 'python.exe');
   } else {
-    pythonPath = path.join('python', 'bin', 'python3.10');
+    pythonPath = path.join('python', 'bin', 'python3.11');
   }
 
   if (app.isPackaged) {

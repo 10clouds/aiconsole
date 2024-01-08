@@ -37,6 +37,7 @@ import logging
 import re
 
 from aiconsole.core.assets.materials.material import Material
+from aiconsole_toolkit.env import get_current_project_user_packages
 
 from ..subprocess_code_interpreter import SubprocessCodeInterpreter
 
@@ -71,9 +72,27 @@ def preprocess_python(code: str, materials: list[Material]):
     """
 
     # If a line starts with "!" then it's a shell command, we need to wrap it appropriately
-    code = "\n".join(
-        [f"import os; os.system({line[1:]!r})" if line.startswith("!") else line for line in code.split("\n")]
-    )
+    # code = "\n".join(
+    #     [f"import os; os.system({line[1:]!r})" if line.startswith("!") else line for line in code.split("\n")]
+    # )
+
+    updated_code = []
+    for line in code.split("\n"):
+        if line.startswith("!pip install") or line.startswith("!pip3 install"):
+            packages = line.split()[2:]  # Split the line and take elements after 'pip install'
+
+            with open(get_current_project_user_packages(), "a") as file:
+                for package in packages:
+                    file.write(package + "\n")
+
+            updated_code.append(f"import os; os.system({line[1:]!r})")
+        elif line.startswith("!"):
+            updated_code.append(f"import os; os.system({line[1:]!r})")
+        else:
+            updated_code.append(line)
+
+    # Join the updated code lines back into a single string
+    code = "\n".join(updated_code)
 
     # Check for syntax errors in user's code
     try:

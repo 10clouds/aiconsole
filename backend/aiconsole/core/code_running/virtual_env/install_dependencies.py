@@ -1,25 +1,35 @@
 import logging
-import platform
 import subprocess
+from pathlib import Path
 
 from aiconsole.consts import DIR_WITH_AICONSOLE_PACKAGE
+from aiconsole_toolkit.env import get_current_project_user_packages
 
 _log = logging.getLogger(__name__)
 
 
-def install_dependencies(venv_or_python_path):
-    pyproject_path = DIR_WITH_AICONSOLE_PACKAGE / "pyproject.toml"
-
-    if not pyproject_path.exists():
-        _log.info(f"Skipping installation: '{pyproject_path}' does not exist (bundled version?)")
+def install_dependencies(python_path: Path, dependency_file: Path):
+    if not dependency_file.exists():
+        _log.info(f"Skipping installation: '{dependency_file}' does not exist (bundled version?)")
         return
-
-    if platform.system() == "Windows":
-        python_path = venv_or_python_path / "python.exe"
-        install_command = [python_path, "-m", "pip", "install", "-e", str(DIR_WITH_AICONSOLE_PACKAGE)]
+    if dependency_file == get_current_project_user_packages():
+        install_command = [
+            str(python_path),
+            "-m",
+            "pip",
+            "install",
+            "-r",
+            str(dependency_file),
+        ]
     else:
-        pip_path = venv_or_python_path / "bin" / "pip"
-        install_command = [pip_path, "install", "-e", str(DIR_WITH_AICONSOLE_PACKAGE)]
+        install_command = [
+            str(python_path),
+            "-m",
+            "pip",
+            "install",
+            "-e",
+            str(DIR_WITH_AICONSOLE_PACKAGE),
+        ]
 
     _log.info(f"Installing aiconsole and dependencies using: {' '.join([str(elem) for elem in install_command])}")
 
