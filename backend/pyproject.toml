@@ -5,6 +5,10 @@ version = "0.2.2"
 description = "Run and expand your personal AI tools"
 authors = ["Maciej Cielecki <maciej.cielecki@10clouds.com>"]
 license = "Apache-2.0"
+packages = [
+    { include = "aiconsole" },
+    { include = "aiconsole_toolkit" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
