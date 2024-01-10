@@ -16,10 +16,10 @@ def install_dependencies(venv_or_python_path):
 
     if platform.system() == "Windows":
         python_path = venv_or_python_path / "python.exe"
-        install_command = [python_path, "-m", "pip", "install", "-e", str(DIR_WITH_AICONSOLE_PACKAGE)]
+        install_command = [python_path, "-m", "pip", "install", str(DIR_WITH_AICONSOLE_PACKAGE)]
     else:
         pip_path = venv_or_python_path / "bin" / "pip"
-        install_command = [pip_path, "install", "-e", str(DIR_WITH_AICONSOLE_PACKAGE)]
+        install_command = [pip_path, "install", str(DIR_WITH_AICONSOLE_PACKAGE)]
 
     _log.info(f"Installing aiconsole and dependencies using: {' '.join([str(elem) for elem in install_command])}")
 
