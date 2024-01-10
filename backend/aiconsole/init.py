@@ -17,7 +17,6 @@
 import argparse
 import logging
 import os
-from contextlib import asynccontextmanager
 from logging import config
 
 from uvicorn import run
@@ -25,7 +24,6 @@ from uvicorn import run
 from aiconsole.consts import log_config
 
 config.dictConfig(log_config)
-
 _log = logging.getLogger(__name__)
 
 

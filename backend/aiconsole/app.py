@@ -16,7 +16,7 @@
 
 import os
 from contextlib import asynccontextmanager
-from logging import config
+from logging import config, getLogger
 
 import sentry_sdk
 from fastapi import FastAPI
@@ -33,6 +33,9 @@ if "BE_SENTRY_DSN" in os.environ:
         enable_tracing=True,
     )
 
+config.dictConfig(log_config)
+logger = getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -40,9 +43,6 @@ async def lifespan(app: FastAPI):
     if project.is_project_initialized():
         await project.reinitialize_project()
     yield
-
-
-config.dictConfig(log_config)
 
 
 def app():
