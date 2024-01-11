@@ -28,6 +28,7 @@ send2trash = "^1.8.2"
 libgravatar = "^1.0.4"
 email-validator = "^2.1.0.post1"
 deepmerge = "^1.1.1"
+sentry-sdk = {extras = ["fastapi"], version = "^1.39.1"}
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.13.2"
@@ -55,10 +56,10 @@ aiconsole = "aiconsole.init:aiconsole"
 dev = "aiconsole.init:aiconsole_dev"
 
 [tool.pytest.ini_options]
-python_files = "*_tests.py"
+python_files = "*_tests.py test_*.py"
 
 [tool.isort]
 known_first_party = "aiconsole,aiconsole_toolkit"
 default_section = "THIRDPARTY"
-sections = ["FUTURE","STDLIB","THIRDPARTY","FIRSTPARTY","LOCALFOLDER"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 profile = "black"

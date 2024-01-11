@@ -25,7 +25,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "backend"))
 import logging
 
 from aiconsole.core.code_running.virtual_env.download_python import download_python
-from aiconsole.core.code_running.virtual_env.install_dependencies import install_dependencies
+from aiconsole.core.code_running.virtual_env.install_dependencies import (
+    install_dependencies,
+)
 
 # setup logging
 logging.basicConfig(

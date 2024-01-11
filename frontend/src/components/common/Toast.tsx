@@ -14,11 +14,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ElementRef, ReactNode, forwardRef } from 'react';
-import * as ReactToast from '@radix-ui/react-toast';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
 import { ToastMessage, ToastVariant, useToastsStore } from '@/store/common/useToastsStore';
+import * as ReactToast from '@radix-ui/react-toast';
+import { AnimatePresence, motion } from 'framer-motion';
+import { X } from 'lucide-react';
+import { ElementRef, ReactNode, forwardRef } from 'react';
 import { Icon } from './icons/Icon';
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -94,10 +94,12 @@ const Toast = forwardRef<ElementRef<typeof ReactToast.Root>, ToastProps>(
           style={{ width: WIDTH, WebkitTapHighlightColor: 'transparent' }}
           className="py-5 px-[15px] rounded-lg shadow-md bg-gray-700 text-white text-sm"
         >
-          <div className="flex items-start justify-between overflow-hidden whitespace-nowrap bg-gray-700 text-sm text-white shadow-sm backdrop-blur">
-            <div className={`flex flex-col items-start pl-5 border-l-[3px] w-full truncate ${getStyles(variant)}`}>
-              <ReactToast.Title className="font-semibold text-base">{title}</ReactToast.Title>
-              <ReactToast.Description className="text-[15px] w-full leading-6 text-gray-300 truncate">
+          <div className="flex items-start justify-between bg-gray-700 text-sm text-white shadow-sm backdrop-blur">
+            <div
+              className={`flex flex-col items-start pl-5 border-l-[3px] w-full overflow-hidden ${getStyles(variant)}`}
+            >
+              <ReactToast.Title className="font-semibold text-base w-full truncate">{title}</ReactToast.Title>
+              <ReactToast.Description className="text-[15px] w-full leading-6 text-gray-300 text-balance">
                 {message}
               </ReactToast.Description>
             </div>

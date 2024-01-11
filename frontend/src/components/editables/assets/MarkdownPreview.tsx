@@ -32,9 +32,7 @@ const customDivStyle = {
 const MarkdownPreview = ({ text, disabled }: MarkdownPreviewProps) => {
   return (
     <div className="w-1/2 h-[calc(100vh-500px)] min-h-[300px]">
-      <p className="font-bold mb-4">
-        Preview of markdown text to be injected into AI context:
-      </p>
+      <p className="font-bold mb-4">Preview of markdown text to be injected into AI context:</p>
       <div className="bg-black/20 p-3 w-full   overflow-y-auto h-[calc(100%-40px)]">
         <div
           className={cn('prose prose-default w-full', {
@@ -42,6 +40,7 @@ const MarkdownPreview = ({ text, disabled }: MarkdownPreviewProps) => {
           })}
         >
           <ReactMarkdown
+            transformLinkUri={null}
             components={{
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               code({ className, children, inline, node, ...props }) {

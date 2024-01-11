@@ -24,17 +24,21 @@ jobs:
         shell: bash
         run: |
           tag=${GITHUB_REF/refs\/tags\//}
-          if [[ $tag =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ $tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # remove the leading 'v' from the tag
+            tag=${tag:1}
             echo "version=${tag}" >> $GITHUB_OUTPUT
             version=$tag
-          elif [[ $tag =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]; then
+          elif [[ $tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]; then
+            # remove the leading 'v' from the tag
+            tag=${tag:1}
             echo "version=${tag}" >> $GITHUB_OUTPUT
             version=$tag
           else
-            echo "Invalid tag format: $tag"
+            echo "Invalid tag format, we only accept the v*.*.* or v*.*.*-rc.* formats but you set $tag"
             exit 1
           fi
-          branch_prefix=release-
+          branch_prefix=tmp-
           echo "branch=${branch_prefix}${version}" >> $GITHUB_OUTPUT
 
       - name: Run propagate_version.py
@@ -117,3 +121,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GHA_PAT_PUBLIC }}
         run: |
           cd electron && yarn run tag-publish
+
+  cleanup:
+    needs:
+      - version-update
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Github checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Delete branch
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git push origin --delete ${{ needs.version-update.outputs.branch }}

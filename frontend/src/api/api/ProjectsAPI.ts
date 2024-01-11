@@ -21,23 +21,34 @@ import { RecentProject } from "@/types/projects/RecentProject";
 const closeProject = () => ky.post(`${getBaseURL()}/api/projects/close`, { hooks: API_HOOKS });
 
 const chooseProject = (path?: string) =>
-  ky.post(`${getBaseURL()}/api/projects/choose`, {
+  ky.post(`${getBaseURL()}/api/projects/switch`, {
     json: { directory: path },
     hooks: API_HOOKS,
     timeout: false, // infinite timeout
   });
 
-const isProjectDirectory = async (path?: string) =>
+const isProjectDirectory = async (path: string) => 
   (await ky
-    .post(`${getBaseURL()}/api/projects/is_project`, {
-      json: { directory: path },
+    .get(`${getBaseURL()}/api/projects/is_in_directory`, {
+      searchParams:  { directory: path},
       hooks: API_HOOKS,
       timeout: false,
     })
     .json()) as {
     is_project: boolean;
-    path: string;
   };
+
+
+const getInitialPath = async () =>
+  (await ky
+    .post(`${getBaseURL()}/api/projects/choose_directory`, {
+      hooks: API_HOOKS,
+      timeout: false,
+    })
+    .json()) as {
+    directory: string;
+  };
+
 
 const getCurrentProject = () => ky.get(`${getBaseURL()}/api/projects/current`, { hooks: API_HOOKS });
 
@@ -59,4 +70,5 @@ export const ProjectsAPI = {
   removeRecentProject,
   isProjectDirectory,
   getCurrentProject,
+  getInitialPath,
 };

@@ -18,6 +18,7 @@ import os
 from contextlib import asynccontextmanager
 from logging import config
 
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -26,6 +27,12 @@ from aiconsole.consts import log_config
 from aiconsole.core.project import project
 from aiconsole.core.settings.project_settings import settings
 from aiconsole.core.settings.storage import settings_file_storage
+
+if "BE_SENTRY_DSN" in os.environ:
+    sentry_sdk.init(
+        dsn=os.environ.get("BE_SENTRY_DSN", ""),
+        enable_tracing=True,
+    )
 
 
 @asynccontextmanager
