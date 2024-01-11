@@ -56,8 +56,7 @@ class UserProfileService:
     @staticmethod
     def get_avatar_folder_path() -> Path:
         avatar_folder_path = AICONSOLE_USER_CONFIG_DIR() / "avatars"
-        if not avatar_folder_path.exists():
-            avatar_folder_path.mkdir(parents=False, exist_ok=True)
+        avatar_folder_path.mkdir(parents=False, exist_ok=True)
         return avatar_folder_path
 
     @staticmethod

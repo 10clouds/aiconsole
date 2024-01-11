@@ -30,9 +30,6 @@ class BatchingWatchDogHandler(watchdog.events.FileSystemEventHandler):
         self.reload = reload
         self.extension = extension
 
-    def on_any_event(self, event):
-        _log.debug("❗️❗️❗️❗️File modified❗️❗️❗️❗️")
-
     def on_moved(self, event):
         return self.on_modified(event)
 
@@ -43,7 +40,6 @@ class BatchingWatchDogHandler(watchdog.events.FileSystemEventHandler):
         return self.on_modified(event)
 
     def on_modified(self, event):
-        _log.debug("File modified!")
         if event.is_directory or not event.src_path.endswith(self.extension):
             return
 

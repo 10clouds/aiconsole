@@ -12,7 +12,7 @@ class UserProfile(BaseModel):
     gravatar: bool = False
 
     def __init__(self, **data: Any):
-        if not data.get("username"):
+        if data.get("username") is None:
             if data.get("email") is not None:
                 data["username"] = str(data["email"]).split("@")[0]
             else:

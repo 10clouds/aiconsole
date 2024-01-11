@@ -77,7 +77,6 @@ class SettingsFileStorage(SettingsStorage):
 
     @staticmethod
     def _update_document(document: tomlkit.TOMLDocument, settings_data: models.PartialSettingsData):
-        print(settings_data.model_dump(exclude_none=True, exclude={"to_global"}))
         for key, value in settings_data.model_dump(exclude_none=True, exclude={"to_global"}).items():
             document[key] = value
 
