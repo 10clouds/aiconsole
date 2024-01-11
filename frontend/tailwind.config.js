@@ -17,10 +17,10 @@ export default {
     screens: {
       md: '800px',
       xl: '1200px',
-      '2xl': '1440px'
+      '2xl': '1440px',
     },
     extend: {
-       keyframes: {
+      keyframes: {
         fadeInUp: {
           '0%': { transform: 'translateY(30px)', opacity: 0 },
           '100%': { transform: 'translateY(0)', opacity: 1 },
@@ -54,9 +54,9 @@ export default {
           to: { opacity: 1, transform: 'translateX(0)' },
         },
       },
-       animation: {
-        'fadeInUp': 'fadeInUp .2s ease-in-out',
-        'fadeIn': 'fadeIn .1s ease-in-out',
+      animation: {
+        fadeInUp: 'fadeInUp .2s ease-in-out',
+        fadeIn: 'fadeIn .1s ease-in-out',
         overlayShow: 'overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1)',
         contentShow: 'contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1)',
         slideDownAndFade: 'slideDownAndFade 200ms cubic-bezier(0.16, 1, 0.3, 1)',
@@ -72,7 +72,7 @@ export default {
         'top-elipse': "url('/elipse-top.png')",
         'primary-gradient': 'radial-gradient(circle at 50% -40%, rgba(173,122,255,1) -150%, rgba(26,26,26,1) 60%)',
         'project-item-gradient': 'linear-gradient(180deg, #161616 29.17%, #2D253E 100%)',
-        'project-item-gradient-2': 'linear-gradient(180deg, rgba(17, 17, 17, 0.00) 65.1%, #111 100%)'
+        'project-item-gradient-2': 'linear-gradient(180deg, rgba(17, 17, 17, 0.00) 65.1%, #111 100%)',
       },
       boxShadow: {
         dark: '0px 20px 40px 0px rgba(0, 0, 0, 0.25)',
@@ -171,7 +171,8 @@ export default {
         red: '#CF4840',
         orange: '#CFA740',
         blue: '#62ADF2',
-        'primary-gradient': 'radial-gradient(circle at 50% -40%, rgba(173,122,255,1) -150%, rgba(26,26,26,1) 60%)'
+        'primary-gradient': 'radial-gradient(circle at 50% -40%, rgba(173,122,255,1) -150%, rgba(26,26,26,1) 60%)',
+        topGradient: '#2D253E',
       },
     },
   },

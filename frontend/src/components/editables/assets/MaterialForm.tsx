@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 import { FormGroup } from '@/components/common/FormGroup';
 import { CodeEditorLabelContent } from './CodeEditorLabelContent';
 import { CodeInput } from './CodeInput';
@@ -7,6 +8,7 @@ import { Material, RenderedMaterial } from '@/types/editables/assetTypes';
 import { useAssetStore } from '@/store/editables/asset/useAssetStore';
 import { useMaterialEditorContent } from './useMaterialEditorContent';
 import { EditablesAPI } from '@/api/api/EditablesAPI';
+import { MarkdownSupported } from '../MarkdownSupported';
 
 interface MaterialFormProps {
   material: Material;
@@ -41,8 +43,9 @@ export const MaterialForm = ({ material }: MaterialFormProps) => {
 
   return (
     <>
-      <FormGroup>
+      <FormGroup className="relative group">
         <TextInput
+          className="min-h-[70px]"
           label="Usage"
           name="usage"
           placeholder="Write text here"
@@ -51,11 +54,14 @@ export const MaterialForm = ({ material }: MaterialFormProps) => {
           helperText="Usage is used to help identify when this material should be used. "
           resize
         />
+        <MarkdownSupported className="bottom-[35px] right-[40px]" />
       </FormGroup>
       <FormGroup className="w-full h-full flex overflow-clip">
         <div className="flex-1">
           {codeEditorSectionContent ? (
             <CodeInput
+              fullHeight
+              withMarkdown
               label={codeEditorSectionContent.label}
               labelContent={
                 <CodeEditorLabelContent showPreview={showPreview} onClick={() => setShowPreview((prev) => !prev)} />

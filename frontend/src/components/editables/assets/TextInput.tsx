@@ -14,9 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ChangeEvent, ReactNode } from 'react';
-import { cn } from '@/utils/common/cn';
 import Tooltip from '@/components/common/Tooltip';
+import { cn } from '@/utils/common/cn';
+import { ChangeEvent, ReactNode } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import { HelperLabel } from './HelperLabel';
 
@@ -55,6 +55,7 @@ interface TextInputProps {
   learnMoreLink?: string;
   labelChildren?: ReactNode;
   hidden?: boolean;
+  type?: HTMLInputElement['type'];
 }
 
 export function TextInput({
@@ -77,6 +78,7 @@ export function TextInput({
   learnMoreLink,
   labelChildren,
   hidden,
+  type,
 }: TextInputProps) {
   const checkIfEmpty = (value: string) => {
     if (required && value.trim() === '') {
@@ -115,6 +117,7 @@ export function TextInput({
     disabled,
     onBlur: handleBlur,
     placeholder,
+    type,
   };
 
   const textarea = <TextareaAutosize {...textFieldProps} rows={1} />;

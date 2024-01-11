@@ -30,7 +30,7 @@ class GravatarUserProfile(BaseModel):
     preferredUsername: str
     thumbnailUrl: HttpUrl
     photos: list[Photo]
-    last_profile_edit: datetime
+    last_profile_edit: datetime | None = None
     profileBackground: Optional[ProfileBackground] = None
     displayName: str
     aboutMe: Optional[str] = None

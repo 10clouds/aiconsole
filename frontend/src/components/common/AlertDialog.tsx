@@ -58,7 +58,7 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
 
   return (
     <ReactAlertDialog.Root open={open} onOpenChange={setOpen}>
-      {openModalButton && <ReactAlertDialog.Trigger>{openModalButton}</ReactAlertDialog.Trigger>}
+      {openModalButton && <ReactAlertDialog.Trigger asChild>{openModalButton}</ReactAlertDialog.Trigger>}
       <ReactAlertDialog.Portal>
         <ReactAlertDialog.Overlay
           className="data-[state=open]:animate-overlayShow fixed inset-0 bg-black/50"

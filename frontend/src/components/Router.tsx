@@ -33,7 +33,7 @@ import { AssetEditor } from './editables/assets/AssetEditor';
 import { ChatPage } from './editables/chat/ChatPage';
 import SideBar from './editables/sidebar/SideBar';
 import { Home } from './projects/Home';
-import { GlobalSettingsModal } from './settings/GlobalSettingsModal';
+import { GlobalSettingsModal } from './settings/modal/GlobalSettingsModal';
 import { useAPIStore } from '@/store/useAPIStore';
 import { useToastsStore } from '@/store/common/useToastsStore';
 

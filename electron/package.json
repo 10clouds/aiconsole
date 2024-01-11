@@ -23,6 +23,7 @@
   "productName": "AIConsole",
   "main": ".vite/build/main.js",
   "dependencies": {
+    "@aptabase/electron": "^0.3.1",
     "electron-settings": "^4.0.2",
     "electron-squirrel-startup": "^1.0.0",
     "lodash.debounce": "^4.0.8",

@@ -48,9 +48,11 @@ export function Home() {
                     </h1>
                     <div className="px-4 pb-[30px] text-center opacity-75 text-gray-400">Recent projects:</div>
                   </div>
-                  <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 justify-items-stretch gap-[20px] mx-auto overflow-auto pr-5">
+                  <div className="w-full flex flex-wrap justify-center gap-[20px] mx-auto overflow-auto pr-5">
                     {recentProjects.map(({ name, path, recent_chats }) => (
-                      <ProjectCard key={path} name={name} path={path} chatHistory={recent_chats} />
+                      <div className="w-full md:w-[calc(50%-10px)] xl:w-[calc(33.333%-13.33px)] 2xl:w-[calc(25%-15px)]">
+                        <ProjectCard key={path} name={name} path={path} chatHistory={recent_chats} />
+                      </div>
                     ))}
                   </div>
                 </div>

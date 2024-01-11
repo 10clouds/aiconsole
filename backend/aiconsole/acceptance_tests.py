@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 from fastapi import BackgroundTasks
 
+from aiconsole.api.endpoints.projects.services import ProjectDirectory
 from aiconsole.core.gpt.check_key import cached_good_keys, check_key
 from aiconsole.core.project.project import choose_project
 from aiconsole.core.recent_projects.recent_projects import get_recent_project
@@ -14,15 +15,22 @@ def background_tasks() -> BackgroundTasks:
     return BackgroundTasks()
 
 
+@pytest.fixture
+def project_directory() -> ProjectDirectory:
+    return ProjectDirectory()
+
+
 @pytest.mark.asyncio
-async def test_should_be_able_to_add_new_project(background_tasks: BackgroundTasks):
+async def test_should_be_able_to_add_new_project(
+    background_tasks: BackgroundTasks, project_directory: ProjectDirectory
+):
     await _initialize_app()
     _login("test_key")
 
     project_path = Path("./")
 
-    await choose_project(
-        path=project_path,
+    await project_directory.switch_or_save_project(
+        directory=str(project_path),
         background_tasks=background_tasks,
     )
 

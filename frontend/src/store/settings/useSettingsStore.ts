@@ -15,17 +15,23 @@
 // limitations under the License.
 
 import { ProjectsAPI } from '@/api/api/ProjectsAPI';
+import { useProjectStore } from '@/store/projects/useProjectStore';
+import { Settings } from '@/types/settings/Settings';
 import { create } from 'zustand';
 import { SettingsAPI } from '../../api/api/SettingsAPI';
-import { useProjectStore } from '@/store/projects/useProjectStore';
 
 export type SettingsStore = {
   openAiApiKey?: string | null;
   isApiKeyValid?: boolean;
   alwaysExecuteCode: boolean;
+  username: string | null;
+  userEmail: string | null;
+  userAvatarUrl: string | null;
+  isSettingsModalVisible: boolean;
+  setSettingsModalVisibility: (isVisible: boolean) => void;
   initSettings: () => Promise<void>;
   setAutoCodeExecution: (autoRun: boolean) => void;
-  saveOpenAiApiKey: (key: string) => Promise<void>;
+  saveSettings: (settings: Settings, isGlobal: boolean, avatar?: FormData | null) => Promise<void>;
   validateApiKey: (key: string) => Promise<boolean>;
 };
 
@@ -34,27 +40,53 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   openAiApiKey: undefined,
   isApiKeyValid: false,
   alwaysExecuteCode: false,
+  username: null,
+  userEmail: null,
+  userAvatarUrl: null,
+  isSettingsModalVisible: false,
+  setSettingsModalVisibility: (isVisible: boolean) => {
+    set({ isSettingsModalVisible: isVisible });
+  },
   setAutoCodeExecution: async (autoRun: boolean) => {
     await SettingsAPI.saveSettings({ code_autorun: autoRun, to_global: true });
     set({ alwaysExecuteCode: autoRun });
   },
-  saveOpenAiApiKey: async (key: string) => {
+  saveSettings: async (settings: Settings, isGlobal: boolean, avatar?: FormData | null) => {
+    const { username, email, openai_api_key, code_autorun } = settings;
     await SettingsAPI.saveSettings({
-      openai_api_key: key,
-      to_global: true,
+      ...settings,
+      to_global: isGlobal,
     });
+    if (openai_api_key) {
+      set({
+        openAiApiKey: openai_api_key,
+        isApiKeyValid: true, // We assume that they key was validated before saving
+      });
+    }
+    if (username) {
+      set({ username });
+    }
+    if (email) {
+      set({ userEmail: email });
+    }
+    if (typeof code_autorun === 'boolean') {
+      set({ alwaysExecuteCode: code_autorun });
+    }
 
-    set({
-      openAiApiKey: key,
-      isApiKeyValid: true, // We assume that they key was validated before saving
-    });
+    if (avatar) {
+      await SettingsAPI.setUserAvatar(avatar);
+    }
   },
   initSettings: async () => {
-    const result = await SettingsAPI.getSettings();
+    const { code_autorun, openai_api_key, username, email } = await SettingsAPI.getSettings();
+    const { avatar_url } = await SettingsAPI.getUserAvatar(email);
     set({
-      alwaysExecuteCode: result.code_autorun,
-      openAiApiKey: result.openai_api_key,
-      isApiKeyValid: await get().validateApiKey(result.openai_api_key || ''),
+      username,
+      userEmail: email,
+      alwaysExecuteCode: code_autorun,
+      openAiApiKey: openai_api_key,
+      isApiKeyValid: await get().validateApiKey(openai_api_key || ''),
+      userAvatarUrl: avatar_url,
     });
   },
   validateApiKey: async (key: string) => {
