@@ -19,6 +19,7 @@ import { cn } from '@/utils/common/cn';
 import { AgentInfo } from '@/components/editables/chat/AgentInfo';
 import { UserInfo } from '@/components/editables/chat/UserInfo';
 import { MessageComponent } from './messages/MessageComponent';
+import { Analysis } from './Analysis';
 
 export function MessageGroup({ group }: { group: AICMessageGroup }) {
   return (
@@ -33,17 +34,8 @@ export function MessageGroup({ group }: { group: AICMessageGroup }) {
         ) : (
           <UserInfo username={group.username} email={group.email} />
         )}
-        <div className="flex-grow flex flex-col gap-5 overflow-auto">
-          {group.messages.length == 0 && (
-            <div>
-              {group.analysis}{' '}
-              {group.task && (
-                <span className="text-white">
-                  <br /> Next step: <span className="text-purple-400 leading-[24px]">{group.task}</span>
-                </span>
-              )}
-            </div>
-          )}
+        <div className="flex-grow flex flex-col gap-5 overflow-auto ">
+          {group.messages && <Analysis group={group} />}
           {group.messages.map((message) => (
             <MessageComponent key={message.id} message={message} group={group} />
           ))}
