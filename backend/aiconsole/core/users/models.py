@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional
 
 from pydantic import BaseModel, EmailStr, HttpUrl, validator
 
@@ -8,7 +8,7 @@ DEFAULT_USERNAME = "user"
 class UserProfile(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
-    avatar_url: Optional[HttpUrl] = None
+    avatar_url: Optional[HttpUrl | str] = None
     gravatar: bool = False
 
     @validator("username", pre=True, always=True)
