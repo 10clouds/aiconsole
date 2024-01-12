@@ -17,7 +17,6 @@ import datetime
 import logging
 from functools import lru_cache
 
-from aiconsole.core.settings import models
 from aiconsole.core.settings.base.storage import SettingsStorage
 
 _log = logging.getLogger(__name__)

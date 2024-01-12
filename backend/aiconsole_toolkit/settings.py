@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Any
 
 from aiconsole.core.settings.models import PartialSettingsData
-from aiconsole.core.settings.observer import FileObserver
 from aiconsole.core.settings.project_settings import settings
 from aiconsole.core.settings.storage import settings_file_storage
 

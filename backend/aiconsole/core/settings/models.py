@@ -9,7 +9,7 @@ from aiconsole.core.users.models import UserProfile
 class PartialSettingsData(BaseModel):
     code_autorun: Optional[bool] = None
     openai_api_key: Optional[str] = None
-    user_profile_settings: Optional[UserProfile] = None
+    user_profile: Optional[UserProfile] = None
     materials: Optional[dict[str, AssetStatus]] = None
     materials_to_reset: Optional[list[str]] = None
     agents: Optional[dict[str, AssetStatus]] = None
