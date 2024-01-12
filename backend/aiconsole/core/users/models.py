@@ -1,20 +1,21 @@
-from typing import Any
+from typing import Optional, Any
 
-from pydantic import BaseModel, EmailStr, HttpUrl
+from pydantic import BaseModel, EmailStr, HttpUrl, validator
 
 DEFAULT_USERNAME = "user"
 
 
 class UserProfile(BaseModel):
-    username: str
-    email: EmailStr | None = None
-    avatar_url: str | HttpUrl | None = None
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    avatar_url: Optional[HttpUrl] = None
     gravatar: bool = False
 
-    def __init__(self, **data: Any):
-        if data.get("username") is None:
-            if data.get("email") is not None:
-                data["username"] = str(data["email"]).split("@")[0]
-            else:
-                data["username"] = DEFAULT_USERNAME
-        super().__init__(**data)
+    @validator("username", pre=True, always=True)
+    def set_default_username(cls, v: Optional[str], values: dict) -> str:
+        if v is None:
+            email = values.get("email")
+            if isinstance(email, str):
+                return email.split("@")[0]
+            return DEFAULT_USERNAME
+        return v
