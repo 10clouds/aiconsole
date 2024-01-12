@@ -163,6 +163,10 @@ body {
   background: linear-gradient(122deg, #221c2c 16.45%, #111 67.82%);
 }
 
+.analysis-gradient {
+  background: linear-gradient(0deg, #3A2E58, #3A2E58), linear-gradient(180deg, #271E3C 0%, #1D162C 100%);
+}
+
 /* Radix Collapsible */
 .CollapsibleContent {
   overflow: hidden;

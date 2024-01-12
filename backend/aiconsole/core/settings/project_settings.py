@@ -18,7 +18,6 @@ import logging
 from pathlib import Path
 from typing import Any
 
-import litellm
 import tomlkit
 import tomlkit.container
 import tomlkit.exceptions
@@ -29,6 +28,16 @@ from watchdog.observers import Observer
 
 from aiconsole.api.websockets.server_messages import SettingsServerMessage
 from aiconsole.core.assets.asset import AssetStatus, AssetType
+from aiconsole.core.gpt.consts import (
+    GPT_MODE_COST_MAX_TOKENS,
+    GPT_MODE_COST_MODEL,
+    GPT_MODE_QUALITY_MAX_TOKENS,
+    GPT_MODE_QUALITY_MODEL,
+    GPT_MODE_SPEED_MAX_TOKENS,
+    GPT_MODE_SPEED_MODEL,
+    GPTEncoding,
+    GPTMode,
+)
 from aiconsole.core.project import project
 from aiconsole.core.project.paths import get_project_directory
 from aiconsole.core.project.project import is_project_initialized
@@ -36,6 +45,16 @@ from aiconsole.utils.BatchingWatchDogHandler import BatchingWatchDogHandler
 from aiconsole.utils.recursive_merge import recursive_merge
 
 _log = logging.getLogger(__name__)
+
+
+class GPTModeConfig(BaseModel):
+    name: str
+    max_tokens: int = 10000
+    encoding: GPTEncoding = GPTEncoding.GPT_4
+    model: str | None = None
+    api_key: str | None = None
+    api_base: str | None = None
+    extra: dict[str, Any] = {}
 
 
 class PartialSettingsData(BaseModel):
@@ -47,6 +66,8 @@ class PartialSettingsData(BaseModel):
     materials_to_reset: list[str] = []
     agents: dict[str, AssetStatus] = {}
     agents_to_reset: list[str] = []
+    gpt_modes: dict[str, GPTModeConfig] = {}
+    extra: dict[str, Any] = {}
     to_global: bool = False
 
 
@@ -61,6 +82,8 @@ class SettingsData(BaseModel):
     email: str | None = None
     materials: dict[str, AssetStatus] = {}
     agents: dict[str, AssetStatus] = {}
+    gpt_modes: dict[str, GPTModeConfig] = {}
+    extra: dict[str, Any] = {}
 
 
 def _load_from_path(file_path: Path) -> dict[str, Any]:
@@ -68,13 +91,6 @@ def _load_from_path(file_path: Path) -> dict[str, Any]:
         document = tomlkit.loads(file.read())
 
     return dict(document)
-
-
-def _set_openai_api_key_environment(settings: SettingsData) -> None:
-    openai_api_key = settings.openai_api_key
-
-    # This is so we make sure that it's overiden and does not env variables etc
-    litellm.openai_key = openai_api_key or "invalid key"
 
 
 class Settings:
@@ -116,6 +132,8 @@ class Settings:
 
     async def reload(self, initial: bool = False):
         self._settings = await self.__load()
+        _log.debug(f"Loaded gpt modes: {self._settings.gpt_modes}")
+
         await SettingsServerMessage(
             initial=initial
             or not (
@@ -165,6 +183,20 @@ class Settings:
         else:
             raise ValueError(f"Unknown asset type {asset_type}")
 
+    def get_mode_config(self, gpt_mode: GPTMode) -> GPTModeConfig:
+        mode_config = self._settings.gpt_modes.get(gpt_mode, None)
+
+        if mode_config is None:
+            raise ValueError(f"Unknown mode {gpt_mode}, available modes: {self._settings.gpt_modes}")
+
+        # if api_key refers to any other setting, use that setting
+
+        for extra in self._settings.extra:
+            if mode_config.api_key == extra:
+                mode_config = mode_config.model_copy(update={"api_key": self._settings.extra[extra]})
+
+        return mode_config
+
     def get_code_autorun(self) -> bool:
         return self._settings.code_autorun
 
@@ -201,6 +233,41 @@ class Settings:
         for agent, status in settings.get("agents", {}).items():
             agents[agent] = AssetStatus(status)
 
+        # setup default gpt modes
+        gpt_modes = {
+            "speed": GPTModeConfig(
+                name="speed",
+                max_tokens=GPT_MODE_SPEED_MAX_TOKENS,
+                encoding=GPTEncoding.GPT_4,
+                model=GPT_MODE_SPEED_MODEL,
+                api_key="openai_api_key",
+            ),
+            "quality": GPTModeConfig(
+                name="quality",
+                max_tokens=GPT_MODE_QUALITY_MAX_TOKENS,
+                encoding=GPTEncoding.GPT_4,
+                model=GPT_MODE_QUALITY_MODEL,
+                api_key="openai_api_key",
+            ),
+            "cost": GPTModeConfig(
+                name="cost",
+                max_tokens=GPT_MODE_COST_MAX_TOKENS,
+                encoding=GPTEncoding.GPT_4,
+                model=GPT_MODE_COST_MODEL,
+                api_key="openai_api_key",
+            ),
+        }
+
+        for model_config in settings.get("gpt_modes", []):
+            _log.debug(f"Loading gpt mode: {model_config}")
+            name = model_config.get("name")
+            gpt_modes[name] = GPTModeConfig(**model_config)
+
+        extra_settings = {}
+        for key, value in settings.get("settings", {}).items():
+            if key not in ["code_autorun"]:
+                extra_settings[key] = value
+
         settings_data = SettingsData(
             code_autorun=settings.get("settings", {}).get("code_autorun", False),
             openai_api_key=settings.get("settings", {}).get("openai_api_key", None),
@@ -208,6 +275,8 @@ class Settings:
             email=settings.get("settings", {}).get("email", None),  # Load email
             materials=materials,
             agents=agents,
+            gpt_modes=gpt_modes,
+            extra=extra_settings,
         )
 
         # Enforce only one forced agent
@@ -215,8 +284,6 @@ class Settings:
             _log.warning(f"More than one agent is forced: {forced_agents}")
             for agent in forced_agents[1:]:
                 settings_data.agents[agent] = AssetStatus.ENABLED
-
-        _set_openai_api_key_environment(settings_data)
 
         _log.info("Loaded settings")
         return settings_data
@@ -228,11 +295,12 @@ class Settings:
             document["settings"] = tomlkit.table()
             document["materials"] = tomlkit.table()
             document["agents"] = tomlkit.table()
+            document["gpt_modes"] = tomlkit.table()
             return document
 
         with file_path.open() as file:
             document = tomlkit.loads(file.read())
-            for section in ["settings", "materials", "agents"]:
+            for section in ["settings", "materials", "agents", "gpt_modes"]:
                 if section not in dict(document):
                     document[section] = tomlkit.table()
 
@@ -257,13 +325,15 @@ class Settings:
         doc_settings: tomlkit.table.Table = document["settings"]
         doc_materials: tomlkit.table.Table = document["materials"]
         doc_agents: tomlkit.table.Table = document["agents"]
+        doc_gpt_modes: tomlkit.table.Table = document["gpt_modes"]
         global_doc_agents: tomlkit.table.Table = global_document["agents"]
 
         if settings_data.code_autorun is not None:
             doc_settings["code_autorun"] = settings_data.code_autorun
 
-        if settings_data.openai_api_key is not None:
-            doc_settings["openai_api_key"] = settings_data.openai_api_key
+        # write extra
+        for key, value in settings_data.extra.items():
+            doc_settings[key] = value
 
         if settings_data.username is not None:
             doc_settings["username"] = settings_data.username
@@ -281,6 +351,9 @@ class Settings:
 
         for material in settings_data.materials:
             doc_materials[material] = settings_data.materials[material].value
+
+        for gpt_mode in settings_data.gpt_modes:
+            doc_gpt_modes[gpt_mode] = settings_data.gpt_modes[gpt_mode].model_dump()
 
         was_forced = False
         for agent in settings_data.agents:

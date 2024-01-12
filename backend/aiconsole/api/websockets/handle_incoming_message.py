@@ -47,7 +47,7 @@ from aiconsole.core.chat.execution_modes.import_and_validate_execution_mode impo
 )
 from aiconsole.core.chat.locking import DefaultChatMutator, acquire_lock, release_lock
 from aiconsole.core.chat.types import AICMessageGroup, Chat
-from aiconsole.core.gpt.consts import GPTMode
+from aiconsole.core.gpt.consts import QUALITY_GPT_MODE
 from aiconsole.core.project import project
 
 _log = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ _log = logging.getLogger(__name__)
 director_agent = Agent(
     id="director",
     name="Director",
-    gpt_mode=GPTMode.QUALITY,
+    gpt_mode=QUALITY_GPT_MODE,
     execution_mode="aiconsole.core.chat.execution_modes.director:execution_mode",
     usage="",
     usage_examples=[],

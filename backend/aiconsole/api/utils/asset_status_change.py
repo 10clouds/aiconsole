@@ -22,7 +22,5 @@ async def asset_status_change(asset_type: AssetType, asset_id: str, body: Status
             asset_type, id=asset_id, status=body.status, to_global=body.to_global
         )
         return JSONResponse({"status": "ok"})
-    except KeyError:
-        raise HTTPException(status_code=404, detail="Agent not found")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
