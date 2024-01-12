@@ -14,16 +14,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { useToastsStore } from '@/store/common/useToastsStore';
+import { useProjectStore } from '@/store/projects/useProjectStore';
 import { useSettingsStore } from '@/store/settings/useSettingsStore';
 import { useState } from 'react';
-import { useToastsStore } from '@/store/common/useToastsStore';
 
 export const useApiKey = () => {
   const [validating, setValidating] = useState(false);
   const isApiKeyValid = useSettingsStore((state) => state.isApiKeyValid);
   const validateApiKey = useSettingsStore((state) => state.validateApiKey);
-  const saveOpenAiApiKey = useSettingsStore((state) => state.saveOpenAiApiKey);
+  const saveSettings = useSettingsStore((state) => state.saveSettings);
   const showToast = useToastsStore((state) => state.showToast);
+  const isProjectOpen = useProjectStore((state) => state.isProjectOpen);
+
+  const saveOpenAiApiKey = async (key: string) => {
+    await saveSettings({ openai_api_key: key }, !isProjectOpen);
+  };
 
   const setApiKey = async (key: string) => {
     if (validating) return false;

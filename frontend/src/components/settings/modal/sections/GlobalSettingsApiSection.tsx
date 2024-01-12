@@ -14,15 +14,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export type Settings = {
-  code_autorun?: boolean;
-  openai_api_key?: string | null;
-  username?: string | null;
-  email?: string;
-};
+import { TextInput } from '@/components/editables/assets/TextInput';
 
-export type Avatar = {
-  avatar_url: string;
-  username: string;
-  gravatar: boolean;
+interface GlobalSectionApiSectionProps {
+  apiKey: string;
+  setApiKey: (value: string) => void;
+}
+
+const GlobalSettingsApiSection = ({ apiKey, setApiKey }: GlobalSectionApiSectionProps) => {
+  return (
+    <div className="border border-gray-600 rounded-xl p-[20px]">
+      <TextInput
+        value={apiKey}
+        onChange={setApiKey}
+        horizontal
+        placeholder="OpenAI API key..."
+        label="API"
+        name="api"
+      />
+    </div>
+  );
 };
+export default GlobalSettingsApiSection;

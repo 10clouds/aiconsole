@@ -3,7 +3,7 @@ import { FormGroup } from '@/components/common/FormGroup';
 import { Select } from '@/components/common/Select';
 import { useAssetStore } from '@/store/editables/asset/useAssetStore';
 import { Agent, Asset } from '@/types/editables/assetTypes';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { CodeInput } from './CodeInput';
 import { HelperLabel } from './HelperLabel';
 import { ErrorObject, TextInput } from './TextInput';
@@ -36,7 +36,8 @@ export const AgentForm = ({ agent, errors, setErrors }: AgentFormProps) => {
   const setSelectedAsset = useAssetStore((state) => state.setSelectedAsset);
   const handleUsageChange = (value: string) => setSelectedAsset({ ...agent, usage: value });
   const setExecutionModeState = (value: string) => setSelectedAsset({ ...agent, execution_mode: value } as Asset);
-  const isCustomMode = executionMode !== 'custom';
+
+  const isCustomMode = useMemo(() => executionMode === 'custom', [executionMode]);
 
   const handleSetExecutionMode = (value: string) => {
     setExecutionMode(value);
@@ -76,40 +77,46 @@ export const AgentForm = ({ agent, errors, setErrors }: AgentFormProps) => {
           />
         </FormGroup>
       </div>
-      <FormGroup className="w-full h-full flex overflow-clip">
-        <div className="flex-1">
-          <TextInput
-            label="Execution mode"
-            name="executionMode"
-            required
-            placeholder="Write text here"
-            setErrors={setErrors}
-            errors={errors}
-            value={customExecutionMode}
-            onChange={handleCustomExecutionModeChange}
-            className="mb-[20px]"
-            helperText="a Python module governing how the agent behaves."
-            hidden={isCustomMode}
-            labelChildren={
-              <Select options={executionModes} placeholder="Choose execution mode" onChange={handleSetExecutionMode} />
-            }
-          />
-          <CodeInput
-            label="System prompt"
-            labelContent={
-              <HelperLabel
-                helperText="System prompt will be injected at the begining of a context"
-                className="py-[13px]"
-              />
-            }
-            value={agent.system}
-            withFullscreen
-            codeLanguage="markdown"
-            maxHeight={isCustomMode ? 'calc(100% - 120px)' : 'calc(100% - 200px)'}
-            onChange={setAsset}
-          />
-        </div>
-      </FormGroup>
+      <div className="flex gap-[20px]">
+        <FormGroup className="w-full h-full flex">
+          <div className="flex-1">
+            <TextInput
+              label="Execution mode"
+              name="executionMode"
+              required
+              placeholder="Write text here"
+              setErrors={setErrors}
+              errors={errors}
+              value={customExecutionMode}
+              onChange={handleCustomExecutionModeChange}
+              className="mb-[20px] leading-relaxed"
+              helperText="a Python module governing how the agent behaves."
+              hidden={!isCustomMode}
+              labelChildren={
+                <Select
+                  options={executionModes}
+                  placeholder="Choose execution mode"
+                  onChange={handleSetExecutionMode}
+                />
+              }
+            />
+            <CodeInput
+              label="System prompt"
+              labelContent={
+                <HelperLabel
+                  helperText="System prompt will be injected at the begining of a context"
+                  className="py-[13px]"
+                />
+              }
+              value={agent.system}
+              withFullscreen
+              codeLanguage="markdown"
+              maxHeight={isCustomMode ? 'calc(100% - 120px)' : 'calc(100% - 200px)'}
+              onChange={setAsset}
+            />
+          </div>
+        </FormGroup>
+      </div>
     </>
   );
 };

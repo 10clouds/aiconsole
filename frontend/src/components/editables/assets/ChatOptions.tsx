@@ -156,7 +156,7 @@ const AgentsDropdown = ({ agents, selectedAgent, onSelect }: AgentsDropdownProps
       <Trigger asChild>
         <button
           className={cn(
-            'group flex justify-center items-center gap-[12px] rounded-[8px] border border-gray-500 px-[16px] py-[10px] text-gray-300 text-[16px] font-semibold w-full leading-[23px] hover:border-gray-300 transition duration-200 hover:text-gray-300',
+            'group flex justify-center items-center gap-[12px] rounded-[8px] border border-gray-500 px-[16px] py-[10px] text-gray-300 text-[16px] w-full leading-[23px] hover:border-gray-300 transition duration-200 hover:text-gray-300',
             {
               'rounded-b-none bg-gray-700 border-gray-800 text-gray-500': opened,
             },
@@ -201,7 +201,7 @@ const AgentsDropdown = ({ agents, selectedAgent, onSelect }: AgentsDropdownProps
               className="group flex p-0 rounded-none hover:bg-gray-600 hover:outline-none w-full cursor-pointer"
             >
               <div className="flex items-center gap-[12px] px-[16px] py-[10px] text-[14px] text-gray-300 group-hover:text-white w-full">
-                <AgentAvatar agentId={id} type="extraSmall" />
+                <AgentAvatar agentId={id} type="extraSmall" className="!m-0" />
                 <p>{name}</p>
               </div>
             </Item>

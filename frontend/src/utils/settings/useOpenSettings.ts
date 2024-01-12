@@ -14,15 +14,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useSettingsStore } from '@/store/settings/useSettingsStore';
 
 export function useOpenSettings() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const setSettingsModalVisibility = useSettingsStore((state) => state.setSettingsModalVisibility);
 
   return () => {
-    navigate(location.pathname, {
-      state: { ...location.state, isSettingsModalVisible: true },
-    });
+    setSettingsModalVisibility(true);
   };
 }

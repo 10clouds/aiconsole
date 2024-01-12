@@ -16,7 +16,7 @@
 
 import { Icon } from '@/components/common/icons/Icon';
 import { cn } from '@/utils/common/cn';
-import { Trash, Pencil, Check, X } from 'lucide-react';
+import { Trash, Pencil, Save, X } from 'lucide-react';
 interface MessageControlsProps {
   isEditing?: boolean;
   hideControls?: boolean;
@@ -39,10 +39,10 @@ export function MessageControls({
       {isEditing ? (
         <div className="flex justify-between">
           <button>
-            <Icon icon={Check} width={20} height={20} onClick={onSaveClick} className="text-green" />{' '}
+            <Icon icon={Save} width={20} height={20} onClick={onSaveClick} />
           </button>
           <button>
-            <Icon icon={X} width={20} height={20} onClick={onCancelClick} className="text-red" />{' '}
+            <Icon icon={X} width={20} height={20} onClick={onCancelClick} />{' '}
           </button>
         </div>
       ) : (
