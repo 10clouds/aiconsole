@@ -39,15 +39,15 @@ logging.basicConfig(
 
 _log = logging.getLogger(__name__)
 
-TAG = "20231002"
-PYTHON_VERSION = f"3.11.6+{TAG}"
+DATE_TAG = "20231002"
+PYTHON_VERSION = f"3.11.6+{DATE_TAG}"
 
 
 def check_installation():
     if python_dir.is_dir():
         _log.info("Python already installed.")
     else:
-        if not download_python(PYTHON_VERSION, TAG):
+        if not download_python(PYTHON_VERSION, DATE_TAG):
             _log.error("Python download and extraction failed.")
             exit(1)
 

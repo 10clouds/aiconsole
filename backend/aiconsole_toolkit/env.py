@@ -7,10 +7,6 @@ def get_current_project_venv_path():
     return Path.cwd() / ".aic" / "venv"
 
 
-def get_current_project_user_packages():
-    return Path.cwd() / ".aic" / "requirements.txt"
-
-
 def get_current_project_venv_bin_path():
     if platform.system() == "Windows":
         return get_current_project_venv_path() / "Scripts"

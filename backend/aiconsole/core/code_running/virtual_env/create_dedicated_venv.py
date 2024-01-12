@@ -11,7 +11,6 @@ from aiconsole.core.code_running.virtual_env.install_dependencies import (
     install_dependencies,
 )
 from aiconsole_toolkit.env import (
-    get_current_project_user_packages,
     get_current_project_venv_path,
     get_current_project_venv_python_path,
 )
@@ -55,7 +54,7 @@ async def create_dedicated_venv():
         if venv_python_version:
             _log.info(f"Valid venv python executable")
         else:
-            _log.info(f"Reconstructing venv due to the different Python version({system_python_version})")
+            _log.info(f"Reconstructing venv due to the different Python version({system_python_version}):")
             shutil.rmtree(str(get_current_project_venv_path()))
             _log.info(f"1) Deleted old env.")
 
@@ -67,12 +66,3 @@ async def create_dedicated_venv():
         python_path=get_current_project_venv_python_path(),
         dependency_file=DIR_WITH_AICONSOLE_PACKAGE / "pyproject.toml",
     )
-
-    if get_current_project_user_packages().exists():
-        install_dependencies(
-            python_path=get_current_project_venv_python_path(),
-            dependency_file=get_current_project_user_packages(),
-        )
-        _log.info(f"Installed user packages")
-    else:
-        _log.info(f"No user packages to install")

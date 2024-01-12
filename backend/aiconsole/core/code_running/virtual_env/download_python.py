@@ -8,7 +8,7 @@ _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-def download_python(python_version, tag):
+def download_python(python_version, date_tag):
     _log.info("Detecting machine architecture...")
     arch_name = platform.machine()
     system_name = platform.system()
@@ -37,7 +37,7 @@ def download_python(python_version, tag):
         return False
 
     file_name = f"cpython-{python_version}-{variant}-install_only.tar.gz"
-    download_url = f"https://github.com/indygreg/python-build-standalone/releases/download/{tag}/{file_name}"
+    download_url = f"https://github.com/indygreg/python-build-standalone/releases/download/{date_tag}/{file_name}"
 
     try:
         _log.info(f"Downloading standalone Python for {system_name} {arch_name}...")
