@@ -69,8 +69,10 @@ export const GlobalSettingsModal = () => {
 
     saveSettings(
       {
-        username: usernameFormValue !== username ? usernameFormValue : undefined,
-        email: emailFormValue !== email ? emailFormValue : undefined,
+        user_profile: {
+          username: usernameFormValue !== username ? usernameFormValue : undefined,
+          email: emailFormValue !== email ? emailFormValue : undefined,
+        },
         openai_api_key: apiKeyValue !== openAiApiKey ? apiKeyValue : undefined,
         code_autorun: isAutoRun !== alwaysExecuteCode ? isAutoRun : undefined,
       },

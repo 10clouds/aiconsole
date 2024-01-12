@@ -52,7 +52,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     set({ alwaysExecuteCode: autoRun });
   },
   saveSettings: async (settings: Settings, isGlobal: boolean, avatar?: FormData | null) => {
-    const { username, email, openai_api_key, code_autorun } = settings;
+    const { user_profile, openai_api_key, code_autorun } = settings;
     await SettingsAPI.saveSettings({
       ...settings,
       to_global: isGlobal,
@@ -63,11 +63,11 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
         isApiKeyValid: true, // We assume that they key was validated before saving
       });
     }
-    if (username) {
-      set({ username });
+    if (user_profile && user_profile.username) {
+      set({ username: user_profile.username });
     }
-    if (email) {
-      set({ userEmail: email });
+    if (user_profile && user_profile.email) {
+      set({ userEmail: user_profile.email });
     }
     if (typeof code_autorun === 'boolean') {
       set({ alwaysExecuteCode: code_autorun });
@@ -78,11 +78,11 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     }
   },
   initSettings: async () => {
-    const { code_autorun, openai_api_key, username, email } = await SettingsAPI.getSettings();
-    const { avatar_url } = await SettingsAPI.getUserAvatar(email);
+    const { code_autorun, openai_api_key, user_profile } = await SettingsAPI.getSettings();
+    const { avatar_url } = await SettingsAPI.getUserAvatar(user_profile?.email);
     set({
-      username,
-      userEmail: email,
+      username: user_profile?.username,
+      userEmail: user_profile?.email,
       alwaysExecuteCode: code_autorun,
       openAiApiKey: openai_api_key,
       isApiKeyValid: await get().validateApiKey(openai_api_key || ''),

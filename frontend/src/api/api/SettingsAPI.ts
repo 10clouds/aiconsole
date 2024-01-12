@@ -29,7 +29,6 @@ async function getUserAvatar(email?: string) {
   const response = await ky
     .get(`${getBaseURL()}/profile`, { searchParams: email ? { email } : undefined })
     .json<Avatar>();
-
   if (!response.gravatar) {
     response.avatar_url = `${getBaseURL()}/${response.avatar_url}`;
   }
@@ -42,6 +41,7 @@ async function setUserAvatar(avatar: FormData) {
 }
 
 async function saveSettings(params: { to_global: boolean } & Settings) {
+  console.log(params);
   return ky.patch(`${getBaseURL()}/api/settings`, { json: params, hooks: API_HOOKS });
 }
 
