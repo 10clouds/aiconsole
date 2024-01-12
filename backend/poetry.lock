@@ -951,13 +951,13 @@ files = [
 
 [[package]]
 name = "litellm"
-version = "1.17.2"
+version = "1.17.3"
 description = "Library to easily interface with LLM API providers"
 optional = false
 python-versions = ">=3.8, !=2.7.*, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, !=3.6.*, !=3.7.*"
 files = [
-    {file = "litellm-1.17.2-py3-none-any.whl", hash = "sha256:66877c981184de900b3edd0105488d95c7598295b83b42ed4aac24ae9751758d"},
-    {file = "litellm-1.17.2.tar.gz", hash = "sha256:13f1afb5c01029e595ceb5866fe1129f0a8304013496bd394dbd98b7c244825b"},
+    {file = "litellm-1.17.3-py3-none-any.whl", hash = "sha256:d18146a4f4729d8e0c84e2ffa3143b71ae64f0cd7918ba22b082627d783356b2"},
+    {file = "litellm-1.17.3.tar.gz", hash = "sha256:422ad75e1400d8f17793522c43d99ea724021b3703672f9eef4cc5aaa77e9d07"},
 ]
 
 [package.dependencies]
@@ -1067,6 +1067,20 @@ files = [
     {file = "MarkupSafe-2.1.3-cp39-cp39-win_amd64.whl", hash = "sha256:3fd4abcb888d15a94f32b75d8fd18ee162ca0c064f35b11134be77050296d6ba"},
     {file = "MarkupSafe-2.1.3.tar.gz", hash = "sha256:af598ed32d6ae86f1b747b82783958b1a4ab8f617b06fe68795c7f026abbdcad"},
 ]
+
+[[package]]
+name = "matplotlib-inline"
+version = "0.1.6"
+description = "Inline Matplotlib backend for Jupyter"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "matplotlib-inline-0.1.6.tar.gz", hash = "sha256:f887e5f10ba98e8d2b150ddcf4702c1e5f8b3a20005eb0f74bfdbd360ee6f304"},
+    {file = "matplotlib_inline-0.1.6-py3-none-any.whl", hash = "sha256:f1f41aab5328aa5aaea9b16d083b128102f8712542f819fe7e6a420ff581b311"},
+]
+
+[package.dependencies]
+traitlets = "*"
 
 [[package]]
 name = "mdurl"
@@ -2693,4 +2707,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "548b55a3697e1d5ae815321da19cb8ec9f2d52dbca9e6ec6134e22da48949329"
+content-hash = "fb909de369588d98927cff14fdbc2c1fc44bece7b90ba91f789de11502c71c14"
