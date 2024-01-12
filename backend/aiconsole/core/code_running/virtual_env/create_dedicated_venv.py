@@ -64,5 +64,5 @@ async def create_dedicated_venv():
     install_and_update_pip(venv_path)
     install_dependencies(
         python_path=get_current_project_venv_python_path(),
-        dependency_file=DIR_WITH_AICONSOLE_PACKAGE / "pyproject.toml",
+        dependency_file_path=DIR_WITH_AICONSOLE_PACKAGE / "pyproject.toml",
     )

@@ -55,7 +55,7 @@ def check_installation():
         python_path = python_dir / "Scripts" / "python3.exe"
     else:
         python_path = python_dir / "bin" / "python3"
-    install_dependencies(python_path=python_path, dependency_file=DIR_WITH_AICONSOLE_PACKAGE / "pyproject.toml")
+    install_dependencies(python_path=python_path, dependency_file_path=DIR_WITH_AICONSOLE_PACKAGE / "pyproject.toml")
     _log.info("Build process completed!")
 
 
