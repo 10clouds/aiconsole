@@ -311,6 +311,7 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
               onClose={discardChanges}
               onConfirm={confirmPageEscape}
               confirmationButtonText="Leave"
+              cancelButtonText="Cancel"
             >
               Changes that you made may not be saved.
             </AlertDialog>

@@ -178,7 +178,7 @@ export function ProjectCard({ name, path, chatHistory }: ProjectCardProps) {
               })}
               width={20}
               height={20}
-              onClick={handleMoreIconClick}
+              onMouseDown={handleMoreIconClick}
             />
           ) : null}
         </div>

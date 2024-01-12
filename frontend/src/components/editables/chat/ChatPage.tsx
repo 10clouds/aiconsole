@@ -33,7 +33,6 @@ import { unstable_useBlocker as useBlocker, useParams, useSearchParams } from 'r
 import ScrollToBottom, { useAnimating, useScrollToBottom, useSticky } from 'react-scroll-to-bottom';
 import { v4 as uuidv4 } from 'uuid';
 import { EditorHeader } from '../EditorHeader';
-import { Analysis } from './Analysis';
 import { CommandInput } from './CommandInput';
 import { Spinner } from './Spinner';
 
@@ -97,8 +96,10 @@ export function ChatPage() {
   const menuItems = useEditableObjectContextMenu({ editable: chat, editableObjectType: 'chat' });
   const renameChat = useChatStore((state) => state.renameChat);
   const setChat = useChatStore((state) => state.setChat);
-
-  const blocker = useBlocker(isAnalysisRunning || isExecutionRunning);
+  const commandInputs = useChatStore((state) => state.commandHistory);
+  const isCommandInputEmpty = commandInputs && commandInputs[commandInputs.length - 1].length === 0;
+  const setCommand = useChatStore((state) => state.editCommand);
+  const blocker = useBlocker(!isCommandInputEmpty);
 
   const { reset, proceed, state: blockerState } = blocker || {};
 
@@ -235,6 +236,11 @@ export function ChatPage() {
 
   const { label: actionButtonLabel, icon: ActionButtonIcon, action: actionButtonAction } = getActionButton();
 
+  const confirm = () => {
+    setCommand('');
+    proceed?.();
+  };
+
   return (
     <div className="flex flex-col w-full h-full max-h-full overflow-auto">
       <ContextMenu options={menuItems}>
@@ -277,9 +283,11 @@ export function ChatPage() {
             title="Are you sure you want to exit this chat?"
             isOpen={blockerState === 'blocked'}
             onClose={reset}
-            onConfirm={proceed}
+            onConfirm={confirm}
+            confirmationButtonText="Leave"
+            cancelButtonText="Cancel"
           >
-            {`The response is being generated.\nClosing the window cancels the process.`}
+            Changes that you made may not be saved.
           </AlertDialog>
         </div>
       </div>

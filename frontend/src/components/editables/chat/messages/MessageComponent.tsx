@@ -62,7 +62,7 @@ export function MessageComponent({ message, group }: MessageProps) {
                 <div className="flex-grow">
                   <div className="prose prose-stone dark:prose-invert sidebar-typography w-full max-w-full">
                     <ReactMarkdown
-                      transformLinkUri={null}
+                      urlTransform={null}
                       rehypePlugins={[rehypeRaw] as PluggableList}
                       components={{
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars

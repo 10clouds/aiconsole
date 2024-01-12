@@ -14,11 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-import { Settings } from "@/types/settings/Settings";
-import { API_HOOKS, getBaseURL } from '../../store/useAPIStore';
+import { Avatar, Settings } from '@/types/settings/Settings';
 import ky from 'ky';
-
+import { API_HOOKS, getBaseURL } from '../../store/useAPIStore';
 
 const checkKey = (key: string) => {
   return ky.get(`${getBaseURL()}/api/key`, {
@@ -26,6 +24,22 @@ const checkKey = (key: string) => {
     hooks: API_HOOKS,
   });
 };
+
+async function getUserAvatar(email?: string) {
+  const response = await ky
+    .get(`${getBaseURL()}/profile`, { searchParams: email ? { email } : undefined })
+    .json<Avatar>();
+
+  if (!response.gravatar) {
+    response.avatar_url = `${getBaseURL()}/${response.avatar_url}`;
+  }
+  return response;
+}
+
+// TODO: this is not working now - backend is not ready
+async function setUserAvatar(avatar: FormData) {
+  return ky.post(`${getBaseURL()}/profile_image`, { body: avatar, hooks: API_HOOKS });
+}
 
 async function saveSettings(params: { to_global: boolean } & Settings) {
   return ky.patch(`${getBaseURL()}/api/settings`, { json: params, hooks: API_HOOKS });
@@ -38,5 +52,7 @@ async function getSettings(): Promise<Settings> {
 export const SettingsAPI = {
   saveSettings,
   getSettings,
+  getUserAvatar,
+  setUserAvatar,
   checkKey,
 };

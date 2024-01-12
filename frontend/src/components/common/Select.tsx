@@ -30,9 +30,10 @@ export const Select = ({ placeholder, options, onChange }: SelectProps) => {
     <RadixSelect value={value} onValueChange={handleChange} open={open} onOpenChange={setOpen}>
       <Trigger
         className={cn(
-          'flex items-center justify-between leading-[24px]  px-[20px] py-[12px] min-w-[300px] bg-gray-700 border border-gray-500 rounded-[8px] text-[15px] font-bold text-gray-400 outline-none hover:bg-gray-600 hover:border-gray-400 h-[50px] truncate',
+          'flex items-center justify-between leading-[24px] px-[20px] py-[12px] min-w-[300px] bg-gray-700 border border-gray-500 rounded-[8px] text-[15px] text-gray-400 outline-none hover:bg-gray-600 hover:border-gray-400 h-[50px] truncate',
           { 'rounded-b-none bg-gray-600 border-gray-800 text-gray-500 border-b-0': open },
           { 'text-gray-300': value && !open },
+          { 'font-normal': !!value },
         )}
       >
         <Value placeholder={placeholder}>{currentValueLabel}</Value>
@@ -46,7 +47,7 @@ export const Select = ({ placeholder, options, onChange }: SelectProps) => {
           {notSelectedOptions.map(({ label, value }) => (
             <Item
               key={value}
-              className="outline-none px-[20px] py-[10px] text-[15px] font-bold text-gray-300 hover:bg-gray-500 cursor-pointer hover:text-white border-t border-gray-800 truncate w-[300px]"
+              className="outline-none px-[20px] py-[10px] text-[15px] text-gray-300 hover:bg-gray-500 cursor-pointer hover:text-white border-t border-gray-800 truncate w-[300px]"
               value={value}
             >
               {label}

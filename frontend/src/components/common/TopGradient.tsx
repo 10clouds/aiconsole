@@ -14,15 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export type Settings = {
-  code_autorun?: boolean;
-  openai_api_key?: string | null;
-  username?: string | null;
-  email?: string;
+const TopGradient = () => {
+  return (
+    <div className="absolute bg-topGradient h-[598px] w-3/4 top-[-518px] left-1/2 -translate-x-1/2 rounded-[1462px] blur-[133px] z-0"></div>
+  );
 };
-
-export type Avatar = {
-  avatar_url: string;
-  username: string;
-  gravatar: boolean;
-};
+export default TopGradient;

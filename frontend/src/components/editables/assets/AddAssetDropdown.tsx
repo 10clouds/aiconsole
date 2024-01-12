@@ -107,7 +107,7 @@ export const AddAssetDropdown = () => {
               className={cn(
                 'flex items-center gap-[12px] px-[16px] py-[10px] text-[14px] text-gray-300 group-hover:text-white w-full',
                 {
-                  'text-gray-500 pb-0 ': disabled,
+                  'text-gray-400 pb-0 ': disabled,
                   'border-b border-gray-800': withDivider,
                 },
               )}

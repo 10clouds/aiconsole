@@ -119,20 +119,20 @@ export function ToolCall({ group, toolCall: tool_call }: MessageProps) {
           <div className="flex-grow flex flex-row gap-3 items-center">
             {shouldDisplaySpinner && <Icon icon={Loader} width={20} height={20} className="animate-spin" />}
             {!shouldDisplaySpinner && !isError && tool_call.output == undefined && (
-              <Icon icon={CircleDashedIcon} width={20} height={20} className="text-success" />
+              <Icon icon={CircleDashedIcon} width={20} height={20} className="text-success flex-shrink-0" />
             )}
             {!shouldDisplaySpinner && !isError && tool_call.output != undefined && (
-              <Icon icon={CheckCircle2Icon} width={20} height={20} className="text-success" />
+              <Icon icon={CheckCircle2Icon} width={20} height={20} className="text-success flex-shrink-0" />
             )}
             {!shouldDisplaySpinner && isError && (
-              <Icon icon={AlertCircleIcon} width={20} height={20} className="text-danger" />
+              <Icon icon={AlertCircleIcon} width={20} height={20} className="text-danger flex-shrink-0" />
             )}
 
             <span className="font-semibold"> {tool_call.headline ? tool_call.headline : 'Task'}</span>
           </div>
 
-          {!folded && <Icon icon={ChevronUp} width={20} height={20} />}
-          {folded && <Icon icon={ChevronDown} width={20} height={20} />}
+          {!folded && <Icon icon={ChevronUp} width={20} height={20} className="flex-shrink-0" />}
+          {folded && <Icon icon={ChevronDown} width={20} height={20} className="flex-shrink-0" />}
         </div>
       </div>
 

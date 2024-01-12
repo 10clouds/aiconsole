@@ -50,8 +50,11 @@ export function Home() {
                   </div>
                   <div className="w-full flex flex-wrap justify-center gap-[20px] mx-auto overflow-auto pr-5">
                     {recentProjects.map(({ name, path, recent_chats }) => (
-                      <div className="w-full md:w-[calc(50%-10px)] xl:w-[calc(33.333%-13.33px)] 2xl:w-[calc(25%-15px)]">
-                        <ProjectCard key={path} name={name} path={path} chatHistory={recent_chats} />
+                      <div
+                        key={path}
+                        className="w-full md:w-[calc(50%-10px)] xl:w-[calc(33.333%-13.33px)] 2xl:w-[calc(25%-15px)]"
+                      >
+                        <ProjectCard name={name} path={path} chatHistory={recent_chats} />
                       </div>
                     ))}
                   </div>

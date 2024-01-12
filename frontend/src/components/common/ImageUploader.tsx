@@ -1,16 +1,27 @@
 import { ContextMenuItems } from '@/types/common/contextMenu';
 import { cn } from '@/utils/common/cn';
 import { Loader, Plus, Shapes, Trash, Upload } from 'lucide-react';
-import { ChangeEvent, MouseEvent, useRef, useState } from 'react';
+import { ChangeEvent, MouseEvent, useEffect, useRef, useState } from 'react';
 import { ContextMenu, ContextMenuRef } from './ContextMenu';
 import { Icon } from './icons/Icon';
 
+interface ImageUploaderProps {
+  currentImage?: string;
+  onUpload?: (file: File) => void;
+}
+
 // TODO: update this component with generating ai logic and connect with backend
-const ImageUploader = () => {
+const ImageUploader = ({ currentImage, onUpload }: ImageUploaderProps) => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    if (currentImage) {
+      setPreviewImage(currentImage);
+    }
+  }, [currentImage]);
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -22,6 +33,7 @@ const ImageUploader = () => {
         }
       };
       reader.readAsDataURL(file);
+      onUpload?.(file);
     }
   };
 
@@ -40,6 +52,10 @@ const ImageUploader = () => {
   const openContextMenu = (event: MouseEvent) => {
     if (triggerRef.current) {
       triggerRef?.current.handleTriggerClick(event);
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
   };
 
@@ -80,7 +96,7 @@ const ImageUploader = () => {
         id="imageInput"
         ref={fileInputRef}
       />
-      <p className="text-[16px] font-semibold text-white text-center">Avatar</p>
+      <p className="text-[16px] text-white text-center">Avatar</p>
       <div className="mt-[15px]">
         <ContextMenu options={menuItems} ref={triggerRef} triggerClassName="ml-auto">
           <div
