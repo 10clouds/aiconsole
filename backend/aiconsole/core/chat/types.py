@@ -62,14 +62,16 @@ class AICMessageGroup(BaseModel):
     def set_default_username(self):
         role = self.role
         if role == "user":
-            self.username = self.username or settings().settings_data.user_profile.username
+            if settings().settings_data.user_profile:
+                self.username = self.username or settings().settings_data.user_profile.username
         return self
 
     @model_validator(mode="after")
     def set_default_email(self):
         role = self.role
         if role == "user":
-            self.email = self.email or settings().settings_data.user_profile.email
+            if settings().settings_data.user_profile:
+                self.email = self.email or settings().settings_data.user_profile.email
         return self
 
 

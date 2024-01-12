@@ -45,7 +45,7 @@ class UserProfileService:
         avatar_url = f"profile_image?img_filename={file_path.name}"
         settings().storage.save(
             PartialSettingsData(
-                user_profile_settings=UserProfile(avatar_url=avatar_url),
+                user_profile=UserProfile(avatar_url=avatar_url),
                 to_global=True,
             ),
         )
