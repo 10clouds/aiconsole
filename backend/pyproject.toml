@@ -5,6 +5,10 @@ version = "0.2.2"
 description = "Run and expand your personal AI tools"
 authors = ["Maciej Cielecki <maciej.cielecki@10clouds.com>"]
 license = "Apache-2.0"
+packages = [
+    { include = "aiconsole" },
+    { include = "aiconsole_toolkit" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -27,6 +31,7 @@ rtoml = "^0.10.0"
 send2trash = "^1.8.2"
 libgravatar = "^1.0.4"
 sentry-sdk = {extras = ["fastapi"], version = "^1.39.1"}
+rich = "^13.7.0"
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.13.2"
