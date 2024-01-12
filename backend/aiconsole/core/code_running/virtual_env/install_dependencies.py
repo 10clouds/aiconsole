@@ -1,19 +1,16 @@
 import logging
-from pathlib import Path
-import platform
 import subprocess
-
-from aiconsole.consts import DIR_WITH_AICONSOLE_PACKAGE
+from pathlib import Path
 
 _log = logging.getLogger(__name__)
 
 
-def install_dependencies(python_path: Path, dependency_file_path: Path):
-    if not dependency_file_path.exists():
-        _log.info(f"Skipping installation: '{dependency_file_path}' does not exist (bundled version?)")
+def install_dependencies(python_path: Path, dependency_path: Path):
+    if not dependency_path.exists():
+        _log.info(f"Skipping installation: '{dependency_path}' does not exist (bundled version?)")
         return
 
-    install_command = [python_path, "-m", "pip", "install", dependency_file_path]
+    install_command = [python_path, "-m", "pip", "install", dependency_path]
     _log.info(f"Installing aiconsole and dependencies using: {' '.join([str(elem) for elem in install_command])}")
 
     try:

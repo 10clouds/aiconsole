@@ -3,12 +3,8 @@ import shutil
 import subprocess
 import sys
 
-from aiconsole.consts import DIR_WITH_AICONSOLE_PACKAGE
 from aiconsole.core.code_running.virtual_env.install_and_upgrade_pip import (
     install_and_update_pip,
-)
-from aiconsole.core.code_running.virtual_env.install_dependencies import (
-    install_dependencies,
 )
 from aiconsole_toolkit.env import (
     get_current_project_venv_path,
@@ -62,7 +58,3 @@ async def create_dedicated_venv():
             _log.info(f"2) Created venv in {venv_path}, using {sys.executable}")
 
     install_and_update_pip(venv_path)
-    install_dependencies(
-        python_path=get_current_project_venv_python_path(),
-        dependency_file_path=DIR_WITH_AICONSOLE_PACKAGE / "pyproject.toml",
-    )
