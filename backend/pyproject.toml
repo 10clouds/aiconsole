@@ -34,12 +34,10 @@ email-validator = "^2.1.0.post1"
 deepmerge = "^1.1.1"
 sentry-sdk = {extras = ["fastapi"], version = "^1.39.1"}
 rich = "^13.7.0"
-pre-commit = "^3.6.0"
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.13.2"
 black = "^23.12.1"
-pre-commit = "^3.6.0"
 ipdb = "^0.13.13"
 
 [tool.poetry.group.test.dependencies]
