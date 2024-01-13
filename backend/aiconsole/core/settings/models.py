@@ -3,13 +3,13 @@ from typing import Optional
 from pydantic import BaseModel
 
 from aiconsole.core.assets.models import AssetStatus
-from aiconsole.core.users.models import UserProfile
+from aiconsole.core.users.models import UserProfile, PartialUserProfile
 
 
 class PartialSettingsData(BaseModel):
     code_autorun: Optional[bool] = None
     openai_api_key: Optional[str] = None
-    user_profile: Optional[UserProfile] = None
+    user_profile: Optional[PartialUserProfile] = None
     materials: Optional[dict[str, AssetStatus]] = None
     materials_to_reset: Optional[list[str]] = None
     agents: Optional[dict[str, AssetStatus]] = None
@@ -20,6 +20,6 @@ class PartialSettingsData(BaseModel):
 class SettingsData(BaseModel):
     code_autorun: bool = False
     openai_api_key: str | None = None
-    user_profile: UserProfile | None = None
+    user_profile: UserProfile = UserProfile()
     materials: dict[str, AssetStatus] = {}
     agents: dict[str, AssetStatus] = {}

@@ -33,8 +33,8 @@ export const GlobalSettingsModal = () => {
   const isSettingsModalVisible = useSettingsStore((state) => state.isSettingsModalVisible);
   const setSettingsModalVisibility = useSettingsStore((state) => state.setSettingsModalVisibility);
 
-  const [usernameFormValue, setUsernameFormValue] = useState(username || '');
-  const [emailFormValue, setEmailFormValue] = useState(email || '');
+  const [usernameFormValue, setUsernameFormValue] = useState(username || undefined);
+  const [emailFormValue, setEmailFormValue] = useState(email || undefined);
   const [apiKeyValue, setApiKeyValue] = useState(openAiApiKey || '');
   const [isAutoRun, setIsAutoRun] = useState(alwaysExecuteCode);
   const [userAvatarData, setUserAvatarData] = useState<File>();
@@ -44,8 +44,8 @@ export const GlobalSettingsModal = () => {
 
   useEffect(() => {
     if (isSettingsModalVisible) {
-      setUsernameFormValue(username || '');
-      setEmailFormValue(email || '');
+      setUsernameFormValue(username || undefined);
+      setEmailFormValue(email || undefined);
       setApiKeyValue(openAiApiKey || '');
     }
   }, [isSettingsModalVisible, username, email, openAiApiKey]);
@@ -69,10 +69,13 @@ export const GlobalSettingsModal = () => {
 
     saveSettings(
       {
-        user_profile: {
-          username: usernameFormValue !== username ? usernameFormValue : undefined,
-          email: emailFormValue !== email ? emailFormValue : undefined,
-        },
+        user_profile:
+          usernameFormValue !== username || emailFormValue !== email
+            ? {
+                username: usernameFormValue !== username ? usernameFormValue : undefined,
+                email: emailFormValue !== email ? emailFormValue : undefined,
+              }
+            : undefined,
         openai_api_key: apiKeyValue !== openAiApiKey ? apiKeyValue : undefined,
         code_autorun: isAutoRun !== alwaysExecuteCode ? isAutoRun : undefined,
       },

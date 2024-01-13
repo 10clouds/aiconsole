@@ -5,6 +5,13 @@ from pydantic import BaseModel, EmailStr, HttpUrl, validator
 DEFAULT_USERNAME = "user"
 
 
+class PartialUserProfile(BaseModel):
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    avatar_url: Optional[HttpUrl | str] = None
+    gravatar: Optional[bool] = None
+
+
 class UserProfile(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None

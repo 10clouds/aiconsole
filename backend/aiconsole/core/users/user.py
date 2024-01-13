@@ -8,7 +8,7 @@ from aiconsole.consts import AICONSOLE_USER_CONFIG_DIR
 from aiconsole.core.clients.gravatar import GravatarUserProfile, gravatar_client
 from aiconsole.core.settings.models import PartialSettingsData
 from aiconsole.core.settings.project_settings import settings
-from aiconsole.core.users.models import DEFAULT_USERNAME, UserProfile
+from aiconsole.core.users.models import DEFAULT_USERNAME, UserProfile, PartialUserProfile
 from aiconsole.utils.resource_to_path import resource_to_path
 
 DEFAULT_AVATARS_PATH = "aiconsole.preinstalled.avatars"
@@ -20,7 +20,11 @@ class MissingFileName(Exception):
 
 class UserProfileService:
     def get_profile(self, email: str | None = None) -> UserProfile:
+        user_profile = settings().settings_data.user_profile
         if email:
+            if email == user_profile.email and user_profile.avatar_url:
+                return user_profile
+
             gravatar_profile = gravatar_client().get_profile(email)
             if gravatar_profile:
                 return self._create_user_profile_from_gravatar(email, gravatar_profile)
@@ -45,7 +49,7 @@ class UserProfileService:
         avatar_url = f"profile_image?img_filename={file_path.name}"
         settings().storage.save(
             PartialSettingsData(
-                user_profile=UserProfile(avatar_url=avatar_url),
+                user_profile=PartialUserProfile(avatar_url=avatar_url),
                 to_global=True,
             ),
         )
