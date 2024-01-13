@@ -40,18 +40,12 @@ class SettingsFileStorage(SettingsStorage):
         return self._get_settings_from_path(self.project_settings_file_path)
 
     def change_project(self, project_path: Optional[Path] = None):
-        self._project_settings_file_path = (
-            project_path / "settings.toml" if project_path else None
-        )
+        self._project_settings_file_path = project_path / "settings.toml" if project_path else None
         self.load()
         self._start_observer()
 
     def save(self, settings_data: models.PartialSettingsData):
-        file_path = (
-            self.global_settings_file_path
-            if settings_data.to_global
-            else self.project_settings_file_path
-        )
+        file_path = self.global_settings_file_path if settings_data.to_global else self.project_settings_file_path
         if not file_path:
             raise ValueError("Cannot save settings, path not specified")
 
@@ -86,12 +80,8 @@ class SettingsFileStorage(SettingsStorage):
             return tomlkit.loads(file.read())
 
     @staticmethod
-    def _update_document(
-        document: tomlkit.TOMLDocument, settings_data: models.PartialSettingsData
-    ):
-        for key, value in settings_data.model_dump(
-            exclude_none=True, exclude={"to_global"}
-        ).items():
+    def _update_document(document: tomlkit.TOMLDocument, settings_data: models.PartialSettingsData):
+        for key, value in settings_data.model_dump(exclude_none=True, exclude={"to_global"}).items():
             if isinstance(document.get(key), tomlkit.items.Table) and isinstance(value, dict):  # type: ignore
                 document[key].update(value)  # type: ignore
             else:

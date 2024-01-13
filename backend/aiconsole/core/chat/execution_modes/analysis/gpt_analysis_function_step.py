@@ -58,9 +58,7 @@ _log = logging.getLogger(__name__)
 
 def pick_agent(arguments, chat: Chat, available_agents: list[Agent]) -> Agent:
     # Try support first
-    default_agent = next(
-        (agent for agent in available_agents if agent.id == "assistant"), None
-    )
+    default_agent = next((agent for agent in available_agents if agent.id == "assistant"), None)
 
     # Pick any if not available
     if not default_agent:
@@ -223,9 +221,7 @@ async def gpt_analysis_function_step(
                             await chat_mutator.mutate(
                                 SetMaterialsIdsMessageGroupMutation(
                                     message_group_id=message_group_id,
-                                    materials_ids=arguments_dict[
-                                        "relevant_material_ids"
-                                    ],
+                                    materials_ids=arguments_dict["relevant_material_ids"],
                                 )
                             )
 
@@ -273,9 +269,7 @@ async def gpt_analysis_function_step(
         arguments_dict = result.tool_calls[0].function.arguments_dict
 
         if arguments_dict is None:
-            raise ValueError(
-                f"Could not parse arguments from the text: {result.tool_calls[0].function.arguments}"
-            )
+            raise ValueError(f"Could not parse arguments from the text: {result.tool_calls[0].function.arguments}")
 
         plan = plan_class(**arguments_dict)
 

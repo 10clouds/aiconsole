@@ -79,11 +79,7 @@ async def render_materials_from_message_group(
     )
 
     rendered_materials = await asyncio.gather(
-        *[
-            material.render(content_context)
-            for material in relevant_materials
-            if material.type == "rendered_material"
-        ]
+        *[material.render(content_context) for material in relevant_materials if material.type == "rendered_material"]
     )
 
     return rendered_materials
@@ -121,16 +117,12 @@ async def execution_mode_process(
         )
     ):
         if chunk == CLEAR_STR:
-            await context.chat_mutator.mutate(
-                SetContentMessageMutation(message_id=message_id, content="")
-            )
+            await context.chat_mutator.mutate(SetContentMessageMutation(message_id=message_id, content=""))
         else:
             choices = cast(list[StreamingChoices], chunk.choices)
 
             await context.chat_mutator.mutate(
-                AppendToContentMessageMutation(
-                    message_id=message_id, content_delta=choices[0].delta.content or ""
-                )
+                AppendToContentMessageMutation(message_id=message_id, content_delta=choices[0].delta.content or "")
             )
 
 

@@ -30,12 +30,7 @@ def create_materials_str() -> str:
     ]
 
     random_materials = (
-        new_line.join(
-            [
-                f"* {c.id} - {c.usage}"
-                for c in random.sample(available_materials, len(available_materials))
-            ]
-        )
+        new_line.join([f"* {c.id} - {c.usage}" for c in random.sample(available_materials, len(available_materials))])
         if available_materials
         else ""
     )

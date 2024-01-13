@@ -27,9 +27,7 @@ router = APIRouter()
 
 
 @router.patch("")
-async def partially_update_project_settings(
-    patch_data: PartialSettingsData, settings: Settings = Depends(settings)
-):
+async def partially_update_project_settings(patch_data: PartialSettingsData, settings: Settings = Depends(settings)):
     try:
         settings.storage.save(settings_data=patch_data)
         return JSONResponse({"status": "ok"})

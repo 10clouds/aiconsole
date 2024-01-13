@@ -23,9 +23,7 @@ def get_current_project_venv_python_path():
 
 def get_current_project_venv_available_packages():
     try:
-        output = subprocess.check_output(
-            [str(get_current_project_venv_bin_path() / "pip"), "list"]
-        ).decode("utf-8")
+        output = subprocess.check_output([str(get_current_project_venv_bin_path() / "pip"), "list"]).decode("utf-8")
         package_lines = output.split("\\n")
         package_names = [line.split("==")[0] for line in package_lines]
         return " ".join(package_names)

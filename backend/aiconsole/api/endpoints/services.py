@@ -15,9 +15,7 @@ class _Assets:
 
         await assets.save_asset(asset, old_asset_id=asset_id, create=True)
 
-    async def _partially_update(
-        self, assets: Assets, old_asset_id: str, asset: Asset
-    ) -> None:
+    async def _partially_update(self, assets: Assets, old_asset_id: str, asset: Asset) -> None:
         if asset.id != old_asset_id:
             self._validate_existance(assets, asset.id)
 
@@ -44,8 +42,6 @@ class Materials(_Assets):
         materials = project.get_project_materials()
         await self._create(materials, material_id, material)
 
-    async def partially_update_material(
-        self, material_id: str, material: Material
-    ) -> None:
+    async def partially_update_material(self, material_id: str, material: Material) -> None:
         materials = project.get_project_materials()
         await self._partially_update(materials, material_id, material)

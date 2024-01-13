@@ -88,14 +88,10 @@ def cancelable_endpoint(func):
             nonlocal response
             response = await func(*args, **kwargs)
 
-        await run_until_first_complete(
-            (func_wrapper, {}), (raise_if_disconnected, {"request": request})
-        )
+        await run_until_first_complete((func_wrapper, {}), (raise_if_disconnected, {"request": request}))
 
         if isinstance(response, StreamingResponse):
-            response.body_iterator = disconnect_aware_generator(
-                response.body_iterator, request
-            )
+            response.body_iterator = disconnect_aware_generator(response.body_iterator, request)
 
         return response
 

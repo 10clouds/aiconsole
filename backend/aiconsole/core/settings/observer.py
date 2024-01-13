@@ -27,15 +27,11 @@ class FileObserver:
         # Setup and start new observer
         for file_path in file_paths:
             if not isinstance(file_path, Path):
-                _log.error(
-                    f"[{self.__class__.__name__}] Not a valid filepath: {file_path}"
-                )
+                _log.error(f"[{self.__class__.__name__}] Not a valid filepath: {file_path}")
                 continue
 
             if file_path in self.observing:
-                _log.warning(
-                    f"[{self.__class__.__name__}] Already observing: {file_path}"
-                )
+                _log.warning(f"[{self.__class__.__name__}] Already observing: {file_path}")
                 continue
 
             # Set up observer
@@ -46,18 +42,14 @@ class FileObserver:
                     recursive=False,
                 )
             except Exception as e:
-                _log.error(
-                    f"[{self.__class__.__name__}] Error setting up observer for {file_path}: {e}"
-                )
+                _log.error(f"[{self.__class__.__name__}] Error setting up observer for {file_path}: {e}")
 
             self.observing.append(file_path)
 
         if self.observing:
             try:
                 self._observer.start()
-                _log.info(
-                    f"[{self.__class__.__name__}] Observing for changes: {', '.join(map(str, self.observing))}."
-                )
+                _log.info(f"[{self.__class__.__name__}] Observing for changes: {', '.join(map(str, self.observing))}.")
             except RuntimeError as e:
                 _log.error(f"[{self.__class__.__name__}] Error starting observer: {e}")
 
@@ -72,9 +64,7 @@ class FileObserver:
                 self.observing.clear()
                 _log.info(f"[{self.__class__.__name__}] Observer stopped.")
         else:
-            _log.info(
-                f"[{self.__class__.__name__}] Observer was not running or not initialized."
-            )
+            _log.info(f"[{self.__class__.__name__}] Observer was not running or not initialized.")
 
 
 @lru_cache

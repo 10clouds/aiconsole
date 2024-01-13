@@ -24,9 +24,7 @@ def install_and_update_pip(venv_path):
         stdout, stderr = process.communicate()
 
         if process.returncode != 0:
-            _log.error(
-                f"Command {' '.join(args)} failed with error: {stderr.decode().strip()}"
-            )
+            _log.error(f"Command {' '.join(args)} failed with error: {stderr.decode().strip()}")
             raise RuntimeError(stderr.decode().strip())
 
         return stdout.decode().strip()

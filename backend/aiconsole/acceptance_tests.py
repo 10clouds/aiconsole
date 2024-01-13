@@ -34,9 +34,7 @@ async def test_should_be_able_to_add_new_project(
         background_tasks=background_tasks,
     )
 
-    assert project_path.absolute() in {
-        project.path.absolute() for project in await get_recent_project()
-    }
+    assert project_path.absolute() in {project.path.absolute() for project in await get_recent_project()}
 
 
 async def _initialize_app():

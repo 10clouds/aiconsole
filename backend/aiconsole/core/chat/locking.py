@@ -37,9 +37,7 @@ async def wait_for_lock(chat_id: str) -> None:
         raise HTTPException(status_code=408, detail="Lock acquisition timed out")
 
 
-async def acquire_lock(
-    chat_id: str, request_id: str, skip_mutating_clients: bool = False
-):
+async def acquire_lock(chat_id: str, request_id: str, skip_mutating_clients: bool = False):
     _log.debug(f"Acquiring lock {chat_id} {request_id}")
     if chat_id not in chats:
         chat_history = await load_chat_history(chat_id)

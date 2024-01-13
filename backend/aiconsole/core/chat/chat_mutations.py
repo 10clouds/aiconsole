@@ -45,9 +45,7 @@ class SetTaskMessageGroupMutation(BaseModel):
 
 
 class AppendToTaskMessageGroupMutation(BaseModel):
-    type: Literal[
-        "AppendToTaskMessageGroupMutation"
-    ] = "AppendToTaskMessageGroupMutation"
+    type: Literal["AppendToTaskMessageGroupMutation"] = "AppendToTaskMessageGroupMutation"
     message_group_id: str
     task_delta: str
 
@@ -65,17 +63,13 @@ class SetAgentIdMessageGroupMutation(BaseModel):
 
 
 class SetMaterialsIdsMessageGroupMutation(BaseModel):
-    type: Literal[
-        "SetMaterialsIdsMessageGroupMutation"
-    ] = "SetMaterialsIdsMessageGroupMutation"
+    type: Literal["SetMaterialsIdsMessageGroupMutation"] = "SetMaterialsIdsMessageGroupMutation"
     message_group_id: str
     materials_ids: list[str]
 
 
 class AppendToMaterialsIdsMessageGroupMutation(BaseModel):
-    type: Literal[
-        "AppendToMaterialsIdsMessageGroupMutation"
-    ] = "AppendToMaterialsIdsMessageGroupMutation"
+    type: Literal["AppendToMaterialsIdsMessageGroupMutation"] = "AppendToMaterialsIdsMessageGroupMutation"
     message_group_id: str
     material_id: str
 
@@ -87,9 +81,7 @@ class SetAnalysisMessageGroupMutation(BaseModel):
 
 
 class AppendToAnalysisMessageGroupMutation(BaseModel):
-    type: Literal[
-        "AppendToAnalysisMessageGroupMutation"
-    ] = "AppendToAnalysisMessageGroupMutation"
+    type: Literal["AppendToAnalysisMessageGroupMutation"] = "AppendToAnalysisMessageGroupMutation"
     message_group_id: str
     analysis_delta: str
 
@@ -150,9 +142,7 @@ class SetHeadlineToolCallMutation(BaseModel):
 
 
 class AppendToHeadlineToolCallMutation(BaseModel):
-    type: Literal[
-        "AppendToHeadlineToolCallMutation"
-    ] = "AppendToHeadlineToolCallMutation"
+    type: Literal["AppendToHeadlineToolCallMutation"] = "AppendToHeadlineToolCallMutation"
     tool_call_id: str
     headline_delta: str
 

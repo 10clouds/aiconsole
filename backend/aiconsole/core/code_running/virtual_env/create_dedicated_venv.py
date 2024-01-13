@@ -19,9 +19,7 @@ def run_subprocess(*args):
     stdout, stderr = process.communicate()
 
     if process.returncode != 0:
-        _log.error(
-            f"Command {' '.join(args)} failed with error: {stderr.decode().strip()}"
-        )
+        _log.error(f"Command {' '.join(args)} failed with error: {stderr.decode().strip()}")
         raise RuntimeError(stderr.decode().strip())
 
     return stdout.decode().strip()
@@ -42,9 +40,7 @@ async def create_dedicated_venv():
 
     if not venv_path.exists():
         _log.info(f"Creating venv in {venv_path}, using {sys.executable}")
-        run_subprocess(
-            sys.executable, "-m", "venv", str(venv_path), "--system-site-packages"
-        )
+        run_subprocess(sys.executable, "-m", "venv", str(venv_path), "--system-site-packages")
     else:
         _log.info(f"Venv already exists in {venv_path}")
 
@@ -54,15 +50,11 @@ async def create_dedicated_venv():
         if venv_python_version:
             _log.info(f"Valid venv python executable")
         else:
-            _log.info(
-                f"Reconstructing venv due to the different Python version({system_python_version}):"
-            )
+            _log.info(f"Reconstructing venv due to the different Python version({system_python_version}):")
             shutil.rmtree(str(get_current_project_venv_path()))
             _log.info(f"1) Deleted old env.")
 
-            run_subprocess(
-                sys.executable, "-m", "venv", str(venv_path), "--system-site-packages"
-            )
+            run_subprocess(sys.executable, "-m", "venv", str(venv_path), "--system-site-packages")
             _log.info(f"2) Created venv in {venv_path}, using {sys.executable}")
 
     install_and_update_pip(venv_path)

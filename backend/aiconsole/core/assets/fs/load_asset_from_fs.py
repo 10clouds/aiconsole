@@ -31,9 +31,7 @@ from aiconsole.core.project.paths import (
 _log = logging.getLogger(__name__)
 
 
-async def load_asset_from_fs(
-    asset_type: AssetType, asset_id: str, location: AssetLocation | None = None
-) -> Asset:
+async def load_asset_from_fs(asset_type: AssetType, asset_id: str, location: AssetLocation | None = None) -> Asset:
     """
     Load a specific asset.
     """
@@ -68,11 +66,8 @@ async def load_asset_from_fs(
         "defined_in": location,
         "usage": str(tomldoc["usage"]).strip(),
         "usage_examples": tomldoc.get("usage_examples", []),
-        "default_status": AssetStatus(
-            str(tomldoc.get("default_status", "enabled")).strip()
-        ),
-        "override": location == AssetLocation.PROJECT_DIR
-        and (core_resource_path / f"{asset_id}.toml").exists(),
+        "default_status": AssetStatus(str(tomldoc.get("default_status", "enabled")).strip()),
+        "override": location == AssetLocation.PROJECT_DIR and (core_resource_path / f"{asset_id}.toml").exists(),
     }
 
     if asset_type == AssetType.MATERIAL:
@@ -84,22 +79,13 @@ async def load_asset_from_fs(
         if "content" in tomldoc:
             material.content = str(tomldoc["content"]).strip()
 
-        if (
-            "content_static_text" in tomldoc
-            and material.content_type == MaterialContentType.STATIC_TEXT
-        ):
+        if "content_static_text" in tomldoc and material.content_type == MaterialContentType.STATIC_TEXT:
             material.content = str(tomldoc["content_static_text"]).strip()
 
-        if (
-            "content_dynamic_text" in tomldoc
-            and material.content_type == MaterialContentType.DYNAMIC_TEXT
-        ):
+        if "content_dynamic_text" in tomldoc and material.content_type == MaterialContentType.DYNAMIC_TEXT:
             material.content = str(tomldoc["content_dynamic_text"]).strip()
 
-        if (
-            "content_api" in tomldoc
-            and material.content_type == MaterialContentType.API
-        ):
+        if "content_api" in tomldoc and material.content_type == MaterialContentType.API:
             material.content = str(tomldoc["content_api"]).strip()
 
         return material

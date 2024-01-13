@@ -34,9 +34,7 @@ class BaseServerMessage(BaseModel):
     def send_to_connection(self, connection: "AICConnection"):
         return connection.send(self)
 
-    def send_to_chat(
-        self, chat_id: str, source_connection_to_ommit: "AICConnection | None" = None
-    ):
+    def send_to_chat(self, chat_id: str, source_connection_to_ommit: "AICConnection | None" = None):
         from aiconsole.api.websockets.connection_manager import send_message_to_chat
 
         return send_message_to_chat(chat_id, self, source_connection_to_ommit)

@@ -45,17 +45,12 @@ async def main():
             await OpenChatClientMessage(chat_id=chat_info["id"]).send(websocket)
 
             request_id = "test"
-            await ProcessChatClientMessage(
-                chat_id=chat_info["id"], request_id=request_id
-            ).send(websocket)
+            await ProcessChatClientMessage(chat_id=chat_info["id"], request_id=request_id).send(websocket)
 
             while True:
                 data = websocket.receive_json()
                 print(data)
-                if (
-                    data["type"] == "LockReleasedServerMessage"
-                    and data["request_id"] == "test"
-                ):
+                if data["type"] == "LockReleasedServerMessage" and data["request_id"] == "test":
                     break
 
 

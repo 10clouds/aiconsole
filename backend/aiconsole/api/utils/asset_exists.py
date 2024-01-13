@@ -37,9 +37,7 @@ def asset_path(asset_type: AssetType, request: Request, asset_id: str):
         raise ValueError(f"Invalid asset type: {asset_type}")
 
     if asset is None:
-        raise HTTPException(
-            status_code=404, detail=f"Asset {asset_id} of type {asset_type} not found"
-        )
+        raise HTTPException(status_code=404, detail=f"Asset {asset_id} of type {asset_type} not found")
 
     path = get_project_assets_directory(asset_type) / f"{asset_id}.toml"
 

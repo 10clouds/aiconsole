@@ -40,31 +40,18 @@ async def load_chat_history(id: str, project_path: Path | None = None) -> Chat:
                     for message in data["messages"]:
                         data["message_groups"].append(
                             {
-                                "id": message["id"]
-                                if "id" in message
-                                else uuid.uuid4().hex,
+                                "id": message["id"] if "id" in message else uuid.uuid4().hex,
                                 "role": message["role"] if "role" in message else "",
-                                "task": message["task"]
-                                if "task" in message and message["task"]
-                                else "",
-                                "agent_id": message["agent_id"]
-                                if "agent_id" in message
-                                else "",
+                                "task": message["task"] if "task" in message and message["task"] else "",
+                                "agent_id": message["agent_id"] if "agent_id" in message else "",
                                 "materials_ids": message["materials_ids"]
-                                if "materials_ids" in message
-                                and message["materials_ids"]
+                                if "materials_ids" in message and message["materials_ids"]
                                 else [],
                                 "messages": [
                                     {
-                                        "id": message["id"]
-                                        if "id" in message
-                                        else uuid.uuid4().hex,
-                                        "timestamp": message["timestamp"]
-                                        if "timestamp" in message
-                                        else "",
-                                        "content": message["content"]
-                                        if "content" in message
-                                        else "",
+                                        "id": message["id"] if "id" in message else uuid.uuid4().hex,
+                                        "timestamp": message["timestamp"] if "timestamp" in message else "",
+                                        "content": message["content"] if "content" in message else "",
                                     }
                                 ],
                             }
@@ -93,10 +80,7 @@ async def load_chat_history(id: str, project_path: Path | None = None) -> Chat:
                     for msg in group["messages"]:
                         if "tool_calls" in msg and msg["tool_calls"]:
                             for tool_call in msg["tool_calls"]:
-                                if (
-                                    "language" in tool_call
-                                    and tool_call["language"] == "shell"
-                                ):
+                                if "language" in tool_call and tool_call["language"] == "shell":
                                     tool_call["language"] = "python"
 
             # Add "analysis" to each message group

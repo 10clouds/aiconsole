@@ -17,9 +17,7 @@
 from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
 
 
-def create_full_prompt_with_materials(
-    intro: str, materials: list[RenderedMaterial], outro: str = ""
-):
+def create_full_prompt_with_materials(intro: str, materials: list[RenderedMaterial], outro: str = ""):
     section_strs = []
     for material in materials:
         section_strs.append(material.content)

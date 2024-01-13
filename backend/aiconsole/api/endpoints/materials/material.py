@@ -143,25 +143,17 @@ async def partially_update_material(
     asset_id: str, material: Material, materials_service: Materials = Depends(materials)
 ):
     try:
-        await materials_service.partially_update_material(
-            material_id=asset_id, material=material
-        )
+        await materials_service.partially_update_material(material_id=asset_id, material=material)
     except AssetWithGivenNameAlreadyExistError:
-        raise HTTPException(
-            status_code=400, detail="Material with given name already exists"
-        )
+        raise HTTPException(status_code=400, detail="Material with given name already exists")
 
 
 @router.post("/{asset_id}")
-async def create_material(
-    asset_id: str, material: Material, materials_service: Materials = Depends(materials)
-):
+async def create_material(asset_id: str, material: Material, materials_service: Materials = Depends(materials)):
     try:
         await materials_service.create_material(material_id=asset_id, material=material)
     except AssetWithGivenNameAlreadyExistError:
-        raise HTTPException(
-            status_code=400, detail="Material with given name already exists"
-        )
+        raise HTTPException(status_code=400, detail="Material with given name already exists")
 
 
 @router.post("/{material_id}/status-change")

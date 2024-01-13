@@ -36,9 +36,7 @@ class UserProfileService:
         return UserProfile(
             username=email or DEFAULT_USERNAME,
             email=email,
-            avatar_url=self._get_default_avatar(email)
-            if email
-            else self._get_default_avatar(),
+            avatar_url=self._get_default_avatar(email) if email else self._get_default_avatar(),
             gravatar=False,
         )
 
@@ -82,15 +80,11 @@ class UserProfileService:
         key = email or settings().settings_data.openai_api_key or "some_key"
         img_filename = self._deterministic_choice(
             blob=key,
-            choices=list(
-                resource_to_path(resource=DEFAULT_AVATARS_PATH).glob(pattern="*")
-            ),
+            choices=list(resource_to_path(resource=DEFAULT_AVATARS_PATH).glob(pattern="*")),
         ).name
         return f"profile_image?img_filename={img_filename}"
 
-    def _create_user_profile_from_gravatar(
-        self, email: str, gravatar_profile: GravatarUserProfile
-    ) -> UserProfile:
+    def _create_user_profile_from_gravatar(self, email: str, gravatar_profile: GravatarUserProfile) -> UserProfile:
         return UserProfile(
             username=gravatar_profile.preferredUsername,
             email=email,

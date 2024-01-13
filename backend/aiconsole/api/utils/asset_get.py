@@ -9,9 +9,7 @@ from aiconsole.core.settings.project_settings import Settings
 from aiconsole.utils.capitalize_first import capitalize_first
 
 
-async def asset_get(
-    request, asset_type: AssetType, asset_id: str, new_asset: Callable[[], Asset]
-):
+async def asset_get(request, asset_type: AssetType, asset_id: str, new_asset: Callable[[], Asset]):
     location_param = request.query_params.get("location", None)
     location = AssetLocation(location_param) if location_param else None
 
@@ -31,9 +29,7 @@ async def asset_get(
         agent = assets.get_asset(asset_id, location)
 
         if not agent:
-            raise HTTPException(
-                status_code=404, detail=f"{capitalize_first(asset_type)} not found"
-            )
+            raise HTTPException(status_code=404, detail=f"{capitalize_first(asset_type)} not found")
 
         # capitalize first letter
 

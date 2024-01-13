@@ -32,10 +32,7 @@ def create_agents_str() -> str:
     new_line = "\n"
 
     random_agents = new_line.join(
-        [
-            f"* {c.id} - {c.usage}"
-            for c in random.sample(possible_agent_choices, len(possible_agent_choices))
-        ]
+        [f"* {c.id} - {c.usage}" for c in random.sample(possible_agent_choices, len(possible_agent_choices))]
     )
 
     return random_agents

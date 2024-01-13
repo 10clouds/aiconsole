@@ -37,9 +37,7 @@ def _extract_filename_from_url(url):
     return filename
 
 
-def generate_image(
-    prompt: str, size: Literal["1024x1024", "1792x1024", "1024x1792"]
-) -> list[Image]:
+def generate_image(prompt: str, size: Literal["1024x1024", "1792x1024", "1024x1792"]) -> list[Image]:
     """
     Returns a list of:
 
@@ -75,8 +73,6 @@ def generate_image(
         os.makedirs(os.path.join("images"), exist_ok=True)
         r = requests.get(image_url, allow_redirects=True)
         open(image_path, "wb").write(r.content)
-        ret.append(
-            Image(relative_path=image_path, revised_prompt=image.revised_prompt or "")
-        )
+        ret.append(Image(relative_path=image_path, revised_prompt=image.revised_prompt or ""))
 
     return ret

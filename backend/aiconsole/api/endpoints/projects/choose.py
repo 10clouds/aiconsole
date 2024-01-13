@@ -36,9 +36,7 @@ async def choose_directory(
 
 
 @router.get("/is_in_directory")
-async def is_project_in_directory(
-    directory: str, project_directory: ProjectDirectory = Depends(project_directory)
-):
+async def is_project_in_directory(directory: str, project_directory: ProjectDirectory = Depends(project_directory)):
     return {"is_project": project_directory.is_project_in_directory(directory)}
 
 

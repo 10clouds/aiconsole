@@ -43,18 +43,14 @@ class GPTExecutor:
             choices=[
                 GPTChoice(
                     index=0,
-                    message=GPTResponseMessage(
-                        role="assistant", content="Hello, how can I help you?"
-                    ),
+                    message=GPTResponseMessage(role="assistant", content="Hello, how can I help you?"),
                     finnish_reason="",
                 )
             ]
         )
         self.partial_response = GPTPartialResponse()
 
-    async def execute(
-        self, request: GPTRequest
-    ) -> AsyncGenerator[litellm.ModelResponse | CLEAR_STR_TYPE, None]:
+    async def execute(self, request: GPTRequest) -> AsyncGenerator[litellm.ModelResponse | CLEAR_STR_TYPE, None]:
         request.validate_request()
 
         request_dict = {

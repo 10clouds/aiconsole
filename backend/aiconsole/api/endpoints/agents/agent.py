@@ -57,9 +57,7 @@ async def get_agent(request: Request, agent_id: str):
 
 
 @router.patch("/{agent_id}")
-async def partially_update_agent(
-    agent_id: str, agent: Agent, agents_service: Agents = Depends(agents)
-):
+async def partially_update_agent(agent_id: str, agent: Agent, agents_service: Agents = Depends(agents)):
     try:
         await agents_service.partially_update_agent(agent_id=agent_id, agent=agent)
     except AssetWithGivenNameAlreadyExistError:
@@ -70,9 +68,7 @@ async def partially_update_agent(
 
 
 @router.post("/{agent_id}")
-async def create_agent(
-    agent_id: str, agent: Agent, agents_service: Agents = Depends(agents)
-):
+async def create_agent(agent_id: str, agent: Agent, agents_service: Agents = Depends(agents)):
     try:
         await agents_service.create_agent(agent_id=agent_id, agent=agent)
     except AssetWithGivenNameAlreadyExistError:

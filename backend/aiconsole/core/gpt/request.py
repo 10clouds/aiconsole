@@ -59,10 +59,7 @@ class GPTRequest:
         messages: list[GPTRequestMessage],
         gpt_mode: GPTMode,
         tools: list[ToolDefinition] = [],
-        tool_choice: Literal["none"]
-        | Literal["auto"]
-        | EnforcedFunctionCall
-        | None = None,
+        tool_choice: Literal["none"] | Literal["auto"] | EnforcedFunctionCall | None = None,
         temperature: float = 1,
         presence_penalty: float = 0,
         min_tokens: int = 0,
@@ -123,17 +120,13 @@ class GPTRequest:
         mode_config = settings().settings_data.gpt_modes.get(self.gpt_mode, None)
 
         if mode_config is None:
-            raise ValueError(
-                f"Unknown mode {self.gpt_mode}, available modes: {settings().settings_data.gpt_modes}"
-            )
+            raise ValueError(f"Unknown mode {self.gpt_mode}, available modes: {settings().settings_data.gpt_modes}")
 
         # if api_key refers to any other setting, use that setting
 
         for extra in settings().settings_data.extra:
             if mode_config.api_key == extra:
-                mode_config = mode_config.model_copy(
-                    update={"api_key": settings().settings_data.extra[extra]}
-                )
+                mode_config = mode_config.model_copy(update={"api_key": settings().settings_data.extra[extra]})
 
         return mode_config
 
@@ -141,11 +134,7 @@ class GPTRequest:
         encoding = tiktoken.encoding_for_model(self.model_config.encoding)
 
         if self.tools:
-            functions_tokens = len(
-                encoding.encode(
-                    ",".join(json.dumps(f.model_dump()) for f in self.tools)
-                )
-            )
+            functions_tokens = len(encoding.encode(",".join(json.dumps(f.model_dump()) for f in self.tools)))
         else:
             functions_tokens = 0
         return self.count_messages_tokens(encoding) + functions_tokens
@@ -160,15 +149,11 @@ class GPTRequest:
 
         return messages_tokens
 
-    def count_tokens_output(
-        self, message_content: str, message_function_call: dict | None
-    ):
+    def count_tokens_output(self, message_content: str, message_function_call: dict | None):
         encoding = tiktoken.encoding_for_model(self.model_config.encoding)
 
         return len(encoding.encode(message_content)) + (
-            len(encoding.encode(json.dumps(message_function_call)))
-            if message_function_call
-            else 0
+            len(encoding.encode(json.dumps(message_function_call))) if message_function_call else 0
         )
 
     def validate_request(self):

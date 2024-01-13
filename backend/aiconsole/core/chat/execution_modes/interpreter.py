@@ -151,9 +151,7 @@ async def _run_code(context: ProcessChatContext, tool_call_id):
         try:
             context.rendered_materials
 
-            async for token in get_code_interpreter(tool_call.language).run(
-                tool_call.code, context.materials
-            ):
+            async for token in get_code_interpreter(tool_call.language).run(tool_call.code, context.materials):
                 await context.chat_mutator.mutate(
                     AppendToOutputToolCallMutation(
                         tool_call_id=tool_call_id,
@@ -161,9 +159,7 @@ async def _run_code(context: ProcessChatContext, tool_call_id):
                     )
                 )
         except Exception:
-            await ErrorServerMessage(error=traceback.format_exc().strip()).send_to_chat(
-                context.chat_mutator.chat.id
-            )
+            await ErrorServerMessage(error=traceback.format_exc().strip()).send_to_chat(context.chat_mutator.chat.id)
             await context.chat_mutator.mutate(
                 AppendToOutputToolCallMutation(
                     tool_call_id=tool_call_id,
@@ -203,9 +199,7 @@ async def _generate_response(
             GPTRequest(
                 system_message=system_message,
                 gpt_mode=context.agent.gpt_mode,
-                messages=[
-                    message for message in convert_messages(context.chat_mutator.chat)
-                ],
+                messages=[message for message in convert_messages(context.chat_mutator.chat)],
                 tools=[
                     ToolDefinition(
                         type="function",
@@ -221,9 +215,7 @@ async def _generate_response(
             )
         ):
             if chunk == CLEAR_STR:
-                await context.chat_mutator.mutate(
-                    SetContentMessageMutation(message_id=message_id, content="")
-                )
+                await context.chat_mutator.mutate(SetContentMessageMutation(message_id=message_id, content=""))
                 continue
 
             if "choices" not in chunk or len(chunk["choices"]) == 0:
@@ -254,9 +246,7 @@ async def _generate_response(
 
                     tools_requiring_closing_parenthesis.remove(prev_tool.id)
 
-                tool_call_info = context.chat_mutator.chat.get_tool_call_location(
-                    tool_call.id
-                )
+                tool_call_info = context.chat_mutator.chat.get_tool_call_location(tool_call.id)
 
                 if not tool_call_info:
                     await context.chat_mutator.mutate(
@@ -270,14 +260,10 @@ async def _generate_response(
                         )
                     )
 
-                    tool_call_info = context.chat_mutator.chat.get_tool_call_location(
-                        tool_call.id
-                    )
+                    tool_call_info = context.chat_mutator.chat.get_tool_call_location(tool_call.id)
 
                     if not tool_call_info:
-                        raise Exception(
-                            f"Tool call {tool_call.id} should have been created"
-                        )
+                        raise Exception(f"Tool call {tool_call.id} should have been created")
 
                 tool_call_data = tool_call_info.tool_call
 
@@ -296,9 +282,7 @@ async def _generate_response(
                                 )
                             )
 
-                    async def send_code_delta(
-                        code_delta: str = "", headline_delta: str = ""
-                    ):
+                    async def send_code_delta(code_delta: str = "", headline_delta: str = ""):
                         if code_delta:
                             await context.chat_mutator.mutate(
                                 AppendToCodeToolCallMutation(
@@ -324,31 +308,22 @@ async def _generate_response(
                                 await send_language_if_needed("python")
 
                                 _log.info(f"function_call: {function_call}")
-                                _log.info(
-                                    f"function_call.arguments: {function_call.arguments}"
-                                )
+                                _log.info(f"function_call.arguments: {function_call.arguments}")
 
                                 code_delta = f"{function_call.name}(**"
                                 await send_code_delta(code_delta)
                                 tool_call_data.end_with_code = ")"
                             else:
-                                code_delta = function_call.arguments[
-                                    len(tool_call_data.code) :
-                                ]
+                                code_delta = function_call.arguments[len(tool_call_data.code) :]
                                 tool_call_data.code = function_call.arguments
                                 await send_code_delta(code_delta)
                         else:
                             arguments = function_call.arguments
                             languages = language_map.keys()
 
-                            if (
-                                tool_call_data.language is None
-                                and function_call.name in languages
-                            ):
+                            if tool_call_data.language is None and function_call.name in languages:
                                 # Languge is in the name of the function call
-                                await send_language_if_needed(
-                                    cast(LanguageStr, function_call.name)
-                                )
+                                await send_language_if_needed(cast(LanguageStr, function_call.name))
 
                             # This can now be both a string and a json object
                             try:
@@ -360,15 +335,11 @@ async def _generate_response(
                                 if arguments and "code" in arguments:
                                     await send_language_if_needed("python")
 
-                                    code_delta = arguments["code"][
-                                        len(tool_call_data.code) :
-                                    ]
+                                    code_delta = arguments["code"][len(tool_call_data.code) :]
                                     tool_call_data.code = arguments["code"]
 
                                 if arguments and "headline" in arguments:
-                                    headline_delta = arguments["headline"][
-                                        len(tool_call_data.headline) :
-                                    ]
+                                    headline_delta = arguments["headline"][len(tool_call_data.headline) :]
                                     tool_call_data.headline = arguments["headline"]
 
                                 if code_delta or headline_delta:
@@ -387,11 +358,7 @@ async def _generate_response(
                                 elif '"code": ' in arguments:
                                     await send_language_if_needed("python")
 
-                                    code = (
-                                        arguments.partition('"code": ')[2]
-                                        .replace('"""', "")
-                                        .replace("}", "")
-                                    )
+                                    code = arguments.partition('"code": ')[2].replace('"""', "").replace("}", "")
                                     code_delta = code[len(tool_call_data.code) - 1 :]
                                     await send_code_delta(code_delta)
 
@@ -408,9 +375,7 @@ async def _generate_response(
 async def _execution_mode_accept_code(
     context: AcceptCodeContext,
 ):
-    tool_call_location = context.chat_mutator.chat.get_tool_call_location(
-        context.tool_call_id
-    )
+    tool_call_location = context.chat_mutator.chat.get_tool_call_location(context.tool_call_id)
 
     if not tool_call_location:
         raise Exception(f"Tool call {context.tool_call_id} should have been created")
@@ -433,9 +398,7 @@ async def _execution_mode_accept_code(
     )
 
     if finished_running_code:
-        await _execution_mode_process(
-            process_chat_context
-        )  # Resume operation with the same agent
+        await _execution_mode_process(process_chat_context)  # Resume operation with the same agent
 
 
 execution_mode = ExecutionMode(

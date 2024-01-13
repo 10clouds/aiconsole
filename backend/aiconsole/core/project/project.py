@@ -117,9 +117,7 @@ async def reinitialize_project():
     _agents = assets.Assets(asset_type=AssetType.AGENT)
     _materials = assets.Assets(asset_type=AssetType.MATERIAL)
 
-    await ProjectOpenedServerMessage(
-        path=str(get_project_directory()), name=get_project_name()
-    ).send_to_all()
+    await ProjectOpenedServerMessage(path=str(get_project_directory()), name=get_project_name()).send_to_all()
 
     await _materials.reload(initial=True)
     await _agents.reload(initial=True)

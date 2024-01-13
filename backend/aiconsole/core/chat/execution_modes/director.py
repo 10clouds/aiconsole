@@ -76,11 +76,7 @@ async def render_materials_from_message_group(
     )
 
     rendered_materials = await asyncio.gather(
-        *[
-            material.render(content_context)
-            for material in relevant_materials
-            if material.type == "rendered_material"
-        ]
+        *[material.render(content_context) for material in relevant_materials if material.type == "rendered_material"]
     )
 
     return rendered_materials
@@ -102,8 +98,7 @@ async def execution_mode_process(
         )
 
         rendered_materials = [
-            await material.render(content_context)
-            for material in content_context.relevant_materials
+            await material.render(content_context) for material in content_context.relevant_materials
         ]
 
         context = ProcessChatContext(

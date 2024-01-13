@@ -101,9 +101,7 @@ async def handle_incoming_message(connection: AICConnection, json: dict):
     return await handler(connection, json)
 
 
-async def _handle_acquire_lock_ws_message(
-    connection: AICConnection, message: AcquireLockClientMessage
-):
+async def _handle_acquire_lock_ws_message(connection: AICConnection, message: AcquireLockClientMessage):
     await acquire_lock(chat_id=message.chat_id, request_id=message.request_id)
 
     connection.acquired_locks.append(
@@ -116,9 +114,7 @@ async def _handle_acquire_lock_ws_message(
     _log.info(f"Acquired lock {message.request_id} {connection.acquired_locks}")
 
 
-async def _handle_release_lock_ws_message(
-    connection: AICConnection, message: ReleaseLockClientMessage
-):
+async def _handle_release_lock_ws_message(connection: AICConnection, message: ReleaseLockClientMessage):
     await release_lock(chat_id=message.chat_id, request_id=message.request_id)
 
     lock_data = AcquiredLock(chat_id=message.chat_id, request_id=message.request_id)
@@ -129,9 +125,7 @@ async def _handle_release_lock_ws_message(
         _log.error(f"Lock {lock_data} not found in {connection.acquired_locks}")
 
 
-async def _handle_open_chat_ws_message(
-    connection: AICConnection, message: OpenChatClientMessage
-):
+async def _handle_open_chat_ws_message(connection: AICConnection, message: OpenChatClientMessage):
     temporary_request_id = str(uuid4())
 
     try:
@@ -150,29 +144,21 @@ async def _handle_open_chat_ws_message(
         await release_lock(chat_id=message.chat_id, request_id=temporary_request_id)
 
 
-async def _handle_close_chat_ws_message(
-    connection: AICConnection, message: CloseChatClientMessage
-):
+async def _handle_close_chat_ws_message(connection: AICConnection, message: CloseChatClientMessage):
     connection.open_chats_ids.remove(message.chat_id)
 
 
 async def _handle_init_chat_mutation_ws_message(
     connection: AICConnection | None, message: InitChatMutationClientMessage
 ):
-    mutator = DefaultChatMutator(
-        chat_id=message.chat_id, request_id=message.request_id, connection=connection
-    )
+    mutator = DefaultChatMutator(chat_id=message.chat_id, request_id=message.request_id, connection=connection)
 
     await mutator.mutate(message.mutation)
 
 
-async def _handle_accept_code_ws_message(
-    connection: AICConnection, message: AcceptCodeClientMessage
-):
+async def _handle_accept_code_ws_message(connection: AICConnection, message: AcceptCodeClientMessage):
     try:
-        chat = await acquire_lock(
-            chat_id=message.chat_id, request_id=message.request_id
-        )
+        chat = await acquire_lock(chat_id=message.chat_id, request_id=message.request_id)
 
         chat_mutator = DefaultChatMutator(
             chat_id=message.chat_id,
@@ -196,9 +182,7 @@ async def _handle_accept_code_ws_message(
 
         execution_mode = await import_and_validate_execution_mode(agent)
 
-        mats = await _render_materials_from_message_group(
-            tool_call_location.message_group, chat_mutator.chat, agent
-        )
+        mats = await _render_materials_from_message_group(tool_call_location.message_group, chat_mutator.chat, agent)
 
         await execution_mode.accept_code(
             AcceptCodeContext(
@@ -237,25 +221,15 @@ async def _render_materials_from_message_group(
     )
 
     rendered_materials = await asyncio.gather(
-        *[
-            material.render(content_context)
-            for material in relevant_materials
-            if material.type == "rendered_material"
-        ]
+        *[material.render(content_context) for material in relevant_materials if material.type == "rendered_material"]
     )
 
-    return MaterialsAndRenderedMaterials(
-        materials=relevant_materials, rendered_materials=rendered_materials
-    )
+    return MaterialsAndRenderedMaterials(materials=relevant_materials, rendered_materials=rendered_materials)
 
 
-async def _handle_process_chat_ws_message(
-    connection: AICConnection, message: ProcessChatClientMessage
-):
+async def _handle_process_chat_ws_message(connection: AICConnection, message: ProcessChatClientMessage):
     try:
-        chat = await acquire_lock(
-            chat_id=message.chat_id, request_id=message.request_id
-        )
+        chat = await acquire_lock(chat_id=message.chat_id, request_id=message.request_id)
 
         chat_mutator = DefaultChatMutator(
             chat_id=message.chat_id,

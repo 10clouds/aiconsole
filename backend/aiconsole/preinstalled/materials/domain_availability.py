@@ -11,9 +11,7 @@ def is_domain_available(domain) -> bool:
     ```
     """
     try:
-        result = subprocess.run(
-            ["whois", domain], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-        )
+        result = subprocess.run(["whois", domain], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         output = result.stdout.lower()
 
         if "Domain Status: No Object Found" in result.stdout:

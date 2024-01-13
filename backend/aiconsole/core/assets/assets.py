@@ -69,9 +69,7 @@ class Assets:
         Return all loaded assets with a specific status.
         """
         return [
-            assets[0]
-            for assets in self._assets.values()
-            if self.get_status(self.asset_type, assets[0].id) == status
+            assets[0] for assets in self._assets.values() if self.get_status(self.asset_type, assets[0].id) == status
         ]
 
     async def save_asset(self, asset: Asset, old_asset_id: str, create: bool):
@@ -101,17 +99,11 @@ class Assets:
 
         # integrity checks and deleting old assets from structure
         if not create:
-            if (
-                not self._assets[asset.id]
-                or self._assets[asset.id][0].defined_in != AssetLocation.PROJECT_DIR
-            ):
+            if not self._assets[asset.id] or self._assets[asset.id][0].defined_in != AssetLocation.PROJECT_DIR:
                 raise Exception(f"Asset {asset.id} cannot be edited")
             self._assets[asset.id].pop(0)
         else:
-            if (
-                self._assets[asset.id]
-                and self._assets[asset.id][0].defined_in == AssetLocation.PROJECT_DIR
-            ):
+            if self._assets[asset.id] and self._assets[asset.id][0].defined_in == AssetLocation.PROJECT_DIR:
                 raise Exception(f"Asset {asset.id} already exists")
 
         self._assets[asset.id].insert(0, new_asset)
@@ -131,9 +123,7 @@ class Assets:
         self._suppress_notification()
 
     def _suppress_notification(self):
-        self._suppress_notification_until = (
-            datetime.datetime.now() + datetime.timedelta(seconds=10)
-        )
+        self._suppress_notification_until = datetime.datetime.now() + datetime.timedelta(seconds=10)
 
     def get_asset(self, id, location: AssetLocation | None = None):
         """
@@ -186,17 +176,11 @@ class Assets:
             raise ValueError(f"Unknown asset type {asset_type}")
 
     @staticmethod
-    def set_status(
-        asset_type: AssetType, id: str, status: AssetStatus, to_global: bool = False
-    ) -> None:
+    def set_status(asset_type: AssetType, id: str, status: AssetStatus, to_global: bool = False) -> None:
         if asset_type == AssetType.MATERIAL:
-            settings().storage.save(
-                PartialSettingsData(materials={id: status}, to_global=to_global)
-            )
+            settings().storage.save(PartialSettingsData(materials={id: status}, to_global=to_global))
         elif asset_type == AssetType.AGENT:
-            settings().storage.save(
-                PartialSettingsData(agents={id: status}, to_global=to_global)
-            )
+            settings().storage.save(PartialSettingsData(agents={id: status}, to_global=to_global))
         else:
             raise ValueError(f"Unknown asset type {asset_type}")
 

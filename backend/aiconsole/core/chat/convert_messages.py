@@ -28,9 +28,7 @@ from aiconsole.core.gpt.types import (
 last_system_message = None
 
 
-def convert_message(
-    group: AICMessageGroup, message: AICMessage, is_last: bool
-) -> list[GPTRequestMessage]:
+def convert_message(group: AICMessageGroup, message: AICMessage, is_last: bool) -> list[GPTRequestMessage]:
     global last_system_message
 
     result = []
@@ -98,9 +96,7 @@ As a director I have assigned you ({group.agent_id}) and given you access to the
             if content == "":
                 content = "No output"
 
-            result.append(
-                GPTRequestToolMessage(tool_call_id=tool_call_id, content=content)
-            )
+            result.append(GPTRequestToolMessage(tool_call_id=tool_call_id, content=content))
 
     return result
 
