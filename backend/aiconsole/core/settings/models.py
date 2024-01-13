@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from aiconsole.core.assets.models import AssetStatus
 from aiconsole.core.gpt import consts
@@ -16,8 +16,8 @@ class PartialSettingsData(BaseModel):
     materials_to_reset: Optional[list[str]] = None
     agents: Optional[dict[str, AssetStatus]] = None
     agents_to_reset: Optional[list[str]] = None
-    gpt_modes: dict[str, GPTModeConfig] = {}
-    extra: dict[str, Any] = {}
+    gpt_modes: Optional[dict[str, GPTModeConfig]] = None
+    extra: Optional[dict[str, Any]] = None
     to_global: bool = False
 
 
@@ -51,3 +51,9 @@ class SettingsData(BaseModel):
         ),
     }
     extra: dict[str, Any] = {}
+
+    @model_validator(mode="after")
+    def set_openai_keys(self):
+        for mode, config in self.gpt_modes.items():
+            config.api_key = self.openai_api_key
+        return self

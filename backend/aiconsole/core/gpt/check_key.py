@@ -42,8 +42,6 @@ def check_key(key: str) -> bool:
         return True
 
     client = OpenAI(api_key=key)
-
-    openai.api_key = key
     models = client.models.list()
     available_models = [model.id for model in models]
 

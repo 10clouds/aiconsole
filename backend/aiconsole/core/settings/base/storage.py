@@ -1,7 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
 
-import litellm
 from deepmerge import Merger
 
 from aiconsole.core.settings import models
@@ -33,9 +32,6 @@ class SettingsStorage(ABC):
                 for key in models.SettingsData.model_fields.keys()
             }
         )
-
-        litellm.openai_key = settings_data.openai_api_key or "invalid key"
-        _log.debug(f"LiteLLM openai_key was set to {litellm.openai_key[-5:]}")
 
         _log.info("Loaded settings")
         return settings_data

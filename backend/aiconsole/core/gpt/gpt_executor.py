@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import asyncio
 import logging
 from typing import AsyncGenerator
@@ -44,18 +43,14 @@ class GPTExecutor:
             choices=[
                 GPTChoice(
                     index=0,
-                    message=GPTResponseMessage(
-                        role="assistant", content="Hello, how can I help you?"
-                    ),
+                    message=GPTResponseMessage(role="assistant", content="Hello, how can I help you?"),
                     finnish_reason="",
                 )
             ]
         )
         self.partial_response = GPTPartialResponse()
 
-    async def execute(
-        self, request: GPTRequest
-    ) -> AsyncGenerator[litellm.ModelResponse | CLEAR_STR_TYPE, None]:
+    async def execute(self, request: GPTRequest) -> AsyncGenerator[litellm.ModelResponse | CLEAR_STR_TYPE, None]:
         request.validate_request()
 
         request_dict = {
@@ -83,8 +78,10 @@ class GPTExecutor:
 
                 self.partial_response = GPTPartialResponse()
 
-                for chunk in response:
+                async for chunk in response:
                     self.partial_response.apply_chunk(chunk)
+                    yield chunk
+                    await asyncio.sleep(0)
 
                 self.response = self.partial_response.to_final_response()
 
