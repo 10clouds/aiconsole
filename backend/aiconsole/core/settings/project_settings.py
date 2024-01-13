@@ -35,7 +35,9 @@ class Settings:
 
     async def reload(self):
         if not self.storage:
-            _log.exception(f"[{self.__class__.__name__}] Reload was called before configuration.")
+            _log.exception(
+                f"[{self.__class__.__name__}] Reload was called before configuration."
+            )
             raise SettingsNotConfiguredException
 
         self.settings_data = self.storage.load()

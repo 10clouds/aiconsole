@@ -63,7 +63,7 @@ def get_tasks(assignee_gid: Union[str, Literal['me'], None] = None, completed_si
     ""\"
     Each of these parameters is an optional filter.
     Note that parameters are passed directly into the `params` argument of `requests.get`.
-    Remember that for the Asana API, 'now' means tasks that are either incomplete or were completed in the last week. 
+    Remember that for the Asana API, 'now' means tasks that are either incomplete or were completed in the last week.
     ""\"
     params = {
         'assignee': assignee_gid,
@@ -77,7 +77,7 @@ def get_tasks(assignee_gid: Union[str, Literal['me'], None] = None, completed_si
 
     # Get tasks from the response.
     tasks = response.json().get('data', [])
-    
+
     return tasks
 
 def delete_task(task_id: str):

@@ -93,10 +93,20 @@ class SubprocessCodeInterpreter(BaseCodeInterpreter):
             bufsize=0,
             universal_newlines=True,
         )
-        threading.Thread(target=self.handle_stream_output, args=(self.process.stdout, False), daemon=True).start()
-        threading.Thread(target=self.handle_stream_output, args=(self.process.stderr, True), daemon=True).start()
+        threading.Thread(
+            target=self.handle_stream_output,
+            args=(self.process.stdout, False),
+            daemon=True,
+        ).start()
+        threading.Thread(
+            target=self.handle_stream_output,
+            args=(self.process.stderr, True),
+            daemon=True,
+        ).start()
 
-    async def run(self, code: str, materials: list[Material]) -> AsyncGenerator[str, None]:
+    async def run(
+        self, code: str, materials: list[Material]
+    ) -> AsyncGenerator[str, None]:
         retry_count = 0
         max_retries = 3
 
@@ -147,7 +157,9 @@ class SubprocessCodeInterpreter(BaseCodeInterpreter):
                 yield output
             except queue.Empty:
                 # AIConsole Fix: Added proces.pool check to fix hanging
-                if self.done.is_set() or (self.process and self.process.poll() is not None):
+                if self.done.is_set() or (
+                    self.process and self.process.poll() is not None
+                ):
                     # Try to yank 3 more times from it... maybe there's something in there...
                     # (I don't know if this actually helps. Maybe we just need to yank 1 more time)
 
@@ -180,7 +192,9 @@ class SubprocessCodeInterpreter(BaseCodeInterpreter):
 
         # replace the first element in the PATH with the venv bin path
         # this is the one we've added to get the correct embedded interpreter when the app is starting
-        _path = os.pathsep.join([str(get_current_project_venv_bin_path())] + path.split(os.pathsep))
+        _path = os.pathsep.join(
+            [str(get_current_project_venv_bin_path())] + path.split(os.pathsep)
+        )
 
         return {
             **os.environ,

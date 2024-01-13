@@ -28,13 +28,17 @@ class ProjectDirectoryParams(BaseModel):
 
 
 @router.post("/choose_directory")
-async def choose_directory(project_directory: ProjectDirectory = Depends(project_directory)):
+async def choose_directory(
+    project_directory: ProjectDirectory = Depends(project_directory),
+):
     initial_directory = await project_directory.choose_directory()
     return {"directory": None if initial_directory is None else str(initial_directory)}
 
 
 @router.get("/is_in_directory")
-async def is_project_in_directory(directory: str, project_directory: ProjectDirectory = Depends(project_directory)):
+async def is_project_in_directory(
+    directory: str, project_directory: ProjectDirectory = Depends(project_directory)
+):
     return {"is_project": project_directory.is_project_in_directory(directory)}
 
 

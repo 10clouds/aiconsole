@@ -34,7 +34,9 @@ class BaseServerMessage(BaseModel):
     def send_to_connection(self, connection: "AICConnection"):
         return connection.send(self)
 
-    def send_to_chat(self, chat_id: str, source_connection_to_ommit: "AICConnection | None" = None):
+    def send_to_chat(
+        self, chat_id: str, source_connection_to_ommit: "AICConnection | None" = None
+    ):
         from aiconsole.api.websockets.connection_manager import send_message_to_chat
 
         return send_message_to_chat(chat_id, self, source_connection_to_ommit)
@@ -100,7 +102,10 @@ class NotifyAboutChatMutationServerMessage(BaseServerMessage):
         # include type of mutation in the dump of "mutation"
         return {
             **super().model_dump(**kwargs),
-            "mutation": {**self.mutation.model_dump(**kwargs), "type": self.mutation.__class__.__name__},
+            "mutation": {
+                **self.mutation.model_dump(**kwargs),
+                "type": self.mutation.__class__.__name__,
+            },
         }
 
 

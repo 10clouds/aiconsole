@@ -18,10 +18,10 @@ Modulate: Are there external effects, rain? Fog?
 
 Midjourney now allows for prompting text within an image. However, like most AI image generators, your results may vary. To prompt for text, use quotation marks in your prompt.
 
-Currently supported: 
+Currently supported:
 --ar, --chaos, --weird, --tile, --stylize, --style raw, vary (subtle), vary (strong), remix, / blend, /describe (just the V5 version)
 
-Currently unsupported: 
+Currently unsupported:
 Pan, zoom, vary (region), /tune, /describe (a new V6 version)
 
 To note: Although we do not currently have features such as inpainting (vary region), the 'vary subtle' and 'vary strong' features are tremendously more coherent in V6. On the right, is:
@@ -30,10 +30,10 @@ And on the left is the result of a 'vary subtle', simply changing 'motorcycle' t
 
 Example prompts:
 Photograph, man in a blue business suit, walking down a busy city street, facing camera --ar 16:9
-Photograph, style by cyberpunk, woman with long white hair and combat armor, city alley, autumn colors, fall day --ar 16:9  
+Photograph, style by cyberpunk, woman with long white hair and combat armor, city alley, autumn colors, fall day --ar 16:9
 Cinematic scene, dramatic film, close up, a young fisherman on a boat and a young woman look longingly at one another, in love, northeast US, rain falling  --ar 2:1 --v 6.0 --stylize 50
-Cinematic still, ultra wide angle, Godzilla rampaging through a modern city, building destruction, people running, kaiju chaos --ar 16:9 
-Movie poster, 80s sci-fi horror, space, Ridley Scott, 'The Inhuman' --ar 2:3  
+Cinematic still, ultra wide angle, Godzilla rampaging through a modern city, building destruction, people running, kaiju chaos --ar 16:9
+Movie poster, 80s sci-fi horror, space, Ridley Scott, 'The Inhuman' --ar 2:3
 A copy of Stephen King’s 'The Gunslinger', sits on a table.
 Beautiful woman, graphic design, 'like and subscribe'::4 --ar 2:1
 A highly detailed 3D render of a double handed sword isolated on a white background as an RPG game asset, unreal engine, ray tracing --ar 2:3
@@ -41,8 +41,8 @@ A highly detailed 3D render of a double handed sword isolated on a white backgro
 As a note: Please experiment with different prompt ideas. Stellar results can occur with both minimal text and long-form descriptions. Prompt formulas are a guide, never a law.
 
 Based on a guide by:
-Theoretically Media 
-Youtube.com/@theoreticallymedia 
+Theoretically Media
+Youtube.com/@theoreticallymedia
 Twitter: @theomediaAI
 https://www.youtube.com/watch?v=LJ36dMlw5C8"
 """

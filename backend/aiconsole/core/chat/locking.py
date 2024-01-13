@@ -37,7 +37,9 @@ async def wait_for_lock(chat_id: str) -> None:
         raise HTTPException(status_code=408, detail="Lock acquisition timed out")
 
 
-async def acquire_lock(chat_id: str, request_id: str, skip_mutating_clients: bool = False):
+async def acquire_lock(
+    chat_id: str, request_id: str, skip_mutating_clients: bool = False
+):
     _log.debug(f"Acquiring lock {chat_id} {request_id}")
     if chat_id not in chats:
         chat_history = await load_chat_history(chat_id)
@@ -53,7 +55,9 @@ async def acquire_lock(chat_id: str, request_id: str, skip_mutating_clients: boo
 
     if not skip_mutating_clients:
         await NotifyAboutChatMutationServerMessage(
-            request_id=request_id, chat_id=chat_id, mutation=LockAcquiredMutation(lock_id=request_id)
+            request_id=request_id,
+            chat_id=chat_id,
+            mutation=LockAcquiredMutation(lock_id=request_id),
         ).send_to_chat(chat_id)
 
     return chats[chat_id]
@@ -67,7 +71,9 @@ async def release_lock(chat_id: str, request_id: str) -> None:
         lock_events[chat_id].set()
 
         await NotifyAboutChatMutationServerMessage(
-            request_id=request_id, chat_id=chat_id, mutation=LockReleasedMutation(lock_id=request_id)
+            request_id=request_id,
+            chat_id=chat_id,
+            mutation=LockReleasedMutation(lock_id=request_id),
         ).send_to_chat(chat_id)
 
 

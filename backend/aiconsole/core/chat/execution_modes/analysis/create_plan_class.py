@@ -24,7 +24,9 @@ from aiconsole.core.project import project
 
 
 def create_plan_class(available_agents):
-    enabled_materials = project.get_project_materials().assets_with_status(AssetStatus.ENABLED)
+    enabled_materials = project.get_project_materials().assets_with_status(
+        AssetStatus.ENABLED
+    )
 
     class Plan(OpenAISchema):
 
@@ -50,7 +52,11 @@ def create_plan_class(available_agents):
 
         agent_id: str = Field(
             description="Chosen agent to perform the next step.",
-            json_schema_extra={"enum": [s.id for s in random.sample(available_agents, len(available_agents))]},
+            json_schema_extra={
+                "enum": [
+                    s.id for s in random.sample(available_agents, len(available_agents))
+                ]
+            },
         )
 
         relevant_material_ids: list[str] = Field(
@@ -58,7 +64,12 @@ def create_plan_class(available_agents):
             description="Chosen material ids relevant for the task",
             json_schema_extra={
                 "items": {
-                    "enum": [k.id for k in random.sample(enabled_materials, len(enabled_materials))],
+                    "enum": [
+                        k.id
+                        for k in random.sample(
+                            enabled_materials, len(enabled_materials)
+                        )
+                    ],
                     "type": "string",
                 }
             },

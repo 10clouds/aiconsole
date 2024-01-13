@@ -18,7 +18,9 @@ class ProjectDirectory:
         else:
             self._root.deiconify()
         self._root.withdraw()
-        initial_dir = get_project_directory() if is_project_initialized() else os.getcwd()
+        initial_dir = (
+            get_project_directory() if is_project_initialized() else os.getcwd()
+        )
         directory = filedialog.askdirectory(initialdir=initial_dir)
 
         # Check if the dialog was cancelled (directory is an empty string)
@@ -28,8 +30,12 @@ class ProjectDirectory:
             return Path(directory)
 
     def is_project_in_directory(self, directory: str) -> bool:
-        directory = Path(directory)
-        return directory.joinpath("materials").is_dir() or directory.joinpath("agents").is_dir()
+        directory_path = Path(directory)
+        is_material_folder_present = (directory_path / "materials").is_dir()
+        is_agents_folder_present = (directory_path / "agents").is_dir()
+        return is_material_folder_present or is_agents_folder_present
 
-    async def switch_or_save_project(self, directory: str, background_tasks: BackgroundTasks) -> bool:
+    async def switch_or_save_project(
+        self, directory: str, background_tasks: BackgroundTasks
+    ) -> None:
         await choose_project(path=Path(directory), background_tasks=background_tasks)

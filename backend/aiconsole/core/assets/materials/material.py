@@ -85,16 +85,29 @@ class Material(Asset):
                 # the object and send it to the other interpreter or use stdin/stdout)
                 content_func = local_vars.get("content")
                 if callable(content_func):
-                    return RenderedMaterial(id=self.id, content=header + await content_func(context), error="")
-                return RenderedMaterial(id=self.id, content="", error="No callable content function found!")
+                    return RenderedMaterial(
+                        id=self.id,
+                        content=header + await content_func(context),
+                        error="",
+                    )
+                return RenderedMaterial(
+                    id=self.id, content="", error="No callable content function found!"
+                )
             elif self.content_type == MaterialContentType.STATIC_TEXT:
-                return RenderedMaterial(id=self.id, content=header + inline_content, error="")
+                return RenderedMaterial(
+                    id=self.id, content=header + inline_content, error=""
+                )
             elif self.content_type == MaterialContentType.API:
                 return RenderedMaterial(
-                    id=self.id, content=header + documentation_from_code(self, inline_content)(context), error=""
+                    id=self.id,
+                    content=header
+                    + documentation_from_code(self, inline_content)(context),
+                    error="",
                 )
         except Exception:
-            return RenderedMaterial(id=self.id, content="", error=traceback.format_exc())
+            return RenderedMaterial(
+                id=self.id, content="", error=traceback.format_exc()
+            )
 
         raise ValueError("Material has no content")
 

@@ -162,7 +162,10 @@ class GPTPartialResponse(BaseModel):
                             chunk_tool_function = tool_call.function
 
                             if chunk_tool_function:
-                                while len(message.tool_calls) < chunk_tool_index + 1 and tool_call.id:
+                                while (
+                                    len(message.tool_calls) < chunk_tool_index + 1
+                                    and tool_call.id
+                                ):
                                     message.tool_calls.append(
                                         GPTPartialToolsCall(
                                             id=tool_call.id,
@@ -170,13 +173,19 @@ class GPTPartialResponse(BaseModel):
                                     )
 
                                 if tool_call.type:
-                                    message.tool_calls[chunk_tool_index].type = tool_call.type
+                                    message.tool_calls[
+                                        chunk_tool_index
+                                    ].type = tool_call.type
 
                                 if chunk_tool_function:
                                     if chunk_tool_function.name is not None:
-                                        message.tool_calls[chunk_tool_index].function.name = chunk_tool_function.name
+                                        message.tool_calls[
+                                            chunk_tool_index
+                                        ].function.name = chunk_tool_function.name
 
                                     if chunk_tool_function.arguments is not None:
-                                        message.tool_calls[chunk_tool_index].function.arguments_builder.append(
+                                        message.tool_calls[
+                                            chunk_tool_index
+                                        ].function.arguments_builder.append(
                                             chunk_tool_function.arguments
                                         )

@@ -33,4 +33,6 @@ class ExecutionMode(BaseModel):
 
 
 def accept_code_not_supported(context: AcceptCodeContext):
-    raise NotImplementedError(f"running code is not supported by {context.agent.name} ({context.agent.id}) agent")
+    raise NotImplementedError(
+        f"running code is not supported by {context.agent.name} ({context.agent.id}) agent"
+    )

@@ -69,11 +69,18 @@ async def render_materials_from_message_group(
     ]
 
     content_context = ContentEvaluationContext(
-        chat=context.chat_mutator.chat, agent=agent, gpt_mode=agent.gpt_mode, relevant_materials=relevant_materials
+        chat=context.chat_mutator.chat,
+        agent=agent,
+        gpt_mode=agent.gpt_mode,
+        relevant_materials=relevant_materials,
     )
 
     rendered_materials = await asyncio.gather(
-        *[material.render(content_context) for material in relevant_materials if material.type == "rendered_material"]
+        *[
+            material.render(content_context)
+            for material in relevant_materials
+            if material.type == "rendered_material"
+        ]
     )
 
     return rendered_materials
@@ -95,7 +102,8 @@ async def execution_mode_process(
         )
 
         rendered_materials = [
-            await material.render(content_context) for material in content_context.relevant_materials
+            await material.render(content_context)
+            for material in content_context.relevant_materials
         ]
 
         context = ProcessChatContext(

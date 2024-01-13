@@ -13,18 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import json
 import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from aiconsole.api.websockets import connection_manager
 from aiconsole.api.websockets.handle_incoming_message import handle_incoming_message
-from aiconsole.api.websockets.server_messages import (
-    DebugJSONServerMessage,
-    ErrorServerMessage,
-)
+from aiconsole.api.websockets.server_messages import ErrorServerMessage
 from aiconsole.core.chat.locking import chats
 from aiconsole.core.project import project
 

@@ -44,22 +44,25 @@ class GPTExecutor:
             choices=[
                 GPTChoice(
                     index=0,
-                    message=GPTResponseMessage(role="assistant", content="Hello, how can I help you?"),
+                    message=GPTResponseMessage(
+                        role="assistant", content="Hello, how can I help you?"
+                    ),
                     finnish_reason="",
                 )
             ]
         )
         self.partial_response = GPTPartialResponse()
 
-    async def execute(self, request: GPTRequest) -> AsyncGenerator[litellm.ModelResponse | CLEAR_STR_TYPE, None]:
+    async def execute(
+        self, request: GPTRequest
+    ) -> AsyncGenerator[litellm.ModelResponse | CLEAR_STR_TYPE, None]:
         request.validate_request()
 
         request_dict = {
-            "max_tokens": request.max_tokens,
             "messages": request.get_messages_dump(),
-            "model": request.model,
             "temperature": request.temperature,
             "presence_penalty": request.presence_penalty,
+            **request.llm_settings,
         }
 
         if request.tool_choice:
@@ -80,16 +83,18 @@ class GPTExecutor:
 
                 self.partial_response = GPTPartialResponse()
 
-                async for chunk in response:
+                for chunk in response:
                     self.partial_response.apply_chunk(chunk)
-                    yield chunk
-                    await asyncio.sleep(0)
 
                 self.response = self.partial_response.to_final_response()
 
                 if _log.isEnabledFor(logging.DEBUG):
                     await DebugJSONServerMessage(
-                        message="GPT", object={"request": self.request, "response": self.response.model_dump()}
+                        message="GPT",
+                        object={
+                            "request": self.request,
+                            "response": self.response.model_dump(),
+                        },
                     ).send_to_all()
 
                 return

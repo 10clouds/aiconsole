@@ -63,7 +63,9 @@ class AICMessageGroup(BaseModel):
         role = self.role
         if role == "user":
             if settings().settings_data.user_profile:
-                self.username = self.username or settings().settings_data.user_profile.username
+                self.username = (
+                    self.username or settings().settings_data.user_profile.username
+                )
         return self
 
     @model_validator(mode="after")
@@ -113,7 +115,9 @@ class Chat(ChatHeadline):
         for message_group in self.message_groups:
             for message in message_group.messages:
                 if message.id == message_id:
-                    return AICMessageLocation(message_group=message_group, message=message)
+                    return AICMessageLocation(
+                        message_group=message_group, message=message
+                    )
         return None
 
     def get_tool_call_location(self, tool_call_id: str) -> AICToolCallLocation | None:
@@ -121,7 +125,11 @@ class Chat(ChatHeadline):
             for message in message_group.messages:
                 for tool_call in message.tool_calls:
                     if tool_call.id == tool_call_id:
-                        return AICToolCallLocation(message_group=message_group, message=message, tool_call=tool_call)
+                        return AICToolCallLocation(
+                            message_group=message_group,
+                            message=message,
+                            tool_call=tool_call,
+                        )
         return None
 
 

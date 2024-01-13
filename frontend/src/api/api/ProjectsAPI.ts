@@ -27,7 +27,7 @@ const chooseProject = (path?: string) =>
     timeout: false, // infinite timeout
   });
 
-const isProjectDirectory = async (path: string) => 
+const isProjectDirectory = async (path: string) =>
   (await ky
     .get(`${getBaseURL()}/api/projects/is_in_directory`, {
       searchParams:  { directory: path},

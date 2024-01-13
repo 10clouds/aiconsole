@@ -10,9 +10,13 @@ def project_directory() -> ProjectDirectory:
 
 
 @pytest.mark.asyncio
-async def test_should_project_be_in_directory_when_added(project_directory: ProjectDirectory):
+async def test_should_project_be_in_directory_when_added(
+    project_directory: ProjectDirectory,
+):
     initial_directory = "./"
 
-    await project_directory.switch_or_save_project(directory=initial_directory, background_tasks=BackgroundTasks())
+    await project_directory.switch_or_save_project(
+        directory=initial_directory, background_tasks=BackgroundTasks()
+    )
 
     assert project_directory.is_project_in_directory(initial_directory)

@@ -26,7 +26,9 @@ from aiconsole.utils.resource_to_path import resource_to_path
 _log = logging.getLogger(__name__)
 
 
-def get_project_assets_directory(asset_type: AssetType, project_path: Path | None = None):
+def get_project_assets_directory(
+    asset_type: AssetType, project_path: Path | None = None
+):
     if not is_project_initialized() and not project_path:
         raise ValueError("Project settings are not initialized")
 

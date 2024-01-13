@@ -38,7 +38,9 @@ def read_command_history() -> list[str]:
                 return json.load(f)
         return []
     except IOError as error:
-        _log.exception(f"Failed to read the command history file: {file_path}", exc_info=error)
+        _log.exception(
+            f"Failed to read the command history file: {file_path}", exc_info=error
+        )
         raise HTTPException(status_code=500, detail=str(error))
 
 
@@ -48,7 +50,9 @@ def write_command_history(commands: list[str]):
         with open(file_path, "w") as f:
             json.dump(commands, f)
     except IOError as error:
-        _log.exception(f"Failed to write the command history file: {file_path}", exc_info=error)
+        _log.exception(
+            f"Failed to write the command history file: {file_path}", exc_info=error
+        )
         raise HTTPException(status_code=500, detail=str(error))
 
 

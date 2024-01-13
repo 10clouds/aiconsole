@@ -98,7 +98,9 @@ async def execution_mode_process(
             get_code_interpreter("python").terminate()
             raise
         except Exception:
-            await ErrorServerMessage(error=traceback.format_exc().strip()).send_to_chat(context.chat_mutator.chat.id)
+            await ErrorServerMessage(error=traceback.format_exc().strip()).send_to_chat(
+                context.chat_mutator.chat.id
+            )
             await context.chat_mutator.mutate(
                 AppendToOutputToolCallMutation(
                     tool_call_id=tool_call_id,
@@ -106,7 +108,9 @@ async def execution_mode_process(
                 )
             )
     except Exception as e:
-        await ErrorServerMessage(error=str(e)).send_to_chat(context.chat_mutator.chat.id)
+        await ErrorServerMessage(error=str(e)).send_to_chat(
+            context.chat_mutator.chat.id
+        )
         raise e
 
 

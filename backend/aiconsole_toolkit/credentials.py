@@ -69,7 +69,9 @@ def load_credentials(module: str, credentials: list[str]) -> dict[str, str]:
         except KeyError:
             pass
 
-    missing_credentials = [credential for credential in credentials if credential not in result]
+    missing_credentials = [
+        credential for credential in credentials if credential not in result
+    ]
 
     if missing_credentials:
         raise MissingCredentialException(

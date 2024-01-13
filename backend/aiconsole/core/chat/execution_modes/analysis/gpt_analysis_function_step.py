@@ -39,7 +39,7 @@ from aiconsole.core.chat.execution_modes.analysis.create_plan_class import (
     create_plan_class,
 )
 from aiconsole.core.chat.types import Chat
-from aiconsole.core.gpt.consts import GPTMode
+from aiconsole.core.gpt.consts import QUALITY_GPT_MODE, GPTMode
 from aiconsole.core.gpt.gpt_executor import GPTExecutor
 from aiconsole.core.gpt.request import (
     GPTRequest,
@@ -58,7 +58,9 @@ _log = logging.getLogger(__name__)
 
 def pick_agent(arguments, chat: Chat, available_agents: list[Agent]) -> Agent:
     # Try support first
-    default_agent = next((agent for agent in available_agents if agent.id == "assistant"), None)
+    default_agent = next(
+        (agent for agent in available_agents if agent.id == "assistant"), None
+    )
 
     # Pick any if not available
     if not default_agent:
@@ -74,7 +76,7 @@ def pick_agent(arguments, chat: Chat, available_agents: list[Agent]) -> Agent:
             usage_examples=[],
             system="",
             defined_in=AssetLocation.AICONSOLE_CORE,
-            gpt_mode=GPTMode.QUALITY,
+            gpt_mode=QUALITY_GPT_MODE,
             override=False,
         )
     else:
@@ -103,7 +105,10 @@ def _get_relevant_materials(relevant_material_ids: list[str]) -> list[Material]:
         if k.id in relevant_material_ids
     ][:5]
 
-    relevant_materials += cast(list[Material], project.get_project_materials().assets_with_status(AssetStatus.FORCED))
+    relevant_materials += cast(
+        list[Material],
+        project.get_project_materials().assets_with_status(AssetStatus.FORCED),
+    )
 
     return relevant_materials
 
@@ -167,7 +172,12 @@ async def gpt_analysis_function_step(
             *convert_messages(chat_mutator.chat),
             GPTRequestTextMessage(role="system", content=last_system_prompt),
         ],
-        tools=[ToolDefinition(type="function", function=ToolFunctionDefinition(**plan_class.openai_schema))],
+        tools=[
+            ToolDefinition(
+                type="function",
+                function=ToolFunctionDefinition(**plan_class.openai_schema),
+            )
+        ],
         presence_penalty=2,
         min_tokens=DIRECTOR_MIN_TOKENS,
         preferred_tokens=DIRECTOR_PREFERRED_TOKENS,
@@ -175,7 +185,8 @@ async def gpt_analysis_function_step(
 
     if force_call:
         request.tool_choice = EnforcedFunctionCall(
-            type="function", function=EnforcedFunctionCallFuncSpec(name=plan_class.__name__)
+            type="function",
+            function=EnforcedFunctionCallFuncSpec(name=plan_class.__name__),
         )
 
     await chat_mutator.mutate(
@@ -212,7 +223,9 @@ async def gpt_analysis_function_step(
                             await chat_mutator.mutate(
                                 SetMaterialsIdsMessageGroupMutation(
                                     message_group_id=message_group_id,
-                                    materials_ids=arguments_dict["relevant_material_ids"],
+                                    materials_ids=arguments_dict[
+                                        "relevant_material_ids"
+                                    ],
                                 )
                             )
 
@@ -260,7 +273,9 @@ async def gpt_analysis_function_step(
         arguments_dict = result.tool_calls[0].function.arguments_dict
 
         if arguments_dict is None:
-            raise ValueError(f"Could not parse arguments from the text: {result.tool_calls[0].function.arguments}")
+            raise ValueError(
+                f"Could not parse arguments from the text: {result.tool_calls[0].function.arguments}"
+            )
 
         plan = plan_class(**arguments_dict)
 

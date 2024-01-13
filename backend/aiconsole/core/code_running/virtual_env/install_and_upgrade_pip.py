@@ -17,12 +17,16 @@ def install_and_update_pip(venv_path):
 
     def run_subprocess(*args):
         process = subprocess.Popen(
-            [str(pip_path), "install", "--upgrade", "pip"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            [str(pip_path), "install", "--upgrade", "pip"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
         stdout, stderr = process.communicate()
 
         if process.returncode != 0:
-            _log.error(f"Command {' '.join(args)} failed with error: {stderr.decode().strip()}")
+            _log.error(
+                f"Command {' '.join(args)} failed with error: {stderr.decode().strip()}"
+            )
             raise RuntimeError(stderr.decode().strip())
 
         return stdout.decode().strip()

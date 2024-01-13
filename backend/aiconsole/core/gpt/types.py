@@ -14,11 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel
 from typing_extensions import TypedDict
 
+from aiconsole.core.gpt.consts import GPTEncoding
 from aiconsole.core.gpt.parse_partial_json import parse_partial_json
 
 CLEAR_STR = "<<<< CLEAR >>>>"
@@ -95,3 +96,13 @@ class GPTResponse(BaseModel):
     created: int = 0
     model: str = ""
     choices: list[GPTChoice]
+
+
+class GPTModeConfig(BaseModel):
+    name: str
+    max_tokens: int = 10000
+    encoding: GPTEncoding = GPTEncoding.GPT_4
+    model: str | None = None
+    api_key: str | None = None
+    api_base: str | None = None
+    extra: dict[str, Any] = {}

@@ -8,7 +8,11 @@ from aiconsole.consts import AICONSOLE_USER_CONFIG_DIR
 from aiconsole.core.clients.gravatar import GravatarUserProfile, gravatar_client
 from aiconsole.core.settings.models import PartialSettingsData
 from aiconsole.core.settings.project_settings import settings
-from aiconsole.core.users.models import DEFAULT_USERNAME, UserProfile, PartialUserProfile
+from aiconsole.core.users.models import (
+    DEFAULT_USERNAME,
+    PartialUserProfile,
+    UserProfile,
+)
 from aiconsole.utils.resource_to_path import resource_to_path
 
 DEFAULT_AVATARS_PATH = "aiconsole.preinstalled.avatars"
@@ -32,11 +36,18 @@ class UserProfileService:
         return UserProfile(
             username=email or DEFAULT_USERNAME,
             email=email,
-            avatar_url=self._get_default_avatar(email) if email else self._get_default_avatar(),
+            avatar_url=self._get_default_avatar(email)
+            if email
+            else self._get_default_avatar(),
             gravatar=False,
         )
 
-    def save_avatar(self, file: BinaryIO, file_name: str | None = None, content_type: str | None = None) -> None:
+    def save_avatar(
+        self,
+        file: BinaryIO,
+        file_name: str | None = None,
+        content_type: str | None = None,
+    ) -> None:
         extension = guess_extension(content_type) if content_type else None
         if not file_name:
             if not extension:
@@ -70,11 +81,16 @@ class UserProfileService:
     def _get_default_avatar(self, email: str | None = None) -> str:
         key = email or settings().settings_data.openai_api_key or "some_key"
         img_filename = self._deterministic_choice(
-            blob=key, choices=list(resource_to_path(resource=DEFAULT_AVATARS_PATH).glob(pattern="*"))
+            blob=key,
+            choices=list(
+                resource_to_path(resource=DEFAULT_AVATARS_PATH).glob(pattern="*")
+            ),
         ).name
         return f"profile_image?img_filename={img_filename}"
 
-    def _create_user_profile_from_gravatar(self, email: str, gravatar_profile: GravatarUserProfile) -> UserProfile:
+    def _create_user_profile_from_gravatar(
+        self, email: str, gravatar_profile: GravatarUserProfile
+    ) -> UserProfile:
         return UserProfile(
             username=gravatar_profile.preferredUsername,
             email=email,

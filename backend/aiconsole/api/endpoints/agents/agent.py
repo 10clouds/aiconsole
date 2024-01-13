@@ -25,7 +25,7 @@ from aiconsole.api.utils.asset_status_change import asset_status_change
 from aiconsole.api.utils.status_change_post_body import StatusChangePostBody
 from aiconsole.core.assets.agents.agent import Agent, AgentWithStatus
 from aiconsole.core.assets.models import AssetLocation, AssetStatus, AssetType
-from aiconsole.core.gpt.consts import GPTMode
+from aiconsole.core.gpt.consts import QUALITY_GPT_MODE
 from aiconsole.core.project import project
 from aiconsole.core.project.paths import (
     get_core_assets_directory,
@@ -49,7 +49,7 @@ async def get_agent(request: Request, agent_id: str):
             usage_examples=[],
             status=AssetStatus.ENABLED,
             defined_in=AssetLocation.PROJECT_DIR,
-            gpt_mode=GPTMode.QUALITY,
+            gpt_mode=QUALITY_GPT_MODE,
             system="",
             override=False,
         ),
@@ -57,19 +57,29 @@ async def get_agent(request: Request, agent_id: str):
 
 
 @router.patch("/{agent_id}")
-async def partially_update_agent(agent_id: str, agent: Agent, agents_service: Agents = Depends(agents)):
+async def partially_update_agent(
+    agent_id: str, agent: Agent, agents_service: Agents = Depends(agents)
+):
     try:
         await agents_service.partially_update_agent(agent_id=agent_id, agent=agent)
     except AssetWithGivenNameAlreadyExistError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Agent with given name already exists")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Agent with given name already exists",
+        )
 
 
 @router.post("/{agent_id}")
-async def create_agent(agent_id: str, agent: Agent, agents_service: Agents = Depends(agents)):
+async def create_agent(
+    agent_id: str, agent: Agent, agents_service: Agents = Depends(agents)
+):
     try:
         await agents_service.create_agent(agent_id=agent_id, agent=agent)
     except AssetWithGivenNameAlreadyExistError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Agent with given name already exists")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Agent with given name already exists",
+        )
 
 
 @router.post("/{agent_id}/status-change")

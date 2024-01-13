@@ -30,14 +30,16 @@ router = APIRouter()
 
 @router.get("/profile", response_model=UserProfile)
 def profile(
-    email: Optional[str] = None, user_profile_service: UserProfileService = Depends(user_profile_service)
+    email: Optional[str] = None,
+    user_profile_service: UserProfileService = Depends(user_profile_service),
 ) -> UserProfile:
     return user_profile_service.get_profile(email=email)
 
 
 @router.get("/profile_image")
 def get_profile_image(
-    img_filename: str, user_profile_service: UserProfileService = Depends(user_profile_service)
+    img_filename: str,
+    user_profile_service: UserProfileService = Depends(user_profile_service),
 ) -> FileResponse:
     file_path = user_profile_service.get_profile_image_path(img_filename)
     if not file_path.exists():
@@ -54,6 +56,10 @@ def set_profile_image(
     user_profile_service: UserProfileService = Depends(user_profile_service),
 ):
     try:
-        user_profile_service.save_avatar(file=avatar.file, file_name=avatar.filename, content_type=avatar.content_type)
+        user_profile_service.save_avatar(
+            file=avatar.file,
+            file_name=avatar.filename,
+            content_type=avatar.content_type,
+        )
     except MissingFileName:
         return HTTPException(status_code=400, detail="Missing a file name.")
