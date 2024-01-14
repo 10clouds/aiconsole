@@ -15,9 +15,12 @@
 # limitations under the License.
 
 import asyncio
+import logging
 import threading
 
 import watchdog.events
+
+_log = logging.getLogger(__name__)
 
 
 class BatchingWatchDogHandler(watchdog.events.FileSystemEventHandler):

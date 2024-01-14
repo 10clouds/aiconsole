@@ -14,28 +14,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 
-from openai import AuthenticationError, OpenAI
+import openai
+from openai import OpenAI
 
-from aiconsole.core.gpt.consts import MODEL_DATA
+_log = logging.getLogger(__name__)
+
+from aiconsole.core.gpt.consts import (
+    GPT_MODE_COST_MODEL,
+    GPT_MODE_QUALITY_MODEL,
+    GPT_MODE_SPEED_MODEL,
+)
+
+MODELS_TO_CHECK_WHILE_VERIFYING_KEY = [
+    GPT_MODE_COST_MODEL,
+    GPT_MODE_QUALITY_MODEL,
+    GPT_MODE_SPEED_MODEL,
+]
 
 cached_good_keys = set()
 
 
 # Verify the OpenAI key has access to the required models
-async def check_key(key: str) -> bool:
+def check_key(key: str) -> bool:
     if key in cached_good_keys:
         return True
 
     client = OpenAI(api_key=key)
-    try:
-        models = client.models.list().data
-    except AuthenticationError:
-        return False
+    models = client.models.list()
     available_models = [model.id for model in models]
-    needed_models = MODEL_DATA.keys()
 
-    good = set(needed_models).issubset(set(available_models))
+    good = set(MODELS_TO_CHECK_WHILE_VERIFYING_KEY).issubset(set(available_models))
 
     if good:
         cached_good_keys.add(key)

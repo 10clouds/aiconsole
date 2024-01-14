@@ -72,7 +72,10 @@ async def render_materials_from_message_group(
     ]
 
     content_context = ContentEvaluationContext(
-        chat=context.chat_mutator.chat, agent=agent, gpt_mode=agent.gpt_mode, relevant_materials=relevant_materials
+        chat=context.chat_mutator.chat,
+        agent=agent,
+        gpt_mode=agent.gpt_mode,
+        relevant_materials=relevant_materials,
     )
 
     rendered_materials = await asyncio.gather(

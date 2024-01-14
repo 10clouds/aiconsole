@@ -1,7 +1,7 @@
 /*
 
 The AIConsole Project
- 
+
 Copyright 2023 10Clouds
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -161,6 +161,10 @@ body {
 
 .guide-gradient {
   background: linear-gradient(122deg, #221c2c 16.45%, #111 67.82%);
+}
+
+.analysis-gradient {
+  background: linear-gradient(0deg, #3A2E58, #3A2E58), linear-gradient(180deg, #271E3C 0%, #1D162C 100%);
 }
 
 /* Radix Collapsible */

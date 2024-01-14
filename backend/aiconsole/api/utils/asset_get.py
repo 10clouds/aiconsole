@@ -3,9 +3,9 @@ from typing import Callable
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 
-from aiconsole.core.assets.asset import Asset, AssetLocation, AssetType
+from aiconsole.core.assets.models import Asset, AssetLocation, AssetType
 from aiconsole.core.project import project
-from aiconsole.core.settings.project_settings import get_aiconsole_settings
+from aiconsole.core.settings.project_settings import Settings
 from aiconsole.utils.capitalize_first import capitalize_first
 
 
@@ -19,8 +19,6 @@ async def asset_get(request, asset_type: AssetType, asset_id: str, new_asset: Ca
         asset.override = False
         return JSONResponse(asset.model_dump())
     else:
-        settings = get_aiconsole_settings()
-
         if asset_type == AssetType.AGENT:
             assets = project.get_project_agents()
         elif asset_type == AssetType.MATERIAL:
@@ -38,6 +36,6 @@ async def asset_get(request, asset_type: AssetType, asset_id: str, new_asset: Ca
         return JSONResponse(
             {
                 **agent.model_dump(),
-                "status": settings.get_asset_status(asset_type, agent.id),
+                "status": assets.get_status(asset_type, agent.id),
             }
         )

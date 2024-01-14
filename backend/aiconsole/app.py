@@ -16,7 +16,7 @@
 
 import os
 from contextlib import asynccontextmanager
-from logging import config
+from logging import config, getLogger
 
 import sentry_sdk
 from fastapi import FastAPI
@@ -25,7 +25,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from aiconsole.api.routers import app_router
 from aiconsole.consts import log_config
 from aiconsole.core.project import project
-from aiconsole.core.settings import project_settings
+from aiconsole.core.settings.project_settings import settings
+from aiconsole.core.settings.storage import settings_file_storage
 
 if "BE_SENTRY_DSN" in os.environ:
     sentry_sdk.init(
@@ -33,16 +34,17 @@ if "BE_SENTRY_DSN" in os.environ:
         enable_tracing=True,
     )
 
+config.dictConfig(log_config)
+logger = getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await project_settings.init()
+    settings_file_storage().configure()
+    settings().configure(storage=settings_file_storage())
     if project.is_project_initialized():
         await project.reinitialize_project()
     yield
-
-
-config.dictConfig(log_config)
 
 
 def app():

@@ -32,12 +32,12 @@ from aiconsole.api.websockets.client_messages import (
 from aiconsole.api.websockets.connection_manager import AcquiredLock, AICConnection
 from aiconsole.api.websockets.server_messages import ChatOpenedServerMessage
 from aiconsole.core.assets.agents.agent import Agent
-from aiconsole.core.assets.asset import AssetLocation
 from aiconsole.core.assets.materials.content_evaluation_context import (
     ContentEvaluationContext,
 )
 from aiconsole.core.assets.materials.material import Material
 from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
+from aiconsole.core.assets.models import AssetLocation
 from aiconsole.core.chat.execution_modes.execution_mode import (
     AcceptCodeContext,
     ProcessChatContext,
@@ -47,7 +47,7 @@ from aiconsole.core.chat.execution_modes.import_and_validate_execution_mode impo
 )
 from aiconsole.core.chat.locking import DefaultChatMutator, acquire_lock, release_lock
 from aiconsole.core.chat.types import AICMessageGroup, Chat
-from aiconsole.core.gpt.consts import GPTMode
+from aiconsole.core.gpt.consts import QUALITY_GPT_MODE
 from aiconsole.core.project import project
 
 _log = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ _log = logging.getLogger(__name__)
 director_agent = Agent(
     id="director",
     name="Director",
-    gpt_mode=GPTMode.QUALITY,
+    gpt_mode=QUALITY_GPT_MODE,
     execution_mode="aiconsole.core.chat.execution_modes.director:execution_mode",
     usage="",
     usage_examples=[],
@@ -216,7 +216,10 @@ async def _render_materials_from_message_group(
     ]
 
     content_context = ContentEvaluationContext(
-        chat=chat, agent=agent, gpt_mode=agent.gpt_mode, relevant_materials=relevant_materials
+        chat=chat,
+        agent=agent,
+        gpt_mode=agent.gpt_mode,
+        relevant_materials=relevant_materials,
     )
 
     rendered_materials = await asyncio.gather(

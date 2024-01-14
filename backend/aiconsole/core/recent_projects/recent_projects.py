@@ -17,9 +17,7 @@
 import os
 from pathlib import Path
 
-from appdirs import user_config_dir
-
-from aiconsole.consts import MAX_RECENT_PROJECTS
+from aiconsole.consts import AICONSOLE_USER_CONFIG_DIR, MAX_RECENT_PROJECTS
 from aiconsole.core.chat.list_possible_historic_chat_ids import (
     list_possible_historic_chat_ids,
 )
@@ -28,7 +26,7 @@ from aiconsole.core.recent_projects.recent_project import RecentProject
 
 
 def _get_user_recent_projects_file():
-    return Path(user_config_dir("aiconsole")) / "recent"
+    return AICONSOLE_USER_CONFIG_DIR() / "recent"
 
 
 def _read_recent_projects():

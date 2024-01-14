@@ -17,11 +17,11 @@ import traceback
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from aiconsole.core.assets.asset import Asset, AssetLocation, AssetStatus, AssetType
 from aiconsole.core.assets.materials.documentation_from_code import (
     documentation_from_code,
 )
 from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
+from aiconsole.core.assets.models import Asset, AssetLocation, AssetStatus, AssetType
 
 if TYPE_CHECKING:
     from aiconsole.core.assets.materials.content_evaluation_context import (
@@ -85,13 +85,19 @@ class Material(Asset):
                 # the object and send it to the other interpreter or use stdin/stdout)
                 content_func = local_vars.get("content")
                 if callable(content_func):
-                    return RenderedMaterial(id=self.id, content=header + await content_func(context), error="")
+                    return RenderedMaterial(
+                        id=self.id,
+                        content=header + await content_func(context),
+                        error="",
+                    )
                 return RenderedMaterial(id=self.id, content="", error="No callable content function found!")
             elif self.content_type == MaterialContentType.STATIC_TEXT:
                 return RenderedMaterial(id=self.id, content=header + inline_content, error="")
             elif self.content_type == MaterialContentType.API:
                 return RenderedMaterial(
-                    id=self.id, content=header + documentation_from_code(self, inline_content)(context), error=""
+                    id=self.id,
+                    content=header + documentation_from_code(self, inline_content)(context),
+                    error="",
                 )
         except Exception:
             return RenderedMaterial(id=self.id, content="", error=traceback.format_exc())

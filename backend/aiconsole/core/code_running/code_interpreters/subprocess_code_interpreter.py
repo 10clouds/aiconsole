@@ -93,8 +93,16 @@ class SubprocessCodeInterpreter(BaseCodeInterpreter):
             bufsize=0,
             universal_newlines=True,
         )
-        threading.Thread(target=self.handle_stream_output, args=(self.process.stdout, False), daemon=True).start()
-        threading.Thread(target=self.handle_stream_output, args=(self.process.stderr, True), daemon=True).start()
+        threading.Thread(
+            target=self.handle_stream_output,
+            args=(self.process.stdout, False),
+            daemon=True,
+        ).start()
+        threading.Thread(
+            target=self.handle_stream_output,
+            args=(self.process.stderr, True),
+            daemon=True,
+        ).start()
 
     async def run(self, code: str, materials: list[Material]) -> AsyncGenerator[str, None]:
         retry_count = 0

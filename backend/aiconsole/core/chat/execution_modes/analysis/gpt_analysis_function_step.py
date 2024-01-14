@@ -13,8 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import json
 import logging
 from dataclasses import dataclass
 from typing import cast
@@ -22,8 +20,8 @@ from uuid import uuid4
 
 from aiconsole.consts import DIRECTOR_MIN_TOKENS, DIRECTOR_PREFERRED_TOKENS
 from aiconsole.core.assets.agents.agent import Agent
-from aiconsole.core.assets.asset import AssetLocation, AssetStatus
 from aiconsole.core.assets.materials.material import Material
+from aiconsole.core.assets.models import AssetLocation, AssetStatus
 from aiconsole.core.chat.chat_mutations import (
     CreateMessageGroupMutation,
     SetAgentIdMessageGroupMutation,
@@ -41,7 +39,7 @@ from aiconsole.core.chat.execution_modes.analysis.create_plan_class import (
     create_plan_class,
 )
 from aiconsole.core.chat.types import Chat
-from aiconsole.core.gpt.consts import GPTMode
+from aiconsole.core.gpt.consts import QUALITY_GPT_MODE, GPTMode
 from aiconsole.core.gpt.gpt_executor import GPTExecutor
 from aiconsole.core.gpt.request import (
     GPTRequest,
@@ -76,7 +74,7 @@ def pick_agent(arguments, chat: Chat, available_agents: list[Agent]) -> Agent:
             usage_examples=[],
             system="",
             defined_in=AssetLocation.AICONSOLE_CORE,
-            gpt_mode=GPTMode.QUALITY,
+            gpt_mode=QUALITY_GPT_MODE,
             override=False,
         )
     else:
@@ -105,7 +103,10 @@ def _get_relevant_materials(relevant_material_ids: list[str]) -> list[Material]:
         if k.id in relevant_material_ids
     ][:5]
 
-    relevant_materials += cast(list[Material], project.get_project_materials().assets_with_status(AssetStatus.FORCED))
+    relevant_materials += cast(
+        list[Material],
+        project.get_project_materials().assets_with_status(AssetStatus.FORCED),
+    )
 
     return relevant_materials
 
@@ -169,7 +170,12 @@ async def gpt_analysis_function_step(
             *convert_messages(chat_mutator.chat),
             GPTRequestTextMessage(role="system", content=last_system_prompt),
         ],
-        tools=[ToolDefinition(type="function", function=ToolFunctionDefinition(**plan_class.openai_schema))],
+        tools=[
+            ToolDefinition(
+                type="function",
+                function=ToolFunctionDefinition(**plan_class.openai_schema),
+            )
+        ],
         presence_penalty=2,
         min_tokens=DIRECTOR_MIN_TOKENS,
         preferred_tokens=DIRECTOR_PREFERRED_TOKENS,
@@ -177,7 +183,8 @@ async def gpt_analysis_function_step(
 
     if force_call:
         request.tool_choice = EnforcedFunctionCall(
-            type="function", function=EnforcedFunctionCallFuncSpec(name=plan_class.__name__)
+            type="function",
+            function=EnforcedFunctionCallFuncSpec(name=plan_class.__name__),
         )
 
     await chat_mutator.mutate(

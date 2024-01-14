@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import asyncio
 import logging
 from typing import AsyncGenerator
@@ -56,11 +55,10 @@ class GPTExecutor:
         request.validate_request()
 
         request_dict = {
-            "max_tokens": request.max_tokens,
             "messages": request.get_messages_dump(),
-            "model": request.model,
             "temperature": request.temperature,
             "presence_penalty": request.presence_penalty,
+            **request.llm_settings,
         }
 
         if request.tool_choice:

@@ -5,9 +5,9 @@ from fastapi import BackgroundTasks
 
 from aiconsole.api.endpoints.projects.services import ProjectDirectory
 from aiconsole.core.gpt.check_key import cached_good_keys, check_key
-from aiconsole.core.project.project import choose_project
 from aiconsole.core.recent_projects.recent_projects import get_recent_project
-from aiconsole.core.settings import project_settings
+from aiconsole.core.settings.project_settings import settings
+from aiconsole.core.settings.storage import settings_file_storage
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ async def test_should_be_able_to_add_new_project(
     background_tasks: BackgroundTasks, project_directory: ProjectDirectory
 ):
     await _initialize_app()
-    _login("test_key")
+    await _login("test_key")
 
     project_path = Path("./")
 
@@ -38,9 +38,10 @@ async def test_should_be_able_to_add_new_project(
 
 
 async def _initialize_app():
-    await project_settings.init()
+    settings_file_storage().configure(observer=None)
+    settings().configure(storage=settings_file_storage())
 
 
-def _login(openai_api_key: str):
+async def _login(openai_api_key: str):
     cached_good_keys.add(openai_api_key)
     check_key(openai_api_key)

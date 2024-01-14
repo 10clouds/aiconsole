@@ -1,5 +1,5 @@
+import platform
 import subprocess
-import sys
 from pathlib import Path
 
 
@@ -8,14 +8,17 @@ def get_current_project_venv_path():
 
 
 def get_current_project_venv_bin_path():
-    if sys.platform == "win32":
+    if platform.system() == "Windows":
         return get_current_project_venv_path() / "Scripts"
     else:
         return get_current_project_venv_path() / "bin"
 
 
 def get_current_project_venv_python_path():
-    return get_current_project_venv_bin_path() / "python"
+    if platform.system() == "Windows":
+        return get_current_project_venv_bin_path() / "python.exe"
+    else:
+        return get_current_project_venv_bin_path() / "python"
 
 
 def get_current_project_venv_available_packages():

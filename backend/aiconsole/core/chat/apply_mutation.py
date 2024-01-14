@@ -158,7 +158,10 @@ def _handle_AppendToMessageGroupAnalysisMutation(chat, mutation: AppendToAnalysi
 def _handle_CreateMessageMutation(chat, mutation: CreateMessageMutation) -> AICMessage:
     message_group = _get_message_group(chat, mutation.message_group_id)
     message = AICMessage(
-        id=mutation.message_id, content=mutation.content, timestamp=datetime.now().isoformat(), tool_calls=[]
+        id=mutation.message_id,
+        content=mutation.content,
+        timestamp=datetime.now().isoformat(),
+        tool_calls=[],
     )
     message_group.messages.append(message)
     return message

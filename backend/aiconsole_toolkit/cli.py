@@ -24,9 +24,6 @@ async def main():
     # Add any command line arguments you need
     parser.add_argument("--input", help="Who are you?")
 
-    # Parse the command line arguments
-    args = parser.parse_args()
-
     # Call the app function to get the FastAPI app
     fastapi_app = app()
 

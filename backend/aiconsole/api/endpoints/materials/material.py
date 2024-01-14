@@ -28,13 +28,13 @@ from aiconsole.api.utils.asset_exists import asset_exists, asset_path
 from aiconsole.api.utils.asset_get import asset_get
 from aiconsole.api.utils.asset_status_change import asset_status_change
 from aiconsole.api.utils.status_change_post_body import StatusChangePostBody
-from aiconsole.core.assets.asset import AssetLocation, AssetStatus, AssetType
 from aiconsole.core.assets.get_material_content_name import get_material_content_name
 from aiconsole.core.assets.materials.material import (
     Material,
     MaterialContentType,
     MaterialWithStatus,
 )
+from aiconsole.core.assets.models import AssetLocation, AssetStatus, AssetType
 from aiconsole.core.project import project
 
 router = APIRouter()
@@ -58,7 +58,7 @@ Bullets in sub header:
         return """
 
 import random
-    
+
 async def content(context):
     samples = ['sample 1' , 'sample 2', 'sample 3', 'sample 4']
     return f'''

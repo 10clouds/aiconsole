@@ -14,12 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+import logging
 import os
 from pathlib import Path
 
-from aiconsole.core.assets.asset import AssetType
+from aiconsole.core.assets.models import AssetType
 from aiconsole.core.project.project import is_project_initialized
 from aiconsole.utils.resource_to_path import resource_to_path
+
+_log = logging.getLogger(__name__)
 
 
 def get_project_assets_directory(asset_type: AssetType, project_path: Path | None = None):
@@ -49,10 +53,9 @@ def get_project_directory(project_path: Path | None = None):
     if not is_project_initialized() and not project_path:
         raise ValueError("Project settings are not initialized")
 
-    if project_path:
-        return project_path
-
-    return Path(os.getcwd())
+    project_directory = project_path or Path(os.getcwd())
+    _log.debug(f"project_directory -> {project_directory}")
+    return project_directory
 
 
 def get_credentials_directory(project_path: Path | None = None):

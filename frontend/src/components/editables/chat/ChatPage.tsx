@@ -151,6 +151,7 @@ export function ChatPage() {
     }
 
     return () => {
+      EditablesAPI.closeChat(id);
       useChatStore.setState({ chat: undefined });
     };
   }, [copyId, id, editableObjectType, forceRefresh, setChat]);

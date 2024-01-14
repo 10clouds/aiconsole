@@ -18,7 +18,7 @@ import random
 
 from pydantic import Field
 
-from aiconsole.core.assets.asset import AssetStatus
+from aiconsole.core.assets.models import AssetStatus
 from aiconsole.core.gpt.function_calls import OpenAISchema
 from aiconsole.core.project import project
 

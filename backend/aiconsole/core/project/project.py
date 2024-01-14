@@ -21,18 +21,22 @@ from typing import TYPE_CHECKING
 
 from fastapi import BackgroundTasks
 
-from aiconsole.api.websockets.connection_manager import AICConnection, connection_manager
+from aiconsole.api.websockets.connection_manager import (
+    AICConnection,
+    connection_manager,
+)
 from aiconsole.api.websockets.server_messages import (
     InitialProjectStatusServerMessage,
     ProjectClosedServerMessage,
     ProjectLoadingServerMessage,
     ProjectOpenedServerMessage,
 )
-from aiconsole.core.assets.asset import AssetType
+from aiconsole.core.assets.models import AssetType
 from aiconsole.core.code_running.run_code import reset_code_interpreters
 from aiconsole.core.code_running.virtual_env.create_dedicated_venv import (
     create_dedicated_venv,
 )
+from aiconsole.core.settings.project_settings import settings
 
 if TYPE_CHECKING:
     from aiconsole.core.assets import assets
@@ -89,20 +93,17 @@ def is_project_initialized() -> bool:
 
 
 async def close_project():
-    from aiconsole.core.settings.project_settings import reload_settings
-
     await _clear_project()
 
     await connection_manager().broadcast(ProjectClosedServerMessage())
 
-    await reload_settings(initial=True)
+    await settings().reload()
 
 
 async def reinitialize_project():
     from aiconsole.core.assets import assets
     from aiconsole.core.project.paths import get_project_directory, get_project_name
     from aiconsole.core.recent_projects.recent_projects import add_to_recent_projects
-    from aiconsole.core.settings.project_settings import reload_settings
 
     await connection_manager().broadcast(ProjectLoadingServerMessage())
 
@@ -127,7 +128,8 @@ async def reinitialize_project():
 
     await _materials.reload(initial=True)
     await _agents.reload(initial=True)
-    await reload_settings(initial=True)
+    settings().storage.change_project(project_path=project_dir)
+    await settings().reload()
 
 
 async def choose_project(path: Path, background_tasks: BackgroundTasks):

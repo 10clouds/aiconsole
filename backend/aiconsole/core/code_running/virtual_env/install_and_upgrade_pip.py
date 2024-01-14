@@ -1,5 +1,6 @@
 import logging
 import platform
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -15,7 +16,11 @@ def install_and_update_pip(venv_path):
         pip_path = venv_path / "bin" / "pip"
 
     def run_subprocess(*args):
-        process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(
+            [str(pip_path), "install", "--upgrade", "pip"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         stdout, stderr = process.communicate()
 
         if process.returncode != 0:
@@ -30,5 +35,4 @@ def install_and_update_pip(venv_path):
 
     _log.info("Upgrading pip in the virtual environment.")
     run_subprocess(str(pip_path), "install", "--upgrade", "pip")
-
     return True

@@ -15,7 +15,7 @@
 # limitations under the License.
 from pydantic import BaseModel
 
-from aiconsole.core.assets.asset import AssetType
+from aiconsole.core.assets.models import AssetType
 from aiconsole.core.chat.chat_mutations import ChatMutation
 from aiconsole.core.chat.types import Chat
 
@@ -80,7 +80,10 @@ class NotifyAboutChatMutationServerMessage(BaseServerMessage):
         # include type of mutation in the dump of "mutation"
         return {
             **super().model_dump(**kwargs),
-            "mutation": {**self.mutation.model_dump(**kwargs), "type": self.mutation.__class__.__name__},
+            "mutation": {
+                **self.mutation.model_dump(**kwargs),
+                "type": self.mutation.__class__.__name__,
+            },
         }
 
 

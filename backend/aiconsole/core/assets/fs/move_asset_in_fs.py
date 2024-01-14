@@ -15,9 +15,8 @@
 # limitations under the License.
 
 
-from aiconsole.core.assets.asset import AssetType
+from aiconsole.core.assets.models import AssetType
 from aiconsole.core.project.paths import get_project_assets_directory
-from aiconsole.core.settings.project_settings import get_aiconsole_settings
 
 
 async def move_asset_in_fs(asset_type: AssetType, old_id: str, new_id: str) -> None:
@@ -34,4 +33,3 @@ async def move_asset_in_fs(asset_type: AssetType, old_id: str, new_id: str) -> N
 
     # Move (rename) the file
     old_file_path.rename(new_file_path)
-    get_aiconsole_settings().rename_asset(asset_type, old_id, new_id)

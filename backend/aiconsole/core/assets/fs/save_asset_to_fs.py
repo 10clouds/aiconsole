@@ -17,9 +17,9 @@
 import tomlkit
 
 from aiconsole.core.assets.agents.agent import Agent
-from aiconsole.core.assets.asset import Asset
 from aiconsole.core.assets.fs.load_asset_from_fs import load_asset_from_fs
 from aiconsole.core.assets.materials.material import Material, MaterialContentType
+from aiconsole.core.assets.models import Asset
 from aiconsole.core.project.paths import get_project_assets_directory
 
 

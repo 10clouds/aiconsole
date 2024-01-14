@@ -19,9 +19,10 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from aiconsole.core.assets.asset import EditableObject
+from aiconsole.core.assets.models import EditableObject
 from aiconsole.core.code_running.code_interpreters.language import LanguageStr
 from aiconsole.core.gpt.types import GPTRole
+from aiconsole.core.settings.project_settings import settings
 
 
 class AICToolCall(BaseModel):
@@ -59,20 +60,18 @@ class AICMessageGroup(BaseModel):
 
     @model_validator(mode="after")
     def set_default_username(self):
-        from aiconsole.core.settings.project_settings import get_aiconsole_settings
-
         role = self.role
         if role == "user":
-            self.username = self.username or get_aiconsole_settings().get_username()
+            if settings().settings_data.user_profile:
+                self.username = self.username or settings().settings_data.user_profile.username
         return self
 
     @model_validator(mode="after")
     def set_default_email(self):
-        from aiconsole.core.settings.project_settings import get_aiconsole_settings
-
         role = self.role
         if role == "user":
-            self.email = self.email or get_aiconsole_settings().get_email()
+            if settings().settings_data.user_profile:
+                self.email = self.email or settings().settings_data.user_profile.email
         return self
 
 
@@ -122,7 +121,11 @@ class Chat(ChatHeadline):
             for message in message_group.messages:
                 for tool_call in message.tool_calls:
                     if tool_call.id == tool_call_id:
-                        return AICToolCallLocation(message_group=message_group, message=message, tool_call=tool_call)
+                        return AICToolCallLocation(
+                            message_group=message_group,
+                            message=message,
+                            tool_call=tool_call,
+                        )
         return None
 
 

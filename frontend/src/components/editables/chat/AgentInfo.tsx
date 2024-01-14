@@ -34,7 +34,6 @@ function AgentInfoMaterialLink({ materialId }: { materialId: string }) {
         <div
           className="text-[12px] text-center text-gray-400 whitespace-nowrap pb-1 max-w-[120px] px-[10px] truncate"
           title={materialId}
-          
         >
           {materialId}
         </div>
@@ -43,7 +42,15 @@ function AgentInfoMaterialLink({ materialId }: { materialId: string }) {
   );
 }
 
-export function AgentInfo({ agentId, materialsIds, task }: { agentId: string; materialsIds: string[]; task?: string }) {
+export function AgentInfo({
+  agentId,
+  materialsIds,
+  task,
+}: {
+  agentId: string;
+  materialsIds: string[];
+  task?: string;
+}) {
   const agents = useEditablesStore((state) => state.agents) || [];
   const agent = agents.find((m) => m.id === agentId);
 
@@ -68,7 +75,7 @@ export function AgentInfo({ agentId, materialsIds, task }: { agentId: string; ma
   const menuItems = agentId !== 'user' ? editableMenuItems : userMenuItems;
 
   return (
-    <div className="flex-none items-center flex flex-col max-w-[120px] ">
+    <>
       <ContextMenu options={menuItems} ref={triggerRef}>
         <Link
           to={agentId != 'user' ? `/agents/${agentId}` : ''}
@@ -92,6 +99,6 @@ export function AgentInfo({ agentId, materialsIds, task }: { agentId: string; ma
       {materialsIds.map((material_id) => (
         <AgentInfoMaterialLink key={material_id} materialId={material_id} />
       ))}
-    </div>
+    </>
   );
 }

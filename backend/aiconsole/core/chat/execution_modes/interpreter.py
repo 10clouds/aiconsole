@@ -61,8 +61,7 @@ from aiconsole.core.gpt.request import (
     ToolFunctionDefinition,
 )
 from aiconsole.core.gpt.types import CLEAR_STR
-from aiconsole.core.project import project
-from aiconsole.core.settings.project_settings import get_aiconsole_settings
+from aiconsole.core.settings.project_settings import settings
 
 _log = logging.getLogger(__name__)
 
@@ -116,7 +115,7 @@ async def _execution_mode_process(
     if last_message.tool_calls:
         # Run all code in the last message
         for tool_call in last_message.tool_calls:
-            if get_aiconsole_settings().get_code_autorun():
+            if settings().settings_data.code_autorun:
                 accept_context = AcceptCodeContext(
                     chat_mutator=context.chat_mutator,
                     tool_call_id=tool_call.id,
@@ -181,7 +180,10 @@ async def _run_code(context: ProcessChatContext, tool_call_id):
 
 
 async def _generate_response(
-    message_group: AICMessageGroup, context: ProcessChatContext, system_message: str, executor: GPTExecutor
+    message_group: AICMessageGroup,
+    context: ProcessChatContext,
+    system_message: str,
+    executor: GPTExecutor,
 ):
     tools_requiring_closing_parenthesis: list[str] = []
 
@@ -203,8 +205,14 @@ async def _generate_response(
                 gpt_mode=context.agent.gpt_mode,
                 messages=[message for message in convert_messages(context.chat_mutator.chat)],
                 tools=[
-                    ToolDefinition(type="function", function=ToolFunctionDefinition(**python.openai_schema)),
-                    ToolDefinition(type="function", function=ToolFunctionDefinition(**applescript.openai_schema)),
+                    ToolDefinition(
+                        type="function",
+                        function=ToolFunctionDefinition(**python.openai_schema),
+                    ),
+                    ToolDefinition(
+                        type="function",
+                        function=ToolFunctionDefinition(**applescript.openai_schema),
+                    ),
                 ],
                 min_tokens=250,
                 preferred_tokens=2000,
@@ -296,7 +304,10 @@ async def _generate_response(
                             )
 
                     if function_call.arguments:
-                        if function_call.name not in [python.__name__, applescript.__name__]:
+                        if function_call.name not in [
+                            python.__name__,
+                            applescript.__name__,
+                        ]:
                             if tool_call_data.language is None:
                                 await send_language_if_needed("python")
 
@@ -338,13 +349,21 @@ async def _generate_response(
                                 if code_delta or headline_delta:
                                     await send_code_delta(code_delta, headline_delta)
                             except json.JSONDecodeError:
-                                # We need to handle incorrect OpenAI responses, sometmes arguments is a string containing the code
-                                if arguments and not arguments.startswith("{"):
+                                if not arguments:
+                                    continue
+
+                                # incorrect OpenAI response, where code is passed like a string, not JSON
+                                if not arguments.startswith("{"):
                                     await send_language_if_needed("python")
 
                                     code_delta = arguments[len(tool_call_data.code) :]
-                                    tool_call_data.code = arguments
+                                    await send_code_delta(code_delta)
+                                # incorrect OpenAI response, where code is passed JSON like string, so each chunk is a part of JSON
+                                elif '"code": ' in arguments:
+                                    await send_language_if_needed("python")
 
+                                    code = arguments.partition('"code": ')[2].replace('"""', "").replace("}", "")
+                                    code_delta = code[len(tool_call_data.code) - 1 :]
                                     await send_code_delta(code_delta)
 
     finally:

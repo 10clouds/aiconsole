@@ -23,7 +23,6 @@ export function MessageComponent({ message, group }: MessageProps) {
   const userMutateChat = useChatStore((state) => state.userMutateChat);
   const saveCommandAndMessagesToHistory = useChatStore((state) => state.saveCommandAndMessagesToHistory);
   const getBaseURL = useAPIStore((state) => state.getBaseURL);
-  const isStreaming = useChatStore((state) => state.chat?.lock_id);
 
   const handleRemoveClick = useCallback(() => {
     userMutateChat({

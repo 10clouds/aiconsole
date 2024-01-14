@@ -109,6 +109,16 @@ async def load_chat_history(id: str, project_path: Path | None = None) -> Chat:
             if "last_modified" in data:
                 del data["last_modified"]
 
-            return Chat(id=id, last_modified=datetime.fromtimestamp(os.path.getmtime(file_path)), **data)
+            return Chat(
+                id=id,
+                last_modified=datetime.fromtimestamp(os.path.getmtime(file_path)),
+                **data,
+            )
     else:
-        return Chat(id=id, name="New Chat", title_edited=False, last_modified=datetime.now(), message_groups=[])
+        return Chat(
+            id=id,
+            name="New Chat",
+            title_edited=False,
+            last_modified=datetime.now(),
+            message_groups=[],
+        )

@@ -17,6 +17,7 @@ from pathlib import Path
 
 # this is a path to the root of the project - usually the installed one
 # this is pointing to the backend/aiconsole directory
+APPLICATION_NAME = "AIConsole"
 AICONSOLE_PATH = Path(__file__).parent
 
 ORIGINS: list[str] = [
@@ -26,21 +27,28 @@ ORIGINS: list[str] = [
     "http://127.0.0.1:3001",
 ]
 
-LOG_FORMAT: str = "{asctime} {name} [{levelname}] {message}"
-LOG_STYLE: str = "{"
-LOG_LEVEL: str = "DEBUG"
-LOG_HANDLERS: list[str] = ["console"]
-
 DIR_WITH_AICONSOLE_PACKAGE = Path(__file__).parent.parent
+
+
+def AICONSOLE_USER_CONFIG_DIR() -> Path:
+    from platformdirs import user_config_dir
+
+    return Path(user_config_dir(APPLICATION_NAME))
+
 
 HISTORY_LIMIT: int = 1000
 COMMANDS_HISTORY_JSON: str = "command_history.json"
-
 
 DIRECTOR_MIN_TOKENS: int = 250
 DIRECTOR_PREFERRED_TOKENS: int = 1000
 
 MAX_RECENT_PROJECTS = 8
+
+
+LOG_FORMAT: str = "{name} {funcName} {message}"
+LOG_STYLE: str = "{"
+LOG_LEVEL: str = "DEBUG"
+LOG_HANDLERS: list[str] = ["consoleHandler"]
 
 log_config = {
     "version": 1,
@@ -53,12 +61,10 @@ log_config = {
         }
     },
     "handlers": {
-        "console": {
+        "consoleHandler": {
             "formatter": "console",
-            "class": "logging.StreamHandler",
-            "stream": "ext://sys.stdout",
+            "class": "rich.logging.RichHandler",
         },
-        "sinkhole": {"class": "logging.NullHandler"},
     },
     "loggers": {
         "aiconsole": {

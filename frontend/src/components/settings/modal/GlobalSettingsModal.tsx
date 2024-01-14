@@ -14,13 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { useEffect, useState } from 'react';
+import { X } from 'lucide-react';
+import { Content, Portal, Root } from '@radix-ui/react-dialog';
+
 import TopGradient from '@/components/common/TopGradient';
 import { useSettingsStore } from '@/store/settings/useSettingsStore';
 import { useApiKey } from '@/utils/settings/useApiKey';
-import { useDisclosure } from '@mantine/hooks';
-import { Content, Portal, Root } from '@radix-ui/react-dialog';
-import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { Button } from '../../common/Button';
 import { Icon } from '../../common/icons/Icon';
 import GlobalSettingsApiSection from './sections/GlobalSettingsApiSection';
@@ -33,8 +33,8 @@ export const GlobalSettingsModal = () => {
   const isSettingsModalVisible = useSettingsStore((state) => state.isSettingsModalVisible);
   const setSettingsModalVisibility = useSettingsStore((state) => state.setSettingsModalVisibility);
 
-  const [usernameFormValue, setUsernameFormValue] = useState(username || '');
-  const [emailFormValue, setEmailFormValue] = useState(email || '');
+  const [usernameFormValue, setUsernameFormValue] = useState(username || undefined);
+  const [emailFormValue, setEmailFormValue] = useState(email || undefined);
   const [apiKeyValue, setApiKeyValue] = useState(openAiApiKey || '');
   const [isAutoRun, setIsAutoRun] = useState(alwaysExecuteCode);
   const [userAvatarData, setUserAvatarData] = useState<File>();
@@ -44,36 +44,15 @@ export const GlobalSettingsModal = () => {
 
   useEffect(() => {
     if (isSettingsModalVisible) {
-      setUsernameFormValue(username || '');
-      setEmailFormValue(email || '');
+      setUsernameFormValue(username || undefined);
+      setEmailFormValue(email || undefined);
+      setApiKeyValue(openAiApiKey || '');
     }
-  }, [isSettingsModalVisible, username, email]);
+  }, [isSettingsModalVisible, username, email, openAiApiKey]);
 
-  useEffect(() => {
-    if (isAutoRun !== alwaysExecuteCode) {
-      setIsAutoRun(alwaysExecuteCode);
-    }
-  }, [alwaysExecuteCode]);
-
-  const handleOpen = () => {
-    if (openAiApiKey) {
-      setApiKeyValue(openAiApiKey);
-    }
+  const handleAutoRunChange = (autorun: boolean) => {
+    setIsAutoRun(autorun);
   };
-
-  const onClose = () => {
-    setSettingsModalVisibility(false);
-  };
-
-  const [opened, { close, open }] = useDisclosure(isSettingsModalVisible, { onClose, onOpen: handleOpen });
-
-  useEffect(() => {
-    if (isSettingsModalVisible) {
-      open();
-    } else {
-      close();
-    }
-  }, [close, isSettingsModalVisible, open]);
 
   const save = async () => {
     if (apiKeyValue !== openAiApiKey) {
@@ -90,23 +69,20 @@ export const GlobalSettingsModal = () => {
 
     saveSettings(
       {
-        username: usernameFormValue !== username ? usernameFormValue : undefined,
-        email: emailFormValue !== email ? emailFormValue : undefined,
+        user_profile:
+          usernameFormValue !== username || emailFormValue !== email
+            ? {
+                username: usernameFormValue !== username ? usernameFormValue : undefined,
+                email: emailFormValue !== email ? emailFormValue : undefined,
+              }
+            : undefined,
         openai_api_key: apiKeyValue !== openAiApiKey ? apiKeyValue : undefined,
         code_autorun: isAutoRun !== alwaysExecuteCode ? isAutoRun : undefined,
       },
       true,
       avatarFormData,
     );
-    resetFormFields();
-    close();
-  };
-
-  const resetFormFields = () => {
-    setUsernameFormValue('');
-    setEmailFormValue('');
-    setApiKeyValue('');
-    setIsAvatarOverwritten(false);
+    setSettingsModalVisibility(false);
   };
 
   const handleSetAvatarImage = (avatar: File) => {
@@ -115,15 +91,13 @@ export const GlobalSettingsModal = () => {
   };
 
   const handleModalClose = () => {
-    resetFormFields();
     setSettingsModalVisibility(false);
-    close();
   };
 
   return (
-    <Root open={opened} onOpenChange={close}>
+    <Root open={isSettingsModalVisible}>
       <Portal>
-        <Content asChild className="fixed">
+        <Content asChild className="fixed" onEscapeKeyDown={handleModalClose}>
           <div className="w-full h-[100vh] z-[99] top-0 left-0 right-0 bg-gray-900">
             <TopGradient />
             <div className="flex justify-between items-center px-[30px] py-[26px] relative z-10">
@@ -144,7 +118,7 @@ export const GlobalSettingsModal = () => {
                 setImage={handleSetAvatarImage}
               />
               <GlobalSettingsApiSection apiKey={apiKeyValue} setApiKey={setApiKeyValue} />
-              <GlobalSettingsCodeSection isAutoRun={isAutoRun} setIsAutoRun={setIsAutoRun} />
+              <GlobalSettingsCodeSection isAutoRun={isAutoRun} setIsAutoRun={handleAutoRunChange} />
               <div className="flex items-center justify-end gap-[10px] py-[40px]">
                 <Button variant="secondary" bold onClick={handleModalClose}>
                   Cancel

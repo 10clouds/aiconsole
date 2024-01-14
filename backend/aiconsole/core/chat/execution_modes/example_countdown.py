@@ -18,8 +18,8 @@ import asyncio
 import traceback
 from datetime import datetime
 from uuid import uuid4
-from aiconsole.api.websockets.connection_manager import connection_manager
 
+from aiconsole.api.websockets.connection_manager import connection_manager
 from aiconsole.api.websockets.server_messages import ErrorServerMessage
 from aiconsole.core.chat.chat_mutations import (
     AppendToContentMessageMutation,

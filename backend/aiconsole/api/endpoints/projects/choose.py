@@ -28,7 +28,9 @@ class ProjectDirectoryParams(BaseModel):
 
 
 @router.post("/choose_directory")
-async def choose_directory(project_directory: ProjectDirectory = Depends(project_directory)):
+async def choose_directory(
+    project_directory: ProjectDirectory = Depends(project_directory),
+):
     initial_directory = await project_directory.choose_directory()
     return {"directory": None if initial_directory is None else str(initial_directory)}
 
