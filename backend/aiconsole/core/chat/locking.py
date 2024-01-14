@@ -46,14 +46,13 @@ async def acquire_lock(chat_id: str, request_id: str, skip_mutating_clients: boo
         chat_history.lock_id = None
         chats[chat_id] = chat_history
 
-    if chats[chat_id].lock_id:
-        raise Exception("Lock already acquired")
-        await wait_for_lock(chat_id)
-
-    chats[chat_id].lock_id = request_id
-    lock_events[chat_id].clear()
-
     if not skip_mutating_clients:
+        if chats[chat_id].lock_id:
+            # raise Exception("Lock already acquired")
+            await wait_for_lock(chat_id)
+
+        chats[chat_id].lock_id = request_id
+        lock_events[chat_id].clear()
         await connection_manager().send_to_chat(
             NotifyAboutChatMutationServerMessage(
                 request_id=request_id, chat_id=chat_id, mutation=LockAcquiredMutation(lock_id=request_id)
@@ -97,7 +96,6 @@ class DefaultChatMutator(ChatMutator):
 
         apply_mutation(self.chat, mutation)
 
-        # TODO: when a server receives a mutation it should send it out to every connection except the one it came from
         await connection_manager().send_to_chat(
             NotifyAboutChatMutationServerMessage(
                 request_id=self.request_id,
@@ -105,5 +103,5 @@ class DefaultChatMutator(ChatMutator):
                 mutation=mutation,
             ),
             self.chat_id,
-            # connection=self.connection,
+            except_connection=self.connection,
         )

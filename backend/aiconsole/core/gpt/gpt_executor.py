@@ -87,7 +87,7 @@ class GPTExecutor:
                 self.response = self.partial_response.to_final_response()
 
                 if _log.isEnabledFor(logging.DEBUG):
-                    await connection_manager().broadcast(
+                    await connection_manager().send_to_all(
                         DebugJSONServerMessage(
                             message="GPT", object={"request": self.request, "response": self.response.model_dump()}
                         )

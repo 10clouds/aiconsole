@@ -47,7 +47,7 @@ class Settings:
     async def _notify(self):
         from aiconsole.api.websockets.server_messages import SettingsServerMessage
 
-        await connection_manager().broadcast(
+        await connection_manager().send_to_all(
             SettingsServerMessage(
                 initial=False
                 or not self._suppress_notification_until

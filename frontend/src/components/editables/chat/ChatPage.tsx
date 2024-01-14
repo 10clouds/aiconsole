@@ -86,7 +86,6 @@ export function ChatPage() {
   const loadingMessages = useChatStore((state) => state.loadingMessages);
   const isAnalysisRunning = useChatStore((state) => state.chat?.is_analysis_in_progress);
   const isExecutionRunning = useChatStore((state) => state.isExecutionRunning());
-  const stopWork = useChatStore((state) => state.stopWork);
   const submitCommand = useChatStore((state) => state.submitCommand);
   const newCommand = useChatStore((state) => state.newCommand);
   const isProjectOpen = useProjectStore((state) => state.isProjectOpen);
@@ -165,10 +164,6 @@ export function ChatPage() {
     if (textAreas.length === 1) {
       textAreas[0].focus();
     }
-
-    return () => {
-      stopWork();
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chat?.id, isProjectOpen]); //Initentional trigger when chat_id changes
 
@@ -230,7 +225,6 @@ export function ChatPage() {
       return {
         label: 'Stop ' + (isAnalysisRunning ? ' analysis' : ' generation'),
         icon: Square,
-        action: stopWork,
       };
     }
   };

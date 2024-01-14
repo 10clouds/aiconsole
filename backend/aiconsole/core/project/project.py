@@ -95,7 +95,7 @@ def is_project_initialized() -> bool:
 async def close_project():
     await _clear_project()
 
-    await connection_manager().broadcast(ProjectClosedServerMessage())
+    await connection_manager().send_to_all(ProjectClosedServerMessage())
 
     await settings().reload()
 
@@ -105,7 +105,7 @@ async def reinitialize_project():
     from aiconsole.core.project.paths import get_project_directory, get_project_name
     from aiconsole.core.recent_projects.recent_projects import add_to_recent_projects
 
-    await connection_manager().broadcast(ProjectLoadingServerMessage())
+    await connection_manager().send_to_all(ProjectLoadingServerMessage())
 
     global _materials
     global _agents
@@ -122,7 +122,7 @@ async def reinitialize_project():
     _agents = assets.Assets(asset_type=AssetType.AGENT)
     _materials = assets.Assets(asset_type=AssetType.MATERIAL)
 
-    await connection_manager().broadcast(
+    await connection_manager().send_to_all(
         ProjectOpenedServerMessage(path=str(get_project_directory()), name=get_project_name())
     )
 

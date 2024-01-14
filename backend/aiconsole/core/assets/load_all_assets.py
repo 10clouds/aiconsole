@@ -36,7 +36,7 @@ async def load_all_assets(asset_type: AssetType) -> dict[str, list[Asset]]:
                     _assets[id] = []
                 _assets[id].append(asset)
             except Exception as e:
-                await connection_manager().broadcast(
+                await connection_manager().send_to_all(
                     ErrorServerMessage(
                         error=f"Invalid {asset_type} {id} {e}",
                     )

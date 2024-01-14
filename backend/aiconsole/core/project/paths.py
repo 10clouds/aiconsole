@@ -54,7 +54,7 @@ def get_project_directory(project_path: Path | None = None):
         raise ValueError("Project settings are not initialized")
 
     project_directory = project_path or Path(os.getcwd())
-    _log.debug(f"project_directory -> {project_directory}")
+    # _log.debug(f"project_directory -> {project_directory}")
     return project_directory
 
 

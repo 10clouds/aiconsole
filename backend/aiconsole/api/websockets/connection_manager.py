@@ -34,12 +34,10 @@ class AcquiredLock:
 
 
 class AICConnection:
-    websocket: WebSocket
-    open_chats_ids: set[str] = set()
-    acquired_locks: list[AcquiredLock] = []
-
     def __init__(self, websocket: WebSocket):
         self.websocket = websocket
+        self.open_chats_ids: set[str] = set()
+        self.acquired_locks: list[AcquiredLock] = []
 
     async def send(self, msg: BaseServerMessage):
         await self.websocket.send_json({"type": msg.get_type(), **msg.model_dump(mode="json")})
@@ -60,12 +58,14 @@ class ConnectionManager:
         self.active_connections.remove(connection)
         _log.info("Disconnected")
 
-    async def send_to_chat(self, message: BaseServerMessage, chat_id: str):
+    async def send_to_chat(
+        self, message: BaseServerMessage, chat_id: str, except_connection: AICConnection | None = None
+    ):
         for connection in self.active_connections:
-            if chat_id in connection.open_chats_ids:
+            if chat_id in connection.open_chats_ids and except_connection != connection:
                 await connection.send(message)
 
-    async def broadcast(self, message: BaseServerMessage):
+    async def send_to_all(self, message: BaseServerMessage):
         for connection in self.active_connections:
             await connection.send(message)
 

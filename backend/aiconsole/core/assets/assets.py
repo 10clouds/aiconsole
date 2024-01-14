@@ -143,7 +143,7 @@ class Assets:
 
         self._assets = await load_all_assets(self.asset_type)
 
-        await connection_manager().broadcast(
+        await connection_manager().send_to_all(
             AssetsUpdatedServerMessage(
                 initial=(
                     initial

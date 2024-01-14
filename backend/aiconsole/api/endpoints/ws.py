@@ -23,7 +23,6 @@ from aiconsole.api.websockets.connection_manager import (
 )
 from aiconsole.api.websockets.handle_incoming_message import handle_incoming_message
 from aiconsole.api.websockets.server_messages import ErrorServerMessage
-from aiconsole.core.chat.locking import chats
 from aiconsole.core.project import project
 
 router = APIRouter()

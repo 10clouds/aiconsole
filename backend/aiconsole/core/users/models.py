@@ -14,7 +14,7 @@ class PartialUserProfile(BaseModel):
 
 class UserProfile(BaseModel):
     username: Optional[str] = None
-    email: Optional[EmailStr] = None
+    email: Optional[EmailStr | str] = None
     avatar_url: Optional[HttpUrl | str] = None
     gravatar: bool = False
 
@@ -22,7 +22,7 @@ class UserProfile(BaseModel):
     def set_default_username(self):
         if self.username is None:
             email = self.email
-            if email:
+            if email and isinstance(email, EmailStr):
                 self.username = email.split("@")[0]
             else:
                 self.username = DEFAULT_USERNAME
