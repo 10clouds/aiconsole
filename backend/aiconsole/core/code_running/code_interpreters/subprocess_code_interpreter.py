@@ -80,6 +80,8 @@ class SubprocessCodeInterpreter(BaseCodeInterpreter):
             raise Exception("Process not started")
 
     def start_process(self):
+        self.wait_for_path()
+
         if self.process:
             self.terminate()
 
@@ -108,7 +110,6 @@ class SubprocessCodeInterpreter(BaseCodeInterpreter):
         retry_count = 0
         max_retries = 3
 
-        # Setup
         try:
             code = self.preprocess_code(code, materials)
             if not self.process:
@@ -196,3 +197,13 @@ class SubprocessCodeInterpreter(BaseCodeInterpreter):
             # just in case for correct questions about the venv locations and similar
             "VIRTUAL_ENV": str(get_current_project_venv_path()),
         }
+
+    def wait_for_path(self):
+        venv_path = get_current_project_venv_path()
+        for i in range(3):
+            if venv_path.exists():
+                _log.info(f"Path {venv_path} exists now.")
+                return
+            _log.info(f"Waiting for path {venv_path} to exist...")
+            time.sleep(3)  # Waits for 5 seconds before checking again
+        raise RuntimeError("No venv located")
