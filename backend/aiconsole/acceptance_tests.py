@@ -6,8 +6,8 @@ from fastapi import BackgroundTasks
 from aiconsole.api.endpoints.projects.services import ProjectDirectory
 from aiconsole.core.gpt.check_key import cached_good_keys, check_key
 from aiconsole.core.recent_projects.recent_projects import get_recent_project
-from aiconsole.core.settings.project_settings import settings
-from aiconsole.core.settings.storage import settings_file_storage
+from aiconsole.core.settings.fs.settings_file_storage import SettingsFileStorage
+from aiconsole.core.settings.settings import settings
 
 
 @pytest.fixture
@@ -38,8 +38,7 @@ async def test_should_be_able_to_add_new_project(
 
 
 async def _initialize_app():
-    settings_file_storage().configure(observer=None)
-    settings().configure(storage=settings_file_storage())
+    settings().configure(storage=SettingsFileStorage(None))
 
 
 async def _login(openai_api_key: str):

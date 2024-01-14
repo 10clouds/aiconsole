@@ -13,37 +13,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import datetime
 import logging
-from functools import lru_cache
-
-from aiconsole.core.settings.base.storage import SettingsStorage
 
 _log = logging.getLogger(__name__)
 
 
-class SettingsNotConfiguredException(Exception):
-    """Missing configuration of the settings. Call .configure() method."""
-
-
-class Settings:
-    def configure(self, storage: SettingsStorage):
-        self.storage = storage
-        self.settings_data = self.storage.load()
+class SettingsNotifications:
+    def __init__(self):
         self._suppress_notification_until: datetime.datetime | None = None
-        _log.debug("Settings were configured")
 
-    async def reload(self):
-        if not self.storage:
-            _log.exception(f"[{self.__class__.__name__}] Reload was called before configuration.")
-            raise SettingsNotConfiguredException
+    def suppress_next_notification(self, seconds: int = 10):
+        self._suppress_notification_until = datetime.datetime.now() + datetime.timedelta(seconds=seconds)
 
-        self.settings_data = self.storage.load()
-
-        await self._notify()
-        _log.debug("Settings were reloaded")
-
-    async def _notify(self):
+    async def notify(self):
         from aiconsole.api.websockets.server_messages import SettingsServerMessage
 
         await SettingsServerMessage(
@@ -53,8 +37,3 @@ class Settings:
         ).send_to_all()
 
         self._suppress_notification_until = None
-
-
-@lru_cache
-def settings() -> Settings:
-    return Settings()

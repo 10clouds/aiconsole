@@ -18,23 +18,29 @@ import logging
 from fastapi import APIRouter, Depends
 from starlette.responses import JSONResponse
 
-from aiconsole.core.settings.models import PartialSettingsData
-from aiconsole.core.settings.project_settings import Settings, settings
+from aiconsole.core.settings.settings import Settings, settings
+from aiconsole_toolkit.settings.partial_settings_data import PartialSettingsData
 
 _log = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
+class PartialSettingsDataWithLocation(PartialSettingsData):
+    to_global: bool = False
+
+
 @router.patch("")
-async def partially_update_project_settings(patch_data: PartialSettingsData, settings: Settings = Depends(settings)):
+async def partially_update_project_settings(
+    patch_data: PartialSettingsDataWithLocation, settings: Settings = Depends(settings)
+):
     try:
-        settings.storage.save(settings_data=patch_data)
+        settings.save(patch_data, to_global=patch_data.to_global)
         return JSONResponse({"status": "ok"})
     except ValueError as value_error:
         return JSONResponse({"error": f"{value_error}"}, status_code=406)
 
 
 @router.get("")
-async def get_project_settings(settings: Settings = Depends(settings)):
-    return JSONResponse(settings.settings_data.model_dump())
+async def get_settings(settings: Settings = Depends(settings)):
+    return JSONResponse(settings.unified_settings.model_dump())

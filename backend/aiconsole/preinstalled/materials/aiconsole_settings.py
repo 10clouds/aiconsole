@@ -10,6 +10,7 @@ Tell user what setting are available if user will want to set something.
 from typing import Any
 
 from aiconsole_toolkit import settings
+from aiconsole_toolkit.settings.settings_data import SettingsData
 
 
 def set_code_autorun(autorun: bool) -> None:
@@ -19,7 +20,7 @@ def set_code_autorun(autorun: bool) -> None:
     settings.set_code_autorun(autorun)
 
 
-def get_settings() -> dict[str, Any]:
+def get_settings() -> SettingsData:
     """
     Use it to know what AIConsole settings you have access to.
     You'll get a dict "key: value" where key is a name of setting, and value which is the value of the setting.

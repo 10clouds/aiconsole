@@ -6,11 +6,7 @@ _log = logging.getLogger(__name__)
 
 
 def install_dependencies(python_path: Path, dependency_path: Path):
-    if not dependency_path.exists():
-        _log.info(f"Skipping installation: '{dependency_path}' does not exist (bundled version?)")
-        return
-
-    install_command = [python_path, "-m", "pip", "install", dependency_path]
+    install_command = [python_path, "-m", "pip", "install", "-e", dependency_path]
     _log.info(f"Installing aiconsole and dependencies using: {' '.join([str(elem) for elem in install_command])}")
 
     try:

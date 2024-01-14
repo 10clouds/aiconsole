@@ -28,7 +28,7 @@ from aiconsole.core.gpt.types import (
     GPTRequestMessage,
     GPTRequestTextMessage,
 )
-from aiconsole.core.settings.project_settings import settings
+from aiconsole.core.settings.settings import settings
 
 _log = logging.getLogger(__name__)
 
@@ -117,16 +117,16 @@ class GPTRequest:
 
     @property
     def model_config(self):
-        mode_config = settings().settings_data.gpt_modes.get(self.gpt_mode, None)
+        mode_config = settings().unified_settings.gpt_modes.get(self.gpt_mode, None)
 
         if mode_config is None:
-            raise ValueError(f"Unknown mode {self.gpt_mode}, available modes: {settings().settings_data.gpt_modes}")
+            raise ValueError(f"Unknown mode {self.gpt_mode}, available modes: {settings().unified_settings.gpt_modes}")
 
         # if api_key refers to any other setting, use that setting
 
-        for extra in settings().settings_data.extra:
+        for extra in settings().unified_settings.extra:
             if mode_config.api_key == extra:
-                mode_config = mode_config.model_copy(update={"api_key": settings().settings_data.extra[extra]})
+                mode_config = mode_config.model_copy(update={"api_key": settings().unified_settings.extra[extra]})
 
         return mode_config
 

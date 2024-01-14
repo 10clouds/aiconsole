@@ -60,7 +60,7 @@ from aiconsole.core.gpt.request import (
     ToolFunctionDefinition,
 )
 from aiconsole.core.gpt.types import CLEAR_STR
-from aiconsole.core.settings.project_settings import settings
+from aiconsole.core.settings.settings import settings
 
 _log = logging.getLogger(__name__)
 
@@ -114,7 +114,7 @@ async def _execution_mode_process(
     if last_message.tool_calls:
         # Run all code in the last message
         for tool_call in last_message.tool_calls:
-            if settings().settings_data.code_autorun:
+            if settings().unified_settings.code_autorun:
                 accept_context = AcceptCodeContext(
                     chat_mutator=context.chat_mutator,
                     tool_call_id=tool_call.id,

@@ -1,24 +1,11 @@
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, model_validator
 
 from aiconsole.core.assets.models import AssetStatus
 from aiconsole.core.gpt import consts
 from aiconsole.core.gpt.types import GPTModeConfig
-from aiconsole.core.users.models import PartialUserProfile, UserProfile
-
-
-class PartialSettingsData(BaseModel):
-    code_autorun: Optional[bool] = None
-    openai_api_key: Optional[str] = None
-    user_profile: Optional[PartialUserProfile] = None
-    materials: Optional[dict[str, AssetStatus]] = None
-    materials_to_reset: Optional[list[str]] = None
-    agents: Optional[dict[str, AssetStatus]] = None
-    agents_to_reset: Optional[list[str]] = None
-    gpt_modes: Optional[dict[str, GPTModeConfig]] = None
-    extra: Optional[dict[str, Any]] = None
-    to_global: bool = False
+from aiconsole.core.users.models import UserProfile
 
 
 class SettingsData(BaseModel):
@@ -29,21 +16,18 @@ class SettingsData(BaseModel):
     agents: dict[str, AssetStatus] = {}
     gpt_modes: dict[str, GPTModeConfig] = {
         "speed": GPTModeConfig(
-            name="speed",
             max_tokens=consts.GPT_MODE_SPEED_MAX_TOKENS,
             encoding=consts.GPTEncoding.GPT_4,
             model=consts.GPT_MODE_SPEED_MODEL,
             api_key="openai_api_key",
         ),
         "quality": GPTModeConfig(
-            name="quality",
             max_tokens=consts.GPT_MODE_QUALITY_MAX_TOKENS,
             encoding=consts.GPTEncoding.GPT_4,
             model=consts.GPT_MODE_QUALITY_MODEL,
             api_key="openai_api_key",
         ),
         "cost": GPTModeConfig(
-            name="cost",
             max_tokens=consts.GPT_MODE_COST_MAX_TOKENS,
             encoding=consts.GPTEncoding.GPT_4,
             model=consts.GPT_MODE_COST_MODEL,

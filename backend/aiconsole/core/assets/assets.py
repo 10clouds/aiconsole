@@ -29,9 +29,9 @@ from aiconsole.core.assets.load_all_assets import load_all_assets
 from aiconsole.core.assets.models import Asset, AssetLocation, AssetStatus, AssetType
 from aiconsole.core.project import project
 from aiconsole.core.project.paths import get_project_assets_directory
-from aiconsole.core.settings.models import PartialSettingsData
-from aiconsole.core.settings.project_settings import settings
+from aiconsole.core.settings.settings import settings
 from aiconsole.utils.BatchingWatchDogHandler import BatchingWatchDogHandler
+from aiconsole_toolkit.settings.partial_settings_data import PartialSettingsData
 
 _log = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class Assets:
     _assets: dict[str, list[Asset]]
 
     def __init__(self, asset_type: AssetType):
-        self._suppress_notification_until = None
+        self._suppress_notification_until: datetime.datetime | None = None
         self.asset_type = asset_type
         self._assets = {}
 
@@ -157,7 +157,7 @@ class Assets:
 
     @staticmethod
     def get_status(asset_type: AssetType, id: str) -> AssetStatus:
-        s = settings().settings_data
+        s = settings().unified_settings
 
         if asset_type == AssetType.MATERIAL:
             if id in s.materials:
@@ -178,9 +178,9 @@ class Assets:
     @staticmethod
     def set_status(asset_type: AssetType, id: str, status: AssetStatus, to_global: bool = False) -> None:
         if asset_type == AssetType.MATERIAL:
-            settings().storage.save(PartialSettingsData(materials={id: status}, to_global=to_global))
+            settings().save(PartialSettingsData(materials={id: status}), to_global=to_global)
         elif asset_type == AssetType.AGENT:
-            settings().storage.save(PartialSettingsData(agents={id: status}, to_global=to_global))
+            settings().save(PartialSettingsData(agents={id: status}), to_global=to_global)
         else:
             raise ValueError(f"Unknown asset type {asset_type}")
 
@@ -199,6 +199,4 @@ class Assets:
         else:
             raise ValueError(f"Unknown asset type {asset_type}")
 
-        settings().storage.save(partial_settings)
-        partial_settings.to_global = True
-        settings().storage.save(partial_settings)
+        settings().save(partial_settings, to_global=False)

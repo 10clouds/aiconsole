@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 
 from aiconsole.core.assets.models import Asset, AssetLocation, AssetType
 from aiconsole.core.project import project
-from aiconsole.core.settings.project_settings import Settings
+from aiconsole.core.settings.settings import Settings
 from aiconsole.utils.capitalize_first import capitalize_first
 
 

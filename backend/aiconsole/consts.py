@@ -64,6 +64,7 @@ log_config = {
         "consoleHandler": {
             "formatter": "console",
             "class": "rich.logging.RichHandler",
+            "rich_tracebacks": True,
         },
     },
     "loggers": {

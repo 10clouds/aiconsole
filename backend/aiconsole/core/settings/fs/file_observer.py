@@ -15,7 +15,7 @@ class FileObserver:
         self._observer = None
         self.observing: list[Path] = []
 
-    def start(self, file_paths: list[Path], action: Callable):
+    def start(self, file_paths: list[Path], on_changed: Callable):
         _log.debug(f"[{self.__class__.__name__}] Starting observer...")
 
         # Stop and reset the existing observer
@@ -37,7 +37,7 @@ class FileObserver:
             # Set up observer
             try:
                 self._observer.schedule(
-                    BatchingWatchDogHandler(action, file_path.suffix),
+                    BatchingWatchDogHandler(on_changed, file_path.suffix),
                     file_path.parent,
                     recursive=False,
                 )

@@ -35,7 +35,9 @@ from aiconsole.core.code_running.run_code import reset_code_interpreters
 from aiconsole.core.code_running.virtual_env.create_dedicated_venv import (
     create_dedicated_venv,
 )
-from aiconsole.core.settings.project_settings import settings
+from aiconsole.core.settings.fs.settings_file_storage import SettingsFileStorage
+from aiconsole.core.settings.settings import settings
+from aiconsole.core.settings.settings_notifications import SettingsNotifications
 
 if TYPE_CHECKING:
     from aiconsole.core.assets import assets
@@ -94,12 +96,16 @@ async def close_project():
 
     await ProjectClosedServerMessage().send_to_all()
 
-    await settings().reload()
+    settings().configure(SettingsFileStorage(project_path=None))
 
 
 async def reinitialize_project():
     from aiconsole.core.assets import assets
-    from aiconsole.core.project.paths import get_project_directory, get_project_name
+    from aiconsole.core.project.paths import (
+        get_project_directory,
+        get_project_directory_safe,
+        get_project_name,
+    )
     from aiconsole.core.recent_projects.recent_projects import add_to_recent_projects
 
     await ProjectLoadingServerMessage().send_to_all()
@@ -119,12 +125,12 @@ async def reinitialize_project():
     _agents = assets.Assets(asset_type=AssetType.AGENT)
     _materials = assets.Assets(asset_type=AssetType.MATERIAL)
 
+    settings().configure(SettingsFileStorage(project_path=get_project_directory_safe()))
+
     await ProjectOpenedServerMessage(path=str(get_project_directory()), name=get_project_name()).send_to_all()
 
     await _materials.reload(initial=True)
     await _agents.reload(initial=True)
-    settings().storage.change_project(project_path=project_dir)
-    await settings().reload()
 
 
 async def choose_project(path: Path, background_tasks: BackgroundTasks):

@@ -99,7 +99,6 @@ class GPTResponse(BaseModel):
 
 
 class GPTModeConfig(BaseModel):
-    name: str
     max_tokens: int = 10000
     encoding: GPTEncoding = GPTEncoding.GPT_4
     model: str | None = None

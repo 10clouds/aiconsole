@@ -93,9 +93,6 @@ async def handle_incoming_message(connection: AICConnection, json: dict):
         ),
     }[message_type]
 
-    if not handler:
-        raise Exception(f"Unknown message type: {message_type}")
-
     _log.info(f"Handling message {message_type}")
 
     return await handler(connection, json)
@@ -145,7 +142,8 @@ async def _handle_open_chat_ws_message(connection: AICConnection, message: OpenC
 
 
 async def _handle_close_chat_ws_message(connection: AICConnection, message: CloseChatClientMessage):
-    connection.open_chats_ids.remove(message.chat_id)
+    if message.chat_id in connection.open_chats_ids:
+        connection.open_chats_ids.remove(message.chat_id)
 
 
 async def _handle_init_chat_mutation_ws_message(
