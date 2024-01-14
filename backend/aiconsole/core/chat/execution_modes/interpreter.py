@@ -316,7 +316,7 @@ async def _generate_response(
 
                                 code_delta = f"{function_call.name}(**"
                                 await send_code_delta(code_delta)
-                                tool_call_data.end_with_code = ")"
+                                tools_requiring_closing_parenthesis.append(tool_call_data.id)
                             else:
                                 code_delta = function_call.arguments[len(tool_call_data.code) :]
                                 tool_call_data.code = function_call.arguments

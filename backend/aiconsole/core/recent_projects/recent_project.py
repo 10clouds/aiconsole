@@ -19,7 +19,21 @@ from pydantic import BaseModel
 from aiconsole.utils.serializable_path import SerializablePath
 
 
+class RecentProjectStatsAgent(BaseModel):
+    count: int
+    agent_ids: list[str]
+
+
+class RecentProjectStats(BaseModel):
+    materials_note_count: int
+    materials_dynamic_note_count: int
+    materials_python_api_count: int
+    chats_count: int
+    agents: RecentProjectStatsAgent
+
+
 class RecentProject(BaseModel):
     name: str
     path: SerializablePath
     recent_chats: list[str]
+    stats: RecentProjectStats

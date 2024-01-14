@@ -20,6 +20,7 @@ import os
 import rtoml
 
 from aiconsole.core.assets.agents.agent import Agent
+from aiconsole.core.assets.fs.exceptions import UserIsAnInvalidAgentIdError
 from aiconsole.core.assets.materials.material import Material, MaterialContentType
 from aiconsole.core.assets.models import Asset, AssetLocation, AssetStatus, AssetType
 from aiconsole.core.gpt.consts import GPTMode
@@ -31,10 +32,13 @@ from aiconsole.core.project.paths import (
 _log = logging.getLogger(__name__)
 
 
+_USER_AGENT_ID = "user"
+
+
 async def load_asset_from_fs(asset_type: AssetType, asset_id: str, location: AssetLocation | None = None) -> Asset:
-    """
-    Load a specific asset.
-    """
+    if asset_type == AssetType.AGENT:
+        if asset_id == _USER_AGENT_ID:
+            raise UserIsAnInvalidAgentIdError()
 
     project_dir_path = get_project_assets_directory(asset_type)
     core_resource_path = get_core_assets_directory(asset_type)
@@ -91,9 +95,6 @@ async def load_asset_from_fs(asset_type: AssetType, asset_id: str, location: Ass
         return material
 
     if asset_type == AssetType.AGENT:
-        if asset_id == "user":
-            raise KeyError("Agent 'user' is reserved.")
-
         params["system"] = str(tomldoc["system"]).strip()
 
         if "gpt_mode" in tomldoc:

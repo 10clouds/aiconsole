@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 
 from aiconsole.api.endpoints.registry import agents
@@ -24,8 +24,9 @@ from aiconsole.api.utils.asset_get import asset_get
 from aiconsole.api.utils.asset_status_change import asset_status_change
 from aiconsole.api.utils.status_change_post_body import StatusChangePostBody
 from aiconsole.core.assets.agents.agent import Agent, AgentWithStatus
+from aiconsole.core.assets.fs.exceptions import UserIsAnInvalidAgentIdError
 from aiconsole.core.assets.models import AssetLocation, AssetStatus, AssetType
-from aiconsole.core.gpt.consts import QUALITY_GPT_MODE
+from aiconsole.core.gpt.consts import GPTMode
 from aiconsole.core.project import project
 from aiconsole.core.project.paths import (
     get_core_assets_directory,
@@ -49,7 +50,7 @@ async def get_agent(request: Request, agent_id: str):
             usage_examples=[],
             status=AssetStatus.ENABLED,
             defined_in=AssetLocation.PROJECT_DIR,
-            gpt_mode=QUALITY_GPT_MODE,
+            gpt_mode=GPTMode.QUALITY,
             system="",
             override=False,
         ),
@@ -61,10 +62,14 @@ async def partially_update_agent(agent_id: str, agent: Agent, agents_service: Ag
     try:
         await agents_service.partially_update_agent(agent_id=agent_id, agent=agent)
     except AssetWithGivenNameAlreadyExistError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Agent with given name already exists",
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Agent with given name already exists")
+    except UserIsAnInvalidAgentIdError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot create agent with 'user' name")
+
+
+@router.post("/{agent_id}/avatar")
+async def set_agent_avatar(agent_id: str, avatar: UploadFile = File(...), agents_service: Agents = Depends(agents)):
+    await agents_service.set_agent_avatar(agent_id=agent_id, avatar=avatar)
 
 
 @router.post("/{agent_id}")
@@ -72,10 +77,9 @@ async def create_agent(agent_id: str, agent: Agent, agents_service: Agents = Dep
     try:
         await agents_service.create_agent(agent_id=agent_id, agent=agent)
     except AssetWithGivenNameAlreadyExistError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Agent with given name already exists",
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Agent with given name already exists")
+    except UserIsAnInvalidAgentIdError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot create agent with 'user' name")
 
 
 @router.post("/{agent_id}/status-change")

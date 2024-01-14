@@ -34,6 +34,7 @@ email-validator = "^2.1.0.post1"
 deepmerge = "^1.1.1"
 sentry-sdk = {extras = ["fastapi"], version = "^1.39.1"}
 rich = "^13.7.0"
+types-requests = "^2.31.0.20240106"
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.13.2"

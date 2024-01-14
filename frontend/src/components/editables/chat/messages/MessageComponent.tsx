@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import rehypeRaw from 'rehype-raw';
-import { PluggableList } from 'react-markdown/lib/react-markdown';
 import { duotoneDark as vs2015 } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
 import { BlinkingCursor } from '@/components/editables/chat/BlinkingCursor';
@@ -62,7 +61,7 @@ export function MessageComponent({ message, group }: MessageProps) {
                   <div className="prose prose-stone dark:prose-invert sidebar-typography w-full max-w-full">
                     <ReactMarkdown
                       urlTransform={null}
-                      rehypePlugins={[rehypeRaw] as PluggableList}
+                      rehypePlugins={[rehypeRaw]}
                       components={{
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         a: ({ node, href, ...props }) => {

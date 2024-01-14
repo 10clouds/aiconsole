@@ -1,8 +1,13 @@
+from typing import Any, Coroutine
+
+from fastapi import UploadFile
+
 from aiconsole.core.assets.agents.agent import Agent
 from aiconsole.core.assets.assets import Assets
 from aiconsole.core.assets.materials.material import Material
-from aiconsole.core.assets.models import Asset
+from aiconsole.core.assets.models import Asset, AssetType
 from aiconsole.core.project import project
+from aiconsole.core.project.paths import get_project_assets_directory
 
 
 class AssetWithGivenNameAlreadyExistError(Exception):
@@ -35,6 +40,12 @@ class Agents(_Assets):
     async def partially_update_agent(self, agent_id: str, agent: Agent) -> None:
         agents = project.get_project_agents()
         await self._partially_update(agents, agent_id, agent)
+
+    async def set_agent_avatar(self, agent_id: str, avatar: UploadFile) -> None:
+        image_path = get_project_assets_directory(AssetType.AGENT) / f"{agent_id}.jpg"
+        content = await avatar.read()
+        with open(image_path, "wb+") as avatar_file:
+            avatar_file.write(content)
 
 
 class Materials(_Assets):

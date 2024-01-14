@@ -22,8 +22,8 @@ import { Pencil } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface GlobalSettingsUserSectionProps {
-  username: string;
-  email: string;
+  username?: string;
+  email?: string;
   setUsername: (value: string) => void;
   setEmail: (value: string) => void;
   setImage: (avatar: File) => void;
@@ -94,7 +94,7 @@ const GlobalSettingsUserSection = ({
         <div className="flex flex-col gap-2.5 w-[255px]">
           <p className="text-white text-[15px]">E-mail address</p>
           <TextInput
-            value={emailFormValue}
+            value={emailFormValue || ''}
             name="email"
             onChange={setEmail}
             type="email"

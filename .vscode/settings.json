@@ -1,5 +1,8 @@
 {
   "python.analysis.typeCheckingMode": "basic",
+  "python.linting.mypyEnabled": true,
+  "python.linting.flake8Enabled": true,
+  "python.linting.enabled": true,
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
   "eslint.format.enable": true,
@@ -16,15 +19,19 @@
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true,
+    "editor.formatOnType": true,
     "editor.codeActionsOnSave": {
       "source.organizeImports": "explicit"
     }
   },
-  "isort.args": ["--settings-file", "backend/pyproject.toml"],
+  "isort.args": ["--settings-file", "backend/pyproject.toml", "--profile", "black"],
   "isort.importStrategy": "fromEnvironment",
   "black-formatter.args": ["--line-length", "119"],
   "python.analysis.exclude": [
     "./electron/python/**",
     "./electron/node_modules/**"
+  ],
+  "mypy-type-checker.args": [
+    "--check-untyped-defs"
   ]
 }
