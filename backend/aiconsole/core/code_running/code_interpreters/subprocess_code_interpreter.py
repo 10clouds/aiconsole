@@ -200,7 +200,7 @@ class SubprocessCodeInterpreter(BaseCodeInterpreter):
 
     def wait_for_path(self):
         venv_path = get_current_project_venv_path()
-        for i in range(3):
+        for i in range(5):
             if venv_path.exists():
                 _log.info(f"Path {venv_path} exists now.")
                 return

@@ -15,9 +15,9 @@
 # limitations under the License.
 
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import TYPE_CHECKING
 
