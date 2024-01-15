@@ -31,6 +31,7 @@
 # This file has been taken and slighly modified from the wonderful project
 # "open-interpreter" by Killian Lucas https://github.com/KillianLucas/open-interpreter
 #
+import asyncio
 import logging
 import os
 import queue
@@ -41,6 +42,8 @@ import traceback
 from typing import AsyncGenerator
 
 from aiconsole.core.assets.materials.material import Material
+from aiconsole.core.code_running.virtual_env.create_dedicated_venv import WaitForEnvEvent
+from aiconsole.utils.events import internal_events
 from aiconsole_toolkit.env import (
     get_current_project_venv_bin_path,
     get_current_project_venv_path,
@@ -80,7 +83,6 @@ class SubprocessCodeInterpreter(BaseCodeInterpreter):
             raise Exception("Process not started")
 
     def start_process(self):
-        self.wait_for_path()
 
         if self.process:
             self.terminate()
@@ -111,6 +113,7 @@ class SubprocessCodeInterpreter(BaseCodeInterpreter):
         max_retries = 3
 
         try:
+            await self.wait_for_path()
             code = self.preprocess_code(code, materials)
             if not self.process:
                 self.start_process()
@@ -198,12 +201,13 @@ class SubprocessCodeInterpreter(BaseCodeInterpreter):
             "VIRTUAL_ENV": str(get_current_project_venv_path()),
         }
 
-    def wait_for_path(self):
-        venv_path = get_current_project_venv_path()
-        for i in range(5):
+    async def wait_for_path(self):
+        venv_path = get_current_project_venv_path() / "aic_version"
+        for i in range(20):
             if venv_path.exists():
                 _log.info(f"Path {venv_path} exists now.")
                 return
             _log.info(f"Waiting for path {venv_path} to exist...")
-            time.sleep(3)  # Waits for 5 seconds before checking again
+            await internal_events().emit(WaitForEnvEvent())
+            await asyncio.sleep(5)
         raise RuntimeError("No venv located")

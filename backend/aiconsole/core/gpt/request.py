@@ -120,7 +120,9 @@ class GPTRequest:
         mode_config = settings().unified_settings.gpt_modes.get(self.gpt_mode, None)
 
         if mode_config is None:
-            raise ValueError(f"Unknown mode {self.gpt_mode}, available modes: {settings().unified_settings.gpt_modes}")
+            raise ValueError(
+                f"Unknown GPT mode: '{self.gpt_mode}', available modes: {', '.join(settings().unified_settings.gpt_modes.keys())}"
+            )
 
         # if api_key refers to any other setting, use that setting
 
