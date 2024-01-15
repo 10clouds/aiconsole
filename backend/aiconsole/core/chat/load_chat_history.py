@@ -88,20 +88,23 @@ async def load_chat_history(id: str, project_path: Path | None = None) -> Chat:
                 if "analysis" not in group:
                     group["analysis"] = ""
 
+            def extract_default_headline():
+                for group in data["message_groups"]:
+                    if "messages" in group and group["messages"]:
+                        for msg in group["messages"]:
+                            return msg.get("content")
+
             if "name" not in data or not data["name"]:
                 if "headline" in data and data["headline"]:
                     data["name"] = data["headline"]
                 elif "title" in data and data["title"]:
                     data["name"] = data["title"]
                 else:
-
-                    def extract_default_headline():
-                        for group in data["message_groups"]:
-                            if "messages" in group and group["messages"]:
-                                for msg in group["messages"]:
-                                    return msg.get("content")
-
                     data["name"] = extract_default_headline() or "New Chat"
+
+            if "title_edited" not in data or not data["title_edited"]:
+                data["title_edited"] = False
+                data["name"] = extract_default_headline() or "New Chat"
 
             if "id" in data:
                 del data["id"]
@@ -117,7 +120,7 @@ async def load_chat_history(id: str, project_path: Path | None = None) -> Chat:
     else:
         return Chat(
             id=id,
-            name="New Chat",
+            name="",
             title_edited=False,
             last_modified=datetime.now(),
             message_groups=[],

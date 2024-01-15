@@ -6,6 +6,17 @@ def update_settings_data(settings: SettingsData, *new_settings: PartialSettingsD
     settings_data = settings.model_dump()
 
     for new_setting in new_settings:
-        settings_data.update(new_setting.model_dump(exclude_unset=True))
+        new_setting_data = new_setting.model_dump(exclude_unset=True)
+
+        for key, value in new_setting_data.items():
+            if key in settings_data:
+                if isinstance(settings_data[key], list) and isinstance(value, list):
+                    settings_data[key].extend(value)
+                elif isinstance(settings_data[key], dict) and isinstance(value, dict):
+                    settings_data[key].update(value)
+                else:
+                    settings_data[key] = value
+            else:
+                settings_data[key] = value
 
     return SettingsData(**settings_data)

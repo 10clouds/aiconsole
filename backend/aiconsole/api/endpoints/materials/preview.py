@@ -26,7 +26,7 @@ from aiconsole.core.assets.materials.content_evaluation_context import (
 from aiconsole.core.assets.materials.material import Material
 from aiconsole.core.assets.models import AssetLocation
 from aiconsole.core.chat.types import Chat
-from aiconsole.core.gpt.consts import QUALITY_GPT_MODE, SPEED_GPT_MODE, GPTMode
+from aiconsole.core.gpt.consts import SPEED_GPT_MODE
 
 router = APIRouter()
 

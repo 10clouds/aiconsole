@@ -17,15 +17,15 @@
 import { TextInput } from '@/components/editables/assets/TextInput';
 
 interface GlobalSectionApiSectionProps {
-  apiKey: string;
-  setApiKey: (value: string) => void;
+  apiKey?: string;
+  setApiKey: (value: string | undefined) => void;
 }
 
 const GlobalSettingsApiSection = ({ apiKey, setApiKey }: GlobalSectionApiSectionProps) => {
   return (
     <div className="border border-gray-600 rounded-xl p-[20px]">
       <TextInput
-        value={apiKey}
+        value={apiKey || ''}
         onChange={setApiKey}
         horizontal
         placeholder="OpenAI API key..."

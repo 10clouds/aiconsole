@@ -20,7 +20,6 @@ import { Content, Portal, Root } from '@radix-ui/react-dialog';
 
 import TopGradient from '@/components/common/TopGradient';
 import { useSettingsStore } from '@/store/settings/useSettingsStore';
-import { useApiKey } from '@/utils/settings/useApiKey';
 import { Button } from '../../common/Button';
 import { Icon } from '../../common/icons/Icon';
 import GlobalSettingsApiSection from './sections/GlobalSettingsApiSection';
@@ -29,36 +28,41 @@ import GlobalSettingsUserSection from './sections/GlobalSettingsUserSection';
 
 // TODO: implement other features from figma like api for azure, user profile and tutorial
 export const GlobalSettingsModal = () => {
-  const { username, userEmail: email, openAiApiKey, alwaysExecuteCode, saveSettings } = useSettingsStore();
   const isSettingsModalVisible = useSettingsStore((state) => state.isSettingsModalVisible);
   const setSettingsModalVisibility = useSettingsStore((state) => state.setSettingsModalVisibility);
 
-  const [usernameFormValue, setUsernameFormValue] = useState(username || undefined);
-  const [emailFormValue, setEmailFormValue] = useState(email || undefined);
-  const [apiKeyValue, setApiKeyValue] = useState(openAiApiKey || '');
-  const [isAutoRun, setIsAutoRun] = useState(alwaysExecuteCode);
+  const [usernameFormValue, setUsernameFormValue] = useState<string | undefined>(undefined);
+  const username = useSettingsStore((state) => state.username);
+  useEffect(() => {
+    setUsernameFormValue(username);
+  }, [username]);
+
+  const [emailFormValue, setEmailFormValue] = useState<string | undefined>(undefined);
+  const email = useSettingsStore((state) => state.userEmail);
+  useEffect(() => {
+    setEmailFormValue(email);
+  }, [email]);
+
+  const [apiKeyValue, setApiKeyValue] = useState<string | undefined>('');
+  const openAiApiKey = useSettingsStore((state) => state.openAiApiKey);
+  useEffect(() => {
+    setApiKeyValue(openAiApiKey || '');
+  }, [openAiApiKey]);
+
+  const [isAutoRun, setIsAutoRun] = useState(false);
+  const alwaysExecuteCode = useSettingsStore((state) => state.alwaysExecuteCode);
+  useEffect(() => {
+    setIsAutoRun(alwaysExecuteCode);
+  }, [alwaysExecuteCode]);
+
   const [userAvatarData, setUserAvatarData] = useState<File>();
   const [isAvatarOverwritten, setIsAvatarOverwritten] = useState(false);
-
-  const { validating, setApiKey } = useApiKey();
-
-  useEffect(() => {
-    if (isSettingsModalVisible) {
-      setUsernameFormValue(username || undefined);
-      setEmailFormValue(email || undefined);
-      setApiKeyValue(openAiApiKey || '');
-    }
-  }, [isSettingsModalVisible, username, email, openAiApiKey]);
 
   const handleAutoRunChange = (autorun: boolean) => {
     setIsAutoRun(autorun);
   };
 
   const save = async () => {
-    if (apiKeyValue !== openAiApiKey) {
-      await setApiKey(apiKeyValue);
-    }
-
     let avatarFormData: FormData | null = null;
 
     // check if avatar was overwritten to avoid sending unnecessary requests
@@ -67,7 +71,7 @@ export const GlobalSettingsModal = () => {
       avatarFormData.append('avatar', userAvatarData);
     }
 
-    saveSettings(
+    useSettingsStore.getState().saveSettings(
       {
         user_profile:
           usernameFormValue !== username || emailFormValue !== email
@@ -89,6 +93,22 @@ export const GlobalSettingsModal = () => {
     setUserAvatarData(avatar);
     setIsAvatarOverwritten(true);
   };
+
+  useEffect(() => {
+    const resetState = () => {
+      setUsernameFormValue(username);
+      setEmailFormValue(email);
+      setApiKeyValue(openAiApiKey);
+      setIsAutoRun(alwaysExecuteCode);
+      setUserAvatarData(undefined);
+      setIsAvatarOverwritten(false);
+    };
+
+    if (isSettingsModalVisible) {
+      resetState();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSettingsModalVisible]); // reset state when modal is closed or opened
 
   const handleModalClose = () => {
     setSettingsModalVisibility(false);
@@ -117,13 +137,13 @@ export const GlobalSettingsModal = () => {
                 setUsername={setUsernameFormValue}
                 setImage={handleSetAvatarImage}
               />
-              <GlobalSettingsApiSection apiKey={apiKeyValue} setApiKey={setApiKeyValue} />
+              <GlobalSettingsApiSection apiKey={openAiApiKey} setApiKey={setApiKeyValue} />
               <GlobalSettingsCodeSection isAutoRun={isAutoRun} setIsAutoRun={handleAutoRunChange} />
               <div className="flex items-center justify-end gap-[10px] py-[40px]">
                 <Button variant="secondary" bold onClick={handleModalClose}>
                   Cancel
                 </Button>
-                <Button onClick={save}>{validating ? 'Validating...' : 'Save'}</Button>
+                <Button onClick={save}>{'Save'}</Button>
               </div>
             </div>
           </div>

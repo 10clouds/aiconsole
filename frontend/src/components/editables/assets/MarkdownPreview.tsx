@@ -43,10 +43,10 @@ const MarkdownPreview = ({ text, disabled }: MarkdownPreviewProps) => {
             urlTransform={null}
             components={{
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              code({ className, children, inline, node, ...props }) {
+              code({ className, children, node, ...props }) {
                 const match = /language-(\w+)/.exec(className || '');
 
-                return !inline && match ? (
+                return match ? (
                   <SyntaxHighlighter
                     style={vs2015}
                     PreTag="div"

@@ -25,15 +25,14 @@ class SettingsNotifications:
         self._suppress_notification_until: datetime.datetime | None = None
 
     def suppress_next_notification(self, seconds: int = 10):
-        self._suppress_notification_until = datetime.datetime.now() + datetime.timedelta(seconds=seconds)
+        self._suppress_notification_until = datetime.datetime.now() + datetime.timedelta(minutes=seconds)
 
     async def notify(self):
         from aiconsole.api.websockets.server_messages import SettingsServerMessage
 
         await SettingsServerMessage(
-            initial=False
-            or not self._suppress_notification_until
-            or self._suppress_notification_until < datetime.datetime.now()
+            initial=self._suppress_notification_until is not None
+            and self._suppress_notification_until > datetime.datetime.now()
         ).send_to_all()
 
         self._suppress_notification_until = None

@@ -38,6 +38,7 @@ async def partially_update_project_settings(
         settings.save(patch_data, to_global=patch_data.to_global)
         return JSONResponse({"status": "ok"})
     except ValueError as value_error:
+        _log.exception(f"Error while updating settings: {value_error}")
         return JSONResponse({"error": f"{value_error}"}, status_code=406)
 
 

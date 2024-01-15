@@ -33,11 +33,7 @@ const GlobalSettingsCodeSection = ({ isAutoRun, setIsAutoRun }: GlobalSettingsCo
           <Button statusColor={isAutoRun ? 'green' : 'base'} variant="status" onClick={() => setIsAutoRun(true)}>
             <Icon icon={Check} /> YES
           </Button>
-          <Button
-            statusColor={isAutoRun == false ? 'red' : 'base'}
-            variant="status"
-            onClick={() => setIsAutoRun(false)}
-          >
+          <Button statusColor={!isAutoRun ? 'red' : 'base'} variant="status" onClick={() => setIsAutoRun(false)}>
             <Icon icon={Ban} /> NO
           </Button>
         </div>

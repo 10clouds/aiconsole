@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { Ref, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import rehypeRaw from 'rehype-raw';
@@ -66,7 +66,7 @@ export function MessageComponent({ message, group }: MessageProps) {
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         a: ({ node, href, ...props }) => {
                           if (href === 'command') {
-                            const command = props.children[0]?.toString();
+                            const command = (Array.isArray(props.children) ? props.children[0]?.toString() : '') ?? '';
                             return (
                               <a
                                 {...props}
@@ -102,11 +102,12 @@ export function MessageComponent({ message, group }: MessageProps) {
                         },
                         code(props) {
                           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                          const { children, className, inline, node, ...rest } = props;
+                          const { children, className, node, ref, ...rest } = props;
                           const match = /language-(\w+)/.exec(className || '');
-                          return !inline && match ? (
+                          return match ? (
                             <SyntaxHighlighter
                               {...rest}
+                              ref={ref as Ref<SyntaxHighlighter>}
                               style={vs2015}
                               children={String(children).replace(/\n$/, '')}
                               language={match[1]}

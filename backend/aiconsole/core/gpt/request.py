@@ -29,6 +29,7 @@ from aiconsole.core.gpt.types import (
     GPTRequestTextMessage,
 )
 from aiconsole.core.settings.settings import settings
+from aiconsole_toolkit.settings.settings_data import REFERENCE_TO_GLOBAL_OPENAI_KEY
 
 _log = logging.getLogger(__name__)
 
@@ -108,10 +109,11 @@ class GPTRequest:
     @property
     def llm_settings(self):
         config = self.model_config
+        api_key = config.api_key if config.api_key != REFERENCE_TO_GLOBAL_OPENAI_KEY else settings().unified_settings.openai_api_key
         return {
             "model": config.model,
             **({"api_base": config.api_base} if config.api_base else {}),
-            **({"api_key": config.api_key} if config.api_key else {}),
+            **({"api_key": api_key} if api_key else {}),
             **config.extra,
         }
 

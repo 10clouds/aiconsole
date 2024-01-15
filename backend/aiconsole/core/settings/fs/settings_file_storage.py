@@ -64,9 +64,7 @@ class SettingsFileStorage(SettingsStorage):
         if not file_path:
             raise ValueError("Cannot save settings, path not specified")
 
-        detault_settings = SettingsData()
-        data = update_settings_data(detault_settings, load_settings_file(file_path), settings_data)
-        save_settings_file(file_path, data)
+        save_settings_file(file_path, settings_data)
 
     async def _reload(self):
         await internal_events().emit(SettingsUpdatedEvent())
