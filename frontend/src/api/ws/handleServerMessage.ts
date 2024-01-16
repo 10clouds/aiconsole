@@ -10,7 +10,7 @@ import { deepCopyChat } from '@/utils/editables/chatUtils';
 export async function handleServerMessage(message: ServerMessage) {
   const showToast = useToastsStore.getState().showToast;
 
-  console.log('Received ServerMessage: ', message);
+  console.debug('Received ServerMessage: ', message);
 
   switch (message.type) {
     case 'ErrorServerMessage':

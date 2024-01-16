@@ -46,6 +46,7 @@ interface MessageProps {
 export function ToolCall({ group, toolCall: tool_call }: MessageProps) {
   const userMutateChat = useChatStore((state) => state.userMutateChat);
   const saveCommandAndMessagesToHistory = useChatStore((state) => state.saveCommandAndMessagesToHistory);
+  const chat = useChatStore((state) => state.chat);
 
   const alwaysExecuteCode = useSettingsStore((state) => state.alwaysExecuteCode);
 
@@ -155,7 +156,7 @@ export function ToolCall({ group, toolCall: tool_call }: MessageProps) {
                   className="overflow-scroll flex-grow rounded-md !m-0"
                 />
               </EditableContentMessage>
-              {isViableForRunningCode(tool_call.id) && !tool_call.is_streaming && (
+              {isViableForRunningCode(tool_call.id) && !tool_call.is_streaming && !chat?.lock_id && tool_call.code && (
                 <div className="flex gap-4 pt-2 mt-2">
                   <Button variant="status" statusColor="green" small onClick={handleRunClick}>
                     <Icon icon={Play} />

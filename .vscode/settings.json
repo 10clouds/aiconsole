@@ -1,8 +1,9 @@
 {
   "python.analysis.typeCheckingMode": "basic",
-  "python.linting.mypyEnabled": true,
-  "python.linting.flake8Enabled": true,
-  "python.linting.enabled": true,
+  "flake8.args": [
+    "--config",
+    "backend/pyproject.toml"
+  ],
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
   "eslint.format.enable": true,
@@ -33,5 +34,6 @@
   ],
   "mypy-type-checker.args": [
     "--check-untyped-defs"
-  ]
+  ],
+  "mypy-type-checker.reportingScope": "workspace"
 }

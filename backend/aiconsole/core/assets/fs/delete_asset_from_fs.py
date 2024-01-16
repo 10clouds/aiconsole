@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from send2trash import send2trash
+from send2trash import send2trash  # type: ignore
 
 from aiconsole.core.assets.models import AssetType
 from aiconsole.core.project.paths import get_project_assets_directory

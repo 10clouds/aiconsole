@@ -64,7 +64,7 @@ class RecentProjectsStats:
 
         ids = {*base_ids, *core_ids}
 
-        return AgentsCount(count=len(ids), agent_ids=ids)
+        return AgentsCount(count=len(ids), agent_ids=list(ids))
 
     def _get_asset_ids_in_path(self, dir: Path) -> set[str]:
         return set(

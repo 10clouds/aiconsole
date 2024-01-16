@@ -2,16 +2,28 @@ import logging
 import shutil
 import subprocess
 import sys
+from dataclasses import dataclass
+from importlib import metadata
 
+from aiconsole.consts import DIR_WITH_AICONSOLE_PACKAGE
 from aiconsole.core.code_running.virtual_env.install_and_upgrade_pip import (
     install_and_update_pip,
 )
+from aiconsole.core.code_running.virtual_env.install_dependencies import (
+    install_dependencies,
+)
+from aiconsole.utils.events import InternalEvent
 from aiconsole_toolkit.env import (
     get_current_project_venv_path,
     get_current_project_venv_python_path,
 )
 
 _log = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True, slots=True)
+class WaitForEnvEvent(InternalEvent):
+    pass
 
 
 def run_subprocess(*args):
@@ -34,27 +46,57 @@ def get_python_version(python_executable):
         return None
 
 
-async def create_dedicated_venv():
+def save_current_app_version_to_venv():
     venv_path = get_current_project_venv_path()
-    system_python_version = get_python_version(sys.executable)
+    version_file_path = venv_path / "aic_version"
+    with open(version_file_path, "w") as f:
+        f.write(venv_version_string())
 
-    if not venv_path.exists():
+
+def venv_version_string():
+    version = metadata.version("aiconsole")
+    version += f" (Python {sys.version.split(' ')[0]})"
+    if is_web_server_dev_editable_version():
+        version += " (Editable version)"
+    return version
+
+
+def is_web_server_dev_editable_version():
+    return (DIR_WITH_AICONSOLE_PACKAGE / "pyproject.toml").exists()
+
+
+def get_current_app_version_from_venv():
+    venv_path = get_current_project_venv_path()
+    version_file_path = venv_path / "aic_version"
+    if version_file_path.exists():
+        with open(version_file_path, "r") as f:
+            return f.read()
+    return None
+
+
+def create_dedicated_venv():
+    venv_path = get_current_project_venv_path()
+
+    if not venv_path.exists() or get_current_app_version_from_venv() != venv_version_string():
+        if venv_path.exists():
+            _log.info(
+                f"Deleting old ({get_current_app_version_from_venv()}) venv in {venv_path}, new version: {venv_version_string()}"
+            )
+            shutil.rmtree(venv_path)
+
         _log.info(f"Creating venv in {venv_path}, using {sys.executable}")
+
         run_subprocess(sys.executable, "-m", "venv", str(venv_path), "--system-site-packages")
+
+        install_and_update_pip(venv_path)
+
+        if is_web_server_dev_editable_version():
+            install_dependencies(get_current_project_venv_python_path(), DIR_WITH_AICONSOLE_PACKAGE)
+        else:
+            _log.info(
+                f"Skipping installation: '{DIR_WITH_AICONSOLE_PACKAGE}' does not contain pyproject.toml (bundled version?)"
+            )
+
+        save_current_app_version_to_venv()
     else:
         _log.info(f"Venv already exists in {venv_path}")
-
-        venv_python_executable = str(get_current_project_venv_python_path())
-
-        venv_python_version = get_python_version(venv_python_executable)
-        if venv_python_version:
-            _log.info(f"Valid venv python executable")
-        else:
-            _log.info(f"Reconstructing venv due to the different Python version({system_python_version}):")
-            shutil.rmtree(str(get_current_project_venv_path()))
-            _log.info(f"1) Deleted old env.")
-
-            run_subprocess(sys.executable, "-m", "venv", str(venv_path), "--system-site-packages")
-            _log.info(f"2) Created venv in {venv_path}, using {sys.executable}")
-
-    install_and_update_pip(venv_path)

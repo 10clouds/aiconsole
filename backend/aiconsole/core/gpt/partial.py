@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from litellm import ModelResponse
-from litellm.utils import Delta, StreamingChoices
+from litellm import ModelResponse  # type: ignore
+from litellm.utils import Delta, StreamingChoices  # type: ignore
 from openai.types.chat.chat_completion_chunk import ChoiceDeltaToolCall
 from pydantic import BaseModel
 

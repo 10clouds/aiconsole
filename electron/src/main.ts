@@ -28,7 +28,7 @@ import {
 import { ChildProcess, spawn } from 'child_process';
 import path from 'path';
 import net from 'net';
-import { initialize } from '@aptabase/electron/main';
+import { initialize, trackEvent } from '@aptabase/electron/main';
 
 import { windowStateTracker } from './windowStateTracker';
 
@@ -334,6 +334,8 @@ ipcMain.on('request-backend-port', async (event) => {
 });
 
 app.whenReady().then(() => {
+  trackEvent('app_started');
+
   ipcMain.handle('open-dir-picker', handleDirPicker);
   ipcMain.handle('open-finder', async (event, path) => {
     shell.showItemInFolder(path);

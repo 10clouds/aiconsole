@@ -6,14 +6,14 @@ from typing import BinaryIO
 
 from aiconsole.consts import AICONSOLE_USER_CONFIG_DIR
 from aiconsole.core.clients.gravatar import GravatarUserProfile, gravatar_client
-from aiconsole.core.settings.models import PartialSettingsData
-from aiconsole.core.settings.project_settings import settings
+from aiconsole.core.settings.settings import settings
 from aiconsole.core.users.models import (
     DEFAULT_USERNAME,
     PartialUserProfile,
     UserProfile,
 )
 from aiconsole.utils.resource_to_path import resource_to_path
+from aiconsole_toolkit.settings.partial_settings_data import PartialSettingsData
 
 DEFAULT_AVATARS_PATH = "aiconsole.preinstalled.avatars"
 
@@ -24,7 +24,7 @@ class MissingFileName(Exception):
 
 class UserProfileService:
     def get_profile(self, email: str | None = None) -> UserProfile:
-        user_profile = settings().settings_data.user_profile
+        user_profile = settings().unified_settings.user_profile
         if email:
             if email == user_profile.email and user_profile.avatar_url:
                 return user_profile
@@ -56,11 +56,11 @@ class UserProfileService:
         self._save_avatar_to_fs(file, file_path)
 
         avatar_url = f"profile_image?img_filename={file_path.name}"
-        settings().storage.save(
+        settings().save(
             PartialSettingsData(
                 user_profile=PartialUserProfile(avatar_url=avatar_url),
-                to_global=True,
             ),
+            to_global=True,
         )
 
     def get_avatar(self, img_filename: str) -> Path:
@@ -77,7 +77,7 @@ class UserProfileService:
         return resource_to_path(DEFAULT_AVATARS_PATH) / img_filename
 
     def _get_default_avatar(self, email: str | None = None) -> str:
-        key = email or settings().settings_data.openai_api_key or "some_key"
+        key = email or settings().unified_settings.openai_api_key or "some_key"
         img_filename = self._deterministic_choice(
             blob=key,
             choices=list(resource_to_path(resource=DEFAULT_AVATARS_PATH).glob(pattern="*")),

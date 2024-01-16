@@ -21,12 +21,12 @@ import { create } from 'zustand';
 import { SettingsAPI } from '../../api/api/SettingsAPI';
 
 export type SettingsStore = {
-  openAiApiKey?: string | null;
+  openAiApiKey?: string;
   isApiKeyValid?: boolean;
   alwaysExecuteCode: boolean;
-  username: string | null;
-  userEmail: string | null;
-  userAvatarUrl: string | null;
+  username?: string;
+  userEmail?: string;
+  userAvatarUrl?: string;
   isSettingsModalVisible: boolean;
   setSettingsModalVisibility: (isVisible: boolean) => void;
   initSettings: () => Promise<void>;
@@ -40,9 +40,9 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   openAiApiKey: undefined,
   isApiKeyValid: false,
   alwaysExecuteCode: false,
-  username: null,
-  userEmail: null,
-  userAvatarUrl: null,
+  username: undefined,
+  userEmail: undefined,
+  userAvatarUrl: undefined,
   isSettingsModalVisible: false,
   setSettingsModalVisibility: (isVisible: boolean) => {
     set({ isSettingsModalVisible: isVisible });

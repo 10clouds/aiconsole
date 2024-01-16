@@ -24,13 +24,13 @@ from aiconsole.core.chat.execution_modes.analysis.create_materials_str import (
 from aiconsole.core.chat.execution_modes.analysis.gpt_analysis_function_step import (
     gpt_analysis_function_step,
 )
-from aiconsole.core.gpt.consts import QUALITY_GPT_MODE
+from aiconsole.core.gpt.consts import ANALYSIS_GPT_MODE
 
 
 async def director_analyse(chat_mutator: ChatMutator):
     return await gpt_analysis_function_step(
         chat_mutator=chat_mutator,
-        gpt_mode=QUALITY_GPT_MODE,
+        gpt_mode=ANALYSIS_GPT_MODE,
         initial_system_prompt=f"""
 You are a director of a multiple AI Agents, doing everything to help the user.
 You have multiple AI Agents at your disposal, each with their own unique capabilities.

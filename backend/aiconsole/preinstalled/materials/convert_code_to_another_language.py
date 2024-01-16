@@ -14,7 +14,7 @@ import logging
 import os
 from typing import cast
 
-import litellm
+import litellm  # type: ignore
 
 _log = logging.getLogger(__name__)
 

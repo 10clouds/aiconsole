@@ -78,7 +78,7 @@ class Material(Asset):
             if self.content_type == MaterialContentType.DYNAMIC_TEXT:
                 # Try compiling the python code and run it
                 source_code = compile(inline_content, "<string>", "exec")
-                local_vars = {}
+                local_vars: dict[str, Any] = {}
                 exec(source_code, local_vars)
                 # currently, getting the python object from another interpreter is quite limited, and
                 # using the dedicated local_vars is the easiest way (otherwise we would need to pickle

@@ -10,7 +10,7 @@ from aiconsole.core.project.project import choose_project, is_project_initialize
 
 class ProjectDirectory:
     def __init__(self) -> None:
-        self._root = None
+        self._root: Tk | None = None
 
     async def choose_directory(self) -> Path | None:
         if not self._root:

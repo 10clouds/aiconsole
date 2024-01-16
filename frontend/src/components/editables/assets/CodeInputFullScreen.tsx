@@ -12,7 +12,7 @@ export const CodeInputFullScreen = ({ children, setOpen, open }: CodeInputFullSc
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
         <Dialog.Overlay className="bg-black/70 h-[100vh] w-full flex items-center justify-center relative z-[100]">
-          <Dialog.Content className="w-[85%] h-[60%]">{children}</Dialog.Content>
+          <Dialog.Content className="w-[85%]">{children}</Dialog.Content>
         </Dialog.Overlay>
       </Dialog.Portal>
     </Dialog.Root>

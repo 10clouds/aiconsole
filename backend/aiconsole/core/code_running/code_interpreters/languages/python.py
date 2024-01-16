@@ -98,10 +98,10 @@ def preprocess_python(code: str, materials: list[Material]):
 
     parsed_code = ast.parse("\n\n\n".join(apis))
     parsed_code.body = [b for b in parsed_code.body if not isinstance(b, ast.Expr) or not isinstance(b.value, ast.Str)]
-    apis = ast.unparse(parsed_code)
+    apis_str = ast.unparse(parsed_code)
 
     newline = "\n"
-    api_lines = [line for line in apis.split(newline) if line.strip()]
+    api_lines = [line for line in apis_str.split(newline) if line.strip()]
     code_lines = [line for line in code.split(newline) if line.strip()]
 
     code = f"""

@@ -29,8 +29,15 @@ from aiconsole.api.websockets.client_messages import (
     ProcessChatClientMessage,
     ReleaseLockClientMessage,
 )
-from aiconsole.api.websockets.connection_manager import AcquiredLock, AICConnection
-from aiconsole.api.websockets.server_messages import ChatOpenedServerMessage
+from aiconsole.api.websockets.connection_manager import (
+    AcquiredLock,
+    AICConnection,
+    send_message_to_chat,
+)
+from aiconsole.api.websockets.server_messages import (
+    ChatOpenedServerMessage,
+    NotificationServerMessage,
+)
 from aiconsole.core.assets.agents.agent import Agent
 from aiconsole.core.assets.materials.content_evaluation_context import (
     ContentEvaluationContext,
@@ -47,8 +54,12 @@ from aiconsole.core.chat.execution_modes.import_and_validate_execution_mode impo
 )
 from aiconsole.core.chat.locking import DefaultChatMutator, acquire_lock, release_lock
 from aiconsole.core.chat.types import AICMessageGroup, Chat
-from aiconsole.core.gpt.consts import QUALITY_GPT_MODE
+from aiconsole.core.code_running.virtual_env.create_dedicated_venv import (
+    WaitForEnvEvent,
+)
+from aiconsole.core.gpt.consts import ANALYSIS_GPT_MODE
 from aiconsole.core.project import project
+from aiconsole.utils.events import internal_events
 
 _log = logging.getLogger(__name__)
 
@@ -57,7 +68,7 @@ _log = logging.getLogger(__name__)
 director_agent = Agent(
     id="director",
     name="Director",
-    gpt_mode=QUALITY_GPT_MODE,
+    gpt_mode=ANALYSIS_GPT_MODE,
     execution_mode="aiconsole.core.chat.execution_modes.director:execution_mode",
     usage="",
     usage_examples=[],
@@ -92,9 +103,6 @@ async def handle_incoming_message(connection: AICConnection, json: dict):
             connection, ProcessChatClientMessage(**json)
         ),
     }[message_type]
-
-    if not handler:
-        raise Exception(f"Unknown message type: {message_type}")
 
     _log.info(f"Handling message {message_type}")
 
@@ -159,8 +167,18 @@ async def _handle_init_chat_mutation_ws_message(
 
 
 async def _handle_accept_code_ws_message(connection: AICConnection, message: AcceptCodeClientMessage):
+    async def _notify(event):
+        await send_message_to_chat(
+            message.chat_id, NotificationServerMessage(title="Wait", message="Environment is still being created")
+        )
+
     try:
         chat = await acquire_lock(chat_id=message.chat_id, request_id=message.request_id)
+
+        internal_events().subscribe(
+            WaitForEnvEvent,
+            _notify,
+        )
 
         chat_mutator = DefaultChatMutator(
             chat_id=message.chat_id,

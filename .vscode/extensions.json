@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "ms-python.black-formatter",
+        "github.copilot",
+        "ms-python.isort",
+        "ms-python.mypy-type-checker",
+        "ms-python.vscode-pylance",
+        "ms-python.python",
+        "esbenp.prettier-vscode",
+        "ms-python.flake8"
+    ]
+}

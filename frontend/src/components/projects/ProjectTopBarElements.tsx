@@ -14,41 +14,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ProjectsAPI } from '@/api/api/ProjectsAPI';
-import { useProjectStore } from '@/store/projects/useProjectStore';
-import { localStorageTyped } from '@/utils/common/localStorage';
-import { useProjectContextMenu } from '@/utils/projects/useProjectContextMenu';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
+
+import { useProjectStore } from '@/store/projects/useProjectStore';
+import { useProjectContextMenu } from '@/utils/projects/useProjectContextMenu';
 import { AddAssetDropdown } from '../editables/assets/AddAssetDropdown';
 import { ContextMenu } from '../common/ContextMenu';
-
-const { getItem: checkIfChanged } = localStorageTyped<boolean>('isAssetChanged');
+import { LeaveProjectDialog } from '../common/LeaveProjectDialog';
 
 export function ProjectTopBarElements() {
   const projectName = useProjectStore((state) => state.projectName);
 
-  const contextMenuItems = useProjectContextMenu();
-
-  const handleBackToProjects = () => {
-    if (
-      checkIfChanged() &&
-      !window.confirm(`Are you sure you want to leave this project? Any unsaved changes will be lost.`)
-    ) {
-      return;
-    }
-
-    ProjectsAPI.closeProject();
-  };
+  const { menuItems, isDialogOpen, closeDialog, backToProjects } = useProjectContextMenu();
 
   return (
     <>
       <div className="flex text-sm gap-2 items-center pr-5">
         <div className="flex items-center justify-center gap-[30px]">
-          <button className="w-[36px] h-[36px]" onClick={handleBackToProjects}>
+          <button className="w-[36px] h-[36px]" onClick={backToProjects}>
             <img src="favicon.png" className="shadows-lg h-full w-full" alt="Logo" />
           </button>
-          <ContextMenu options={contextMenuItems}>
+          <ContextMenu options={menuItems}>
             <Link
               to={`/chats/${uuidv4()}`}
               className="h-11 text-grey-300 font-bold  text-lg text-gray-400 hover:animate-pulse cursor-pointer flex gap-2 items-center mr-[32px] uppercase"
@@ -58,6 +46,7 @@ export function ProjectTopBarElements() {
           </ContextMenu>
         </div>
         <AddAssetDropdown />
+        <LeaveProjectDialog onCancel={closeDialog} isOpen={isDialogOpen} />
       </div>
     </>
   );

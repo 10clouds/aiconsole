@@ -34,6 +34,7 @@ import 'swiper/css/navigation';
 import { Button } from '@/components/common/Button';
 import { useChatStore } from '@/store/editables/chat/useChatStore';
 import { useSidebarStore } from '@/store/common/useSidebarStore';
+import { LeaveProjectDialog } from '@/components/common/LeaveProjectDialog';
 
 function EmptyChatAgentAvatar({ agent }: { agent: Agent }) {
   const menuItems = useEditableObjectContextMenu({ editableObjectType: 'agent', editable: agent });
@@ -87,7 +88,7 @@ export const EmptyChat = () => {
   const projectName = useProjectStore((state) => state.projectName);
   const agents = useEditablesStore((state) => state.agents);
   const materials = useEditablesStore((state) => state.materials || []);
-  const projectMenuItems = useProjectContextMenu();
+  const { menuItems, isDialogOpen, closeDialog } = useProjectContextMenu();
   const aiChoiceMaterials = materials.filter((m) => m.status === 'enabled');
   const activeSystemAgents = agents.filter((agent) => agent.status !== 'disabled' && agent.id !== 'user');
   const forcedMaterials = materials.filter((m) => m.status === 'forced');
@@ -117,7 +118,7 @@ export const EmptyChat = () => {
     <section className="flex flex-col items-center justify-center container mx-auto px-6 py-[80px] pb-[40px] select-none">
       <img src="chat-page-glow.png" alt="glow" className="absolute top-[40px] -z-[1]" />
       <p className="text-[16px] text-gray-300 text-center mb-[15px]">Welcome to the project</p>
-      <ContextMenu options={projectMenuItems} ref={triggerRef}>
+      <ContextMenu options={menuItems} ref={triggerRef}>
         <h2
           className="text-[36px] text-center font-black cursor-pointer uppercase text-white mb-[40px]"
           onClick={openContext}
@@ -193,6 +194,7 @@ export const EmptyChat = () => {
           Guide me
         </Button>
       </div>
+      <LeaveProjectDialog onCancel={closeDialog} isOpen={isDialogOpen} />
     </section>
   );
 };

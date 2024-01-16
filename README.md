@@ -101,6 +101,10 @@ In order to run the non electron development version of AIConsole:
 2. To bundle the desktop app: `cd electron && yarn && yarn make`
 3. To publish the desktop app: `cd electron && yarn && yarn publish`
 
+# Running tests
+1. To run the tests you have to go to the backend folder: `cd backend`
+2. Run the tests: `poetry run pytest .`
+
 # License
 
 AI Console is open-source software licensed under the [Apache License ver. 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt).

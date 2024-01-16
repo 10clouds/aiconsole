@@ -17,8 +17,8 @@ import asyncio
 import logging
 from typing import AsyncGenerator
 
-import litellm
-from litellm.caching import Cache
+import litellm  # type: ignore
+from litellm.caching import Cache  # type: ignore
 from openai import AuthenticationError
 
 from aiconsole.api.websockets.connection_manager import connection_manager
@@ -79,7 +79,7 @@ class GPTExecutor:
 
                 self.partial_response = GPTPartialResponse()
 
-                async for chunk in response:
+                async for chunk in response:  # type: ignore
                     self.partial_response.apply_chunk(chunk)
                     yield chunk
                     await asyncio.sleep(0)

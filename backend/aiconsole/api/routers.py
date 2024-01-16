@@ -25,8 +25,8 @@ from aiconsole.api.endpoints import (
     materials,
     ping,
     profile,
-    project_settings,
     projects,
+    settings,
     ws,
 )
 
@@ -40,6 +40,6 @@ app_router.include_router(chats.router, prefix="/api/chats", tags=["Chats"])
 app_router.include_router(materials.router, prefix="/api/materials", tags=["Materials"])
 app_router.include_router(agents.router, prefix="/api/agents", tags=["Agents"])
 app_router.include_router(projects.router, prefix="/api/projects", tags=["Projects"])
-app_router.include_router(project_settings.router, prefix="/api/settings", tags=["Project Settings"])
+app_router.include_router(settings.router, prefix="/api/settings", tags=["Project Settings"])
 app_router.include_router(commands_history.router)
 app_router.include_router(ws.router)

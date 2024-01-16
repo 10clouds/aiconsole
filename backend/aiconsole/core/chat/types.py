@@ -17,7 +17,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, field_serializer
 
 from aiconsole.core.assets.models import EditableObject
 from aiconsole.core.code_running.code_interpreters.language import LanguageStr
@@ -52,17 +52,16 @@ class AICMessageGroup(BaseModel):
     role: GPTRole
     analysis: str
     task: str
-    agent_id: str
     materials_ids: list[str]
-    role: GPTRole
     messages: list[AICMessage]
 
 
 class ChatHeadline(EditableObject):
     last_modified: datetime
 
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat()}
+    @field_serializer("last_modified")
+    def serialize_dt(self, dt: datetime, _info):
+        return dt.isoformat()
 
 
 @dataclass
@@ -83,8 +82,6 @@ class Chat(ChatHeadline):
     title_edited: bool = False
     message_groups: list[AICMessageGroup]
     is_analysis_in_progress: bool = False
-
-    model_config = ConfigDict(json_encoders={datetime: lambda v: v.isoformat()})
 
     def get_message_group(self, message_group_id: str) -> AICMessageGroup | None:
         for message_group in self.message_groups:

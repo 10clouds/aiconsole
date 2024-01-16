@@ -28,7 +28,8 @@ from aiconsole.core.gpt.types import (
     GPTRequestMessage,
     GPTRequestTextMessage,
 )
-from aiconsole.core.settings.project_settings import settings
+from aiconsole.core.settings.settings import settings
+from aiconsole_toolkit.settings.settings_data import REFERENCE_TO_GLOBAL_OPENAI_KEY
 
 _log = logging.getLogger(__name__)
 
@@ -108,25 +109,32 @@ class GPTRequest:
     @property
     def llm_settings(self):
         config = self.model_config
+        api_key = (
+            config.api_key
+            if config.api_key != REFERENCE_TO_GLOBAL_OPENAI_KEY
+            else settings().unified_settings.openai_api_key
+        )
         return {
             "model": config.model,
             **({"api_base": config.api_base} if config.api_base else {}),
-            **({"api_key": config.api_key} if config.api_key else {}),
+            **({"api_key": api_key} if api_key else {}),
             **config.extra,
         }
 
     @property
     def model_config(self):
-        mode_config = settings().settings_data.gpt_modes.get(self.gpt_mode, None)
+        mode_config = settings().unified_settings.gpt_modes.get(self.gpt_mode, None)
 
         if mode_config is None:
-            raise ValueError(f"Unknown mode {self.gpt_mode}, available modes: {settings().settings_data.gpt_modes}")
+            raise ValueError(
+                f"Unknown GPT mode: '{self.gpt_mode}', available modes: {', '.join(settings().unified_settings.gpt_modes.keys())}"
+            )
 
         # if api_key refers to any other setting, use that setting
 
-        for extra in settings().settings_data.extra:
+        for extra in settings().unified_settings.extra:
             if mode_config.api_key == extra:
-                mode_config = mode_config.model_copy(update={"api_key": settings().settings_data.extra[extra]})
+                mode_config = mode_config.model_copy(update={"api_key": settings().unified_settings.extra[extra]})
 
         return mode_config
 

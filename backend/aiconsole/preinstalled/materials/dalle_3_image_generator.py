@@ -7,7 +7,7 @@ import openai
 import requests
 from pydantic import BaseModel
 
-from aiconsole.core.settings.project_settings import settings
+from aiconsole_toolkit.settings import get_settings
 
 
 class Image(BaseModel):
@@ -45,9 +45,7 @@ def generate_image(prompt: str, size: Literal["1024x1024", "1792x1024", "1024x17
       relative_path: str
       revised_prompt: str
     """
-    asyncio.run(settings().reload())
-
-    openai_key = settings().settings_data.openai_api_key
+    openai_key = get_settings().openai_api_key
 
     client = openai.OpenAI(api_key=openai_key)
 

@@ -182,8 +182,8 @@ export function ChatPage() {
       await renameChat(newChat);
 
       showToast({
-        title: 'Renamed',
-        message: 'renamed',
+        title: 'Overwritten',
+        message: 'The chat has been successfully overwritten.',
         variant: 'success',
       });
     }
@@ -279,8 +279,8 @@ export function ChatPage() {
             isOpen={blockerState === 'blocked'}
             onClose={reset}
             onConfirm={confirm}
-            confirmationButtonText="Leave"
-            cancelButtonText="Cancel"
+            confirmationButtonText="Yes, exit"
+            cancelButtonText="No, stay"
           >
             Changes that you made may not be saved.
           </AlertDialog>

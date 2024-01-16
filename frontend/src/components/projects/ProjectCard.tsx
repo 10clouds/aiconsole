@@ -18,38 +18,42 @@
 import { useRecentProjectsStore } from '@/store/projects/useRecentProjectsStore';
 import { ContextMenuItems } from '@/types/common/contextMenu';
 import { cn } from '@/utils/common/cn';
-import { LucideIcon, MoreVertical, Trash } from 'lucide-react';
+import { Blocks, LucideIcon, MessageSquare, MoreVertical, ScanText, StickyNote, Trash } from 'lucide-react';
 import { MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useProjectStore } from '../../store/projects/useProjectStore';
 import { ContextMenu, ContextMenuRef } from '../common/ContextMenu';
 import { Icon } from '../common/icons/Icon';
+import { AgentAvatar } from '../editables/chat/AgentAvatar';
+import { RecentProject } from '@/types/projects/RecentProject';
 
 const MAX_CHATS_TO_DISPLAY = 3;
 interface CounterItemProps {
   icon: LucideIcon;
   count: number;
+  className?: string;
 }
 
-const CounterItem = ({ icon, count }: CounterItemProps) => (
+const CounterItem = ({ icon, count, className }: CounterItemProps) => (
   <div className="flex items-center gap-[10px] text-gray-300 text-[15px]">
-    <Icon icon={icon} className="text-gray-400" />
+    <Icon icon={icon} className={cn('text-orange', className)} />
     {count}
   </div>
 );
 
-interface ProjectCardProps {
-  name: string;
-  path: string;
-  chatHistory: string[];
-}
+export type ProjectCardProps = Omit<RecentProject, 'recent_chats'> & {
+  recentChats: string[];
+};
 
-export function ProjectCard({ name, path, chatHistory }: ProjectCardProps) {
+export function ProjectCard({ name, path, recentChats, stats }: ProjectCardProps) {
   const chooseProject = useProjectStore((state) => state.chooseProject);
   const removeRecentProject = useRecentProjectsStore((state) => state.removeRecentProject);
   const [isShowingContext, setIsShowingContext] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [inputText, setInputText] = useState(name);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const { chats_count, materials_dynamic_note_count, materials_note_count, materials_python_api_count, agents } =
+    stats;
 
   const deleteProject = useCallback(async () => {
     await removeRecentProject(path);
@@ -138,7 +142,7 @@ export function ProjectCard({ name, path, chatHistory }: ProjectCardProps) {
     <ContextMenu options={contextMenuItems} ref={triggerRef} onOpenChange={handleOpenContextChange}>
       <div
         className={cn(
-          'group border-2 border-gray-600 p-[30px] pb-[20px] rounded-[20px] w-full transition-bg duration-150  cursor-pointer bg-gray-900 hover:bg-project-item-gradient min-h-[240px]',
+          'group border-2 border-gray-600 p-[30px] pb-[20px] rounded-[20px] w-full transition-bg duration-150  cursor-pointer bg-gray-900 hover:bg-project-item-gradient min-h-[240px] flex flex-col justify-between',
           {
             'bg-project-item-gradient': isShowingContext,
           },
@@ -191,7 +195,7 @@ export function ProjectCard({ name, path, chatHistory }: ProjectCardProps) {
               },
             )}
           />
-          {chatHistory.map((command, index) =>
+          {recentChats?.map((command, index) =>
             index < MAX_CHATS_TO_DISPLAY ? (
               <div key={index} className="flex flex-row items-center gap-2 mb-[10px] text-white text-[15px]">
                 <div className="flex-grow truncate">{command} </div>
@@ -200,18 +204,17 @@ export function ProjectCard({ name, path, chatHistory }: ProjectCardProps) {
           )}
         </div>
 
-        {/* TODO: commented until backend ready */}
-        {/* <div className="flex gap-2 justify-between w-full mt-[20px] mb-auto">
-          <CounterItem icon={MessageSquare} count={0} />
-          <CounterItem icon={StickyNote} count={0} />
-          <CounterItem icon={ScanText} count={0} />
-          <CounterItem icon={Blocks} count={0} />
+        <div className="flex gap-2 justify-between w-full mt-[20px] mb-0">
+          <CounterItem icon={MessageSquare} count={chats_count} className="text-purple-400" />
+          <CounterItem icon={StickyNote} count={materials_note_count} />
+          <CounterItem icon={ScanText} count={materials_dynamic_note_count} />
+          <CounterItem icon={Blocks} count={materials_python_api_count} />
           <div className="flex items-center text-[15px] text-gray-300">
-            <AgentAvatar agentId="2" type="extraSmall" className="mb-0" />
+            <AgentAvatar agentId="1" type="extraSmall" className="mb-0" />
             <AgentAvatar agentId="2" type="extraSmall" className="relative -left-[12px] mb-0" />
-            <span className="-ml-[2px]">0</span>
+            <span className="-ml-[2px]">{agents.count}</span>
           </div>
-        </div> */}
+        </div>
       </div>
     </ContextMenu>
   );

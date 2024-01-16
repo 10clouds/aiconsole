@@ -14,9 +14,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 export type RecentProject = {
   name: string;
   path: string;
   recent_chats: string[];
+  stats: {
+    agents: { count: number; agent_ids: string[] };
+    chats_count: number;
+    materials_dynamic_note_count: number;
+    materials_note_count: number;
+    materials_python_api_count: number;
+  };
 };

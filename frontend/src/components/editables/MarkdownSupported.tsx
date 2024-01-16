@@ -23,11 +23,13 @@ interface MarkdownSupportedProps {
 }
 
 export const MarkdownSupported = ({ className }: MarkdownSupportedProps) => (
-  <a
-    target="_blank"
-    href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax"
-    className={cn('group-hover:text-yellow text-sm flex items-center absolute bottom-[20px] right-[20px]', className)}
-  >
-    <MarkdownLogoIcon className="mr-1" /> Markdown is supported
-  </a>
+  <div className="flex justify-end pr-2 pt-2">
+    <a
+      target="_blank"
+      href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax"
+      className={cn('hover:text-yellow text-sm flex items-center', className)}
+    >
+      <MarkdownLogoIcon className="mr-1" /> Markdown is supported
+    </a>
+  </div>
 );

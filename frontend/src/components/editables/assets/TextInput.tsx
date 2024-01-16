@@ -108,7 +108,10 @@ export function TextInput({
   const textFieldProps = {
     className: cn(
       className,
-      'max-h-[120px] w-full overflow-y-auto border border-gray-500 placeholder:text-gray-400 bg-gray-800 text-[15px] text-white flex-grow resize-none rounded-[8px]  px-[20px] py-[12px] hover:bg-gray-600 hover:placeholder:text-gray-300 focus:bg-gray-600 focus:border-gray-400 focus:outline-none transition duration-100',
+      'max-h-[120px] w-full overflow-y-auto border border-gray-500 placeholder:text-gray-400',
+      'bg-gray-800 text-[15px] text-gray-300 focus:text-white flex-grow resize-none rounded-[8px]',
+      'px-[20px] py-[12px] hover:bg-gray-600 hover:placeholder:text-gray-300 focus:bg-gray-600',
+      'focus:border-gray-400 focus:outline-none transition duration-100',
       { 'border-danger': error },
     ),
     value,

@@ -1,6 +1,5 @@
 import logging
 import platform
-import shlex
 import subprocess
 from pathlib import Path
 

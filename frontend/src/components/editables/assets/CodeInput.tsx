@@ -24,9 +24,9 @@ import { useClickOutside } from '@/utils/common/useClickOutside';
 import { Icon } from '@/components/common/icons/Icon';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import { CodeInputFullScreen } from './CodeInputFullScreen';
-import { MarkdownSupported } from '../MarkdownSupported';
 
 const DEFAULT_MAX_HEIGHT = 'calc(100% - 60px)';
+const DEFAULT_MIN_HEIGHT = '180px';
 
 interface CodeInputProps {
   label?: string;
@@ -40,10 +40,10 @@ interface CodeInputProps {
   readOnly?: boolean;
   transparent?: boolean;
   maxHeight?: string;
+  minHeight?: string;
   focused?: boolean;
   withFullscreen?: boolean;
   fullHeight?: boolean;
-  withMarkdown?: boolean;
 }
 
 export function CodeInput({
@@ -57,11 +57,11 @@ export function CodeInput({
   readOnly = false,
   transparent = false,
   maxHeight = DEFAULT_MAX_HEIGHT,
+  minHeight = DEFAULT_MIN_HEIGHT,
   labelContent,
   focused,
   withFullscreen,
   fullHeight = false,
-  withMarkdown = false,
 }: CodeInputProps) {
   const [focus, setFocus] = useState(false);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
@@ -156,7 +156,7 @@ export function CodeInput({
   };
 
   const codeInputCore = (fullScreen: boolean) => (
-    <div className={cn('relative group', { 'h-full': fullHeight })}>
+    <div className={cn('relative', { 'h-full': fullHeight })}>
       {label && (fullScreen || !withFullscreen) && (
         <div className="font-semibold text-white mb-[10px] flex ">
           <label htmlFor={label} className="py-[12px]">
@@ -169,7 +169,7 @@ export function CodeInput({
         ref={editorBoxRef}
         style={{
           maxHeight,
-          minHeight: maxHeight,
+          minHeight: isFullscreenOpen ? maxHeight : minHeight,
         }}
         className={cn(
           className,
@@ -191,7 +191,7 @@ export function CodeInput({
           highlight={(code) => onHighlight(code)}
           padding={10}
           className={cn(
-            'resize-none appearance-none border border-transparent w-full placeholder-gray-400 bottom-0 p-0 h-full  placeholder:text-gray-400  text-[15px] text-white  rounded-[8px]',
+            'resize-none appearance-none border border-transparent w-full placeholder-gray-400 bottom-0 p-0 h-full  placeholder:text-gray-400 text-[15px] text-gray-300 focus:text-white rounded-[8px]',
             {
               'opacity-[0.7] ': disabled,
               'bg-transparent': transparent,
@@ -209,14 +209,13 @@ export function CodeInput({
             icon={isFullscreenOpen ? Minimize2 : Maximize2}
             width={24}
             height={24}
-            className={cn(`absolute right-[25px] bottom-[80px] cursor-pointer text-gray-300 hover:text-white`, {
+            className={cn(`absolute right-[25px] bottom-[25px] cursor-pointer text-gray-300 hover:text-white`, {
               'right-[25px] bottom-[25px]': fullScreen,
             })}
             onClick={toggleFullscreen}
           />
         )}
       </div>
-      {withMarkdown && <MarkdownSupported />}
     </div>
   );
 
