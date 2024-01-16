@@ -41,13 +41,13 @@ async def wait_for_lock(chat_id: str) -> None:
 
 async def acquire_lock(chat_id: str, request_id: str, skip_mutating_clients: bool = False):
     _log.debug(f"Acquiring lock {chat_id} {request_id}")
+    if chat_id in chats and chats[chat_id].lock_id:
+        await wait_for_lock(chat_id)
+
     if chat_id not in chats:
         chat_history = await load_chat_history(chat_id)
         chat_history.lock_id = None
         chats[chat_id] = chat_history
-
-    if chats[chat_id].lock_id:
-        await wait_for_lock(chat_id)
 
     chats[chat_id].lock_id = request_id
     lock_events[chat_id].clear()
