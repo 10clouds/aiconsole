@@ -12,7 +12,7 @@ from aiconsole.utils.list_files_in_file_system import list_files_in_file_system
 
 
 async def load_all_assets(asset_type: AssetType) -> dict[str, list[Asset]]:
-    _assets = {}
+    _assets: dict[str, list[Asset]] = {}
 
     locations = [
         [AssetLocation.PROJECT_DIR, get_project_assets_directory(asset_type)],

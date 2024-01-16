@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from typing import Any, Callable
 
 from aiconsole.core.chat.chat_mutations import (
     AppendToAnalysisMessageGroupMutation,
@@ -43,49 +44,10 @@ from aiconsole.core.chat.types import (
 _log = logging.getLogger(__name__)
 
 
-def apply_mutation(chat: Chat, mutation: ChatMutation) -> None:
-    """
-    KEEEP THIS IN SYNC WITH FRONTEND applyMutation!
-
-    Chat to which we received an exclusive write access.
-    It provides modification methods which should be used instead of modifying the chat directly.
-    """
-
-    {
-        CreateMessageGroupMutation.__name__: _handle_CreateMessageGroupMutation,
-        DeleteMessageGroupMutation.__name__: _handle_DeleteMessageGroupMutation,
-        SetIsAnalysisInProgressMutation.__name__: _handle_SetIsAnalysisInProgressMutation,
-        SetTaskMessageGroupMutation.__name__: _handle_SetMessageGroupTaskMutation,
-        AppendToTaskMessageGroupMutation.__name__: _handle_AppendToMessageGroupTaskMutation,
-        SetRoleMessageGroupMutation.__name__: _handle_SetMessageGroupRoleMutation,
-        SetAgentIdMessageGroupMutation.__name__: _handle_SetMessageGroupAgentIdMutation,
-        SetMaterialsIdsMessageGroupMutation.__name__: _handle_SetMessageGroupMaterialsIdsMutation,
-        AppendToMaterialsIdsMessageGroupMutation.__name__: _handle_AppendToMessageGroupMaterialsIdsMutation,
-        SetAnalysisMessageGroupMutation.__name__: _handle_SetMessageGroupAnalysisMutation,
-        AppendToAnalysisMessageGroupMutation.__name__: _handle_AppendToMessageGroupAnalysisMutation,
-        CreateMessageMutation.__name__: _handle_CreateMessageMutation,
-        DeleteMessageMutation.__name__: _handle_DeleteMessageMutation,
-        SetContentMessageMutation.__name__: _handle_SetContentMessageMutation,
-        AppendToContentMessageMutation.__name__: _handle_AppendToContentMessageMutation,
-        SetIsStreamingMessageMutation.__name__: _handle_SetMessageIsStreamingMutation,
-        CreateToolCallMutation.__name__: _handle_CreateToolCallMutation,
-        DeleteToolCallMutation.__name__: _handle_DeleteToolCallMutation,
-        SetHeadlineToolCallMutation.__name__: _handle_SetToolCallHeadlineMutation,
-        AppendToHeadlineToolCallMutation.__name__: _handle_AppendToToolCallHeadlineMutation,
-        SetCodeToolCallMutation.__name__: _handle_SetToolCallCodeMutation,
-        AppendToCodeToolCallMutation.__name__: _handle_AppendToToolCallCodeMutation,
-        SetLanguageToolCallMutation.__name__: _handle_SetToolCallLanguageMutation,
-        SetOutputToolCallMutation.__name__: _handle_SetToolCallOutputMutation,
-        AppendToOutputToolCallMutation.__name__: _handle_AppendToToolCallOutputMutation,
-        SetIsStreamingToolCallMutation.__name__: _handle_SetToolCallIsStreamingMutation,
-        SetIsExecutingToolCallMutation.__name__: _handle_SetIsExecutingToolCallMutation,
-    }[mutation.__class__.__name__](chat, mutation)
-
-
 # Handlers
 
 
-def _handle_CreateMessageGroupMutation(chat: Chat, mutation: CreateMessageGroupMutation) -> AICMessageGroup:
+def _handle_CreateMessageGroupMutation(chat: Chat, mutation: CreateMessageGroupMutation) -> None:
     message_group = AICMessageGroup(
         id=mutation.message_group_id,
         agent_id=mutation.agent_id,
@@ -97,8 +59,6 @@ def _handle_CreateMessageGroupMutation(chat: Chat, mutation: CreateMessageGroupM
     )
 
     chat.message_groups.append(message_group)
-
-    return message_group
 
 
 def _handle_DeleteMessageGroupMutation(chat, mutation: DeleteMessageGroupMutation) -> None:
@@ -155,7 +115,7 @@ def _handle_AppendToMessageGroupAnalysisMutation(chat, mutation: AppendToAnalysi
     message_group.analysis += mutation.analysis_delta
 
 
-def _handle_CreateMessageMutation(chat, mutation: CreateMessageMutation) -> AICMessage:
+def _handle_CreateMessageMutation(chat, mutation: CreateMessageMutation) -> None:
     message_group = _get_message_group(chat, mutation.message_group_id)
     message = AICMessage(
         id=mutation.message_id,
@@ -164,7 +124,6 @@ def _handle_CreateMessageMutation(chat, mutation: CreateMessageMutation) -> AICM
         tool_calls=[],
     )
     message_group.messages.append(message)
-    return message
 
 
 def _handle_DeleteMessageMutation(chat, mutation: DeleteMessageMutation) -> None:
@@ -190,7 +149,7 @@ def _handle_SetMessageIsStreamingMutation(chat, mutation: SetIsStreamingMessageM
     _get_message_location(chat, mutation.message_id).message.is_streaming = mutation.is_streaming
 
 
-def _handle_CreateToolCallMutation(chat, mutation: CreateToolCallMutation) -> AICToolCall:
+def _handle_CreateToolCallMutation(chat, mutation: CreateToolCallMutation) -> None:
     message = _get_message_location(chat, mutation.message_id).message
     tool_call = AICToolCall(
         id=mutation.tool_call_id,
@@ -200,7 +159,6 @@ def _handle_CreateToolCallMutation(chat, mutation: CreateToolCallMutation) -> AI
         output=mutation.output,
     )
     message.tool_calls.append(tool_call)
-    return tool_call
 
 
 def _handle_DeleteToolCallMutation(chat, mutation: DeleteToolCallMutation) -> None:
@@ -285,3 +243,47 @@ def _get_tool_call_location(chat: Chat, tool_call_id: str) -> AICToolCallLocatio
         raise ValueError(f"Tool call with id {tool_call_id} not found")
 
     return tool_call_location
+
+
+MUTATION_HANDLERS: dict[str, Callable[[Chat, Any], None]] = {
+    CreateMessageGroupMutation.__name__: _handle_CreateMessageGroupMutation,
+    DeleteMessageGroupMutation.__name__: _handle_DeleteMessageGroupMutation,
+    SetIsAnalysisInProgressMutation.__name__: _handle_SetIsAnalysisInProgressMutation,
+    SetTaskMessageGroupMutation.__name__: _handle_SetMessageGroupTaskMutation,
+    AppendToTaskMessageGroupMutation.__name__: _handle_AppendToMessageGroupTaskMutation,
+    SetRoleMessageGroupMutation.__name__: _handle_SetMessageGroupRoleMutation,
+    SetAgentIdMessageGroupMutation.__name__: _handle_SetMessageGroupAgentIdMutation,
+    SetMaterialsIdsMessageGroupMutation.__name__: _handle_SetMessageGroupMaterialsIdsMutation,
+    AppendToMaterialsIdsMessageGroupMutation.__name__: _handle_AppendToMessageGroupMaterialsIdsMutation,
+    SetAnalysisMessageGroupMutation.__name__: _handle_SetMessageGroupAnalysisMutation,
+    AppendToAnalysisMessageGroupMutation.__name__: _handle_AppendToMessageGroupAnalysisMutation,
+    CreateMessageMutation.__name__: _handle_CreateMessageMutation,
+    DeleteMessageMutation.__name__: _handle_DeleteMessageMutation,
+    SetContentMessageMutation.__name__: _handle_SetContentMessageMutation,
+    AppendToContentMessageMutation.__name__: _handle_AppendToContentMessageMutation,
+    SetIsStreamingMessageMutation.__name__: _handle_SetMessageIsStreamingMutation,
+    CreateToolCallMutation.__name__: _handle_CreateToolCallMutation,
+    DeleteToolCallMutation.__name__: _handle_DeleteToolCallMutation,
+    SetHeadlineToolCallMutation.__name__: _handle_SetToolCallHeadlineMutation,
+    AppendToHeadlineToolCallMutation.__name__: _handle_AppendToToolCallHeadlineMutation,
+    SetCodeToolCallMutation.__name__: _handle_SetToolCallCodeMutation,
+    AppendToCodeToolCallMutation.__name__: _handle_AppendToToolCallCodeMutation,
+    SetLanguageToolCallMutation.__name__: _handle_SetToolCallLanguageMutation,
+    SetOutputToolCallMutation.__name__: _handle_SetToolCallOutputMutation,
+    AppendToOutputToolCallMutation.__name__: _handle_AppendToToolCallOutputMutation,
+    SetIsStreamingToolCallMutation.__name__: _handle_SetToolCallIsStreamingMutation,
+    SetIsExecutingToolCallMutation.__name__: _handle_SetIsExecutingToolCallMutation,
+}
+
+# Entry point
+
+
+def apply_mutation(chat: Chat, mutation: ChatMutation) -> None:
+    """
+    KEEEP THIS IN SYNC WITH FRONTEND applyMutation!
+
+    Chat to which we received an exclusive write access.
+    It provides modification methods which should be used instead of modifying the chat directly.
+    """
+
+    MUTATION_HANDLERS[mutation.__class__.__name__](chat, mutation)

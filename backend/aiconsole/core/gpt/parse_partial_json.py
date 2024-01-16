@@ -7,7 +7,7 @@ def parse_partial_json(s: str) -> dict | None:
     except json.JSONDecodeError:
         pass
 
-    closing_chars_stack = []
+    closing_chars_stack: list[str] = []
     escaped = False
     completed_string = []
 

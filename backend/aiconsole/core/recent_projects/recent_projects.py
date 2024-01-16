@@ -22,14 +22,19 @@ from aiconsole.core.chat.list_possible_historic_chat_ids import (
     list_possible_historic_chat_ids,
 )
 from aiconsole.core.chat.load_chat_history import load_chat_history
-from aiconsole.core.recent_projects.recent_project import (
+from aiconsole.core.chat.types import Chat
+from aiconsole.core.recent_projects.registry import recent_projects_stats
+from aiconsole.core.recent_projects.types import (
     RecentProject,
     RecentProjectStats,
     RecentProjectStatsAgent,
 )
-from aiconsole.core.recent_projects.registry import recent_projects_stats
 
 _RECENT_PROJECTS_LAST_CHATS_COUNT = 4
+
+import logging
+
+_log = logging.getLogger(__name__)
 
 
 def _get_user_recent_projects_file():
@@ -81,13 +86,19 @@ async def get_recent_project() -> list[RecentProject]:
         chat_ids = list_possible_historic_chat_ids(path)
         materials_count = recent_projects_stats.get_materials_counts(path)
         agents_count = recent_projects_stats.get_agents_count(path)
+
+        recent_chat_names: list[str] = []
+        for id in chat_ids[:_RECENT_PROJECTS_LAST_CHATS_COUNT]:
+            try:
+                recent_chat_names.append((await load_chat_history(id, path)).name)
+            except Exception:
+                _log.exception(f"Error loading chat {id}")
+
         recent_projects_real.append(
             RecentProject(
                 name=os.path.basename(path),
                 path=path,
-                recent_chats=[
-                    (await load_chat_history(id, path)).name for id in chat_ids[_RECENT_PROJECTS_LAST_CHATS_COUNT:]
-                ],
+                recent_chats=recent_chat_names,
                 stats=RecentProjectStats(
                     materials_note_count=materials_count.note,
                     materials_dynamic_note_count=materials_count.dynamic_note,

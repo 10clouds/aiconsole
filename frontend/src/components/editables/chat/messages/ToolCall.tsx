@@ -155,21 +155,24 @@ export function ToolCall({ group, toolCall: tool_call }: MessageProps) {
                   className="overflow-scroll flex-grow rounded-md !m-0"
                 />
               </EditableContentMessage>
-              {isViableForRunningCode(tool_call.id) && !tool_call.is_streaming && (
-                <div className="flex gap-4 pt-2 mt-2">
-                  <Button variant="status" statusColor="green" small onClick={handleRunClick}>
-                    <Icon icon={Play} />
-                    Run
-                  </Button>
-
-                  {!alwaysExecuteCode && (
-                    <Button onClick={handleAlwaysRunClick} variant="status" statusColor="purple" small>
-                      <Icon icon={Infinity} />
-                      Always Run
+              {isViableForRunningCode(tool_call.id) &&
+                !tool_call.is_streaming &&
+                tool_call.headline &&
+                tool_call.code && (
+                  <div className="flex gap-4 pt-2 mt-2">
+                    <Button variant="status" statusColor="green" small onClick={handleRunClick}>
+                      <Icon icon={Play} />
+                      Run
                     </Button>
-                  )}
-                </div>
-              )}
+
+                    {!alwaysExecuteCode && (
+                      <Button onClick={handleAlwaysRunClick} variant="status" statusColor="purple" small>
+                        <Icon icon={Infinity} />
+                        Always Run
+                      </Button>
+                    )}
+                  </div>
+                )}
             </div>
           </div>
 

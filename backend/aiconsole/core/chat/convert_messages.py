@@ -31,7 +31,7 @@ last_system_message = None
 def convert_message(group: AICMessageGroup, message: AICMessage, is_last: bool) -> list[GPTRequestMessage]:
     global last_system_message
 
-    result = []
+    result: list[GPTRequestMessage] = []
 
     #
     # Augment the messages with system messages with meta data about which agent is speaking and what materials were available

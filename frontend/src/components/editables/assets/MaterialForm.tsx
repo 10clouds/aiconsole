@@ -43,9 +43,9 @@ export const MaterialForm = ({ material }: MaterialFormProps) => {
 
   return (
     <>
-      <FormGroup className="relative group">
+      <FormGroup className="relative">
         <TextInput
-          className="min-h-[70px]"
+          className="min-h-[90px]"
           label="Usage"
           name="usage"
           placeholder="Write text here"
@@ -54,14 +54,12 @@ export const MaterialForm = ({ material }: MaterialFormProps) => {
           helperText="Usage is used to help identify when this material should be used. "
           resize
         />
-        <MarkdownSupported className="bottom-[35px] right-[40px]" />
+        <MarkdownSupported />
       </FormGroup>
-      <FormGroup className="w-full h-full flex overflow-clip">
+      <FormGroup className="w-full h-full flex flex-col">
         <div className="flex-1">
           {codeEditorSectionContent ? (
             <CodeInput
-              fullHeight
-              withMarkdown
               label={codeEditorSectionContent.label}
               labelContent={
                 <CodeEditorLabelContent showPreview={showPreview} onClick={() => setShowPreview((prev) => !prev)} />
@@ -72,6 +70,7 @@ export const MaterialForm = ({ material }: MaterialFormProps) => {
               readOnly={showPreview}
             />
           ) : null}
+          <MarkdownSupported />
         </div>
       </FormGroup>
     </>

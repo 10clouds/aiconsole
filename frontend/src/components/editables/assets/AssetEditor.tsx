@@ -149,14 +149,14 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
 
       showToast({
         title: 'Saved',
-        message: 'saved',
+        message: `The ${assetType} has been successfully saved.`,
         variant: 'success',
       });
     } else if (lastSavedAsset && lastSavedAsset.id !== asset.id) {
       await renameAsset(lastSavedAsset.id, asset);
       showToast({
-        title: 'Renamed',
-        message: 'renamed',
+        title: 'Overwritten',
+        message: `The ${assetType} has been overwritten.`,
         variant: 'success',
       });
     } else {
@@ -165,7 +165,7 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
 
         showToast({
           title: 'Saved',
-          message: 'saved',
+          message: `The ${assetType} has been successfully saved.`,
           variant: 'success',
         });
       }
