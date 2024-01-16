@@ -127,6 +127,8 @@ async def reinitialize_project():
 
     _agents = assets.Assets(asset_type=AssetType.AGENT)
     _materials = assets.Assets(asset_type=AssetType.MATERIAL)
+    
+    settings().configure(SettingsFileStorage(project_path=get_project_directory_safe()))
 
     await connection_manager().send_to_all(
         ProjectOpenedServerMessage(path=str(get_project_directory()), name=get_project_name())
