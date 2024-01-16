@@ -39,10 +39,13 @@ import subprocess
 import threading
 import time
 import traceback
+from pathlib import Path
 from typing import AsyncGenerator
 
 from aiconsole.core.assets.materials.material import Material
-from aiconsole.core.code_running.virtual_env.create_dedicated_venv import WaitForEnvEvent
+from aiconsole.core.code_running.virtual_env.create_dedicated_venv import (
+    WaitForEnvEvent,
+)
 from aiconsole.utils.events import internal_events
 from aiconsole_toolkit.env import (
     get_current_project_venv_bin_path,
@@ -83,7 +86,6 @@ class SubprocessCodeInterpreter(BaseCodeInterpreter):
             raise Exception("Process not started")
 
     def start_process(self):
-
         if self.process:
             self.terminate()
 
@@ -201,13 +203,25 @@ class SubprocessCodeInterpreter(BaseCodeInterpreter):
             "VIRTUAL_ENV": str(get_current_project_venv_path()),
         }
 
-    async def wait_for_path(self):
-        venv_path = get_current_project_venv_path() / "aic_version"
-        for i in range(20):
+    async def wait_for_path(self, timeout: int = 100, check_interval: int = 5):
+        """
+        Waits for a virtual environment path to exist, with a timeout and check interval.
+
+        :param timeout: Total time to wait for the path in seconds.
+        :param check_interval: Time interval between checks in seconds.
+        :raises RuntimeError: If the path does not exist after the timeout period.
+        """
+        venv_path: Path = get_current_project_venv_path() / "aic_version"
+
+        if not venv_path.exists():
+            await internal_events().emit(WaitForEnvEvent())
+
+        end_time = asyncio.get_event_loop().time() + timeout
+        while asyncio.get_event_loop().time() < end_time:
             if venv_path.exists():
                 _log.info(f"Path {venv_path} exists now.")
                 return
             _log.info(f"Waiting for path {venv_path} to exist...")
-            await internal_events().emit(WaitForEnvEvent())
-            await asyncio.sleep(5)
-        raise RuntimeError("No venv located")
+            await asyncio.sleep(check_interval)
+
+        raise RuntimeError(f"No venv located at {venv_path} after {timeout} seconds")
