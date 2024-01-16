@@ -46,20 +46,19 @@ async def acquire_lock(chat_id: str, request_id: str, skip_mutating_clients: boo
         chat_history.lock_id = None
         chats[chat_id] = chat_history
 
-    if not skip_mutating_clients:
-        if chats[chat_id].lock_id:
-            # raise Exception("Lock already acquired")
-            await wait_for_lock(chat_id)
+    if chats[chat_id].lock_id:
+        await wait_for_lock(chat_id)
 
-        chats[chat_id].lock_id = request_id
-        lock_events[chat_id].clear()
+    chats[chat_id].lock_id = request_id
+    lock_events[chat_id].clear()
+
+    if not skip_mutating_clients:
         await connection_manager().send_to_chat(
             NotifyAboutChatMutationServerMessage(
                 request_id=request_id, chat_id=chat_id, mutation=LockAcquiredMutation(lock_id=request_id)
             ),
             chat_id,
         )
-
     return chats[chat_id]
 
 

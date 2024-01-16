@@ -17,6 +17,9 @@
 import datetime
 import logging
 
+from aiconsole.api.websockets.connection_manager import connection_manager
+from aiconsole.api.websockets.server_messages import SettingsServerMessage
+
 _log = logging.getLogger(__name__)
 
 
@@ -28,11 +31,11 @@ class SettingsNotifications:
         self._suppress_notification_until = datetime.datetime.now() + datetime.timedelta(minutes=seconds)
 
     async def notify(self):
-        from aiconsole.api.websockets.server_messages import SettingsServerMessage
-
-        await SettingsServerMessage(
-            initial=self._suppress_notification_until is not None
-            and self._suppress_notification_until > datetime.datetime.now()
-        ).send_to_all()
+        await connection_manager().send_to_all(
+            SettingsServerMessage(
+                initial=self._suppress_notification_until is not None
+                and self._suppress_notification_until > datetime.datetime.now()
+            )
+        )
 
         self._suppress_notification_until = None

@@ -32,7 +32,7 @@ from aiconsole.api.websockets.client_messages import (
 from aiconsole.api.websockets.connection_manager import (
     AcquiredLock,
     AICConnection,
-    send_message_to_chat,
+    connection_manager,
 )
 from aiconsole.api.websockets.server_messages import (
     ChatOpenedServerMessage,
@@ -168,8 +168,9 @@ async def _handle_init_chat_mutation_ws_message(
 
 async def _handle_accept_code_ws_message(connection: AICConnection, message: AcceptCodeClientMessage):
     async def _notify(event):
-        await send_message_to_chat(
-            message.chat_id, NotificationServerMessage(title="Wait", message="Environment is still being created")
+        await connection_manager().send_to_chat(
+            NotificationServerMessage(title="Wait", message="Environment is still being created"),
+            message.chat_id,
         )
 
     try:
