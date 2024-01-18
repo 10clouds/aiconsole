@@ -20,22 +20,21 @@ def project_directory() -> ProjectDirectory:
     return ProjectDirectory()
 
 
-# Disabled test beacuse of #624 and #625
-# @pytest.mark.asyncio
-# async def test_should_be_able_to_add_new_project(
-#     background_tasks: BackgroundTasks, project_directory: ProjectDirectory
-# ):
-#     await _initialize_app()
-#     await _login("test_key")
+@pytest.mark.asyncio
+async def test_should_be_able_to_add_new_project(
+    background_tasks: BackgroundTasks, project_directory: ProjectDirectory
+):
+    await _initialize_app()
+    await _login("test_key")
 
-#     project_path = Path("./")
+    project_path = Path("./")
 
-#     await project_directory.switch_or_save_project(
-#         directory=str(project_path),
-#         background_tasks=background_tasks,
-#     )
+    await project_directory.switch_or_save_project(
+        directory=str(project_path),
+        background_tasks=background_tasks,
+    )
 
-#     assert project_path.absolute() in {project.path.absolute() for project in await get_recent_project()}
+    assert project_path.absolute() in {project.path.absolute() for project in await get_recent_project()}
 
 
 async def _initialize_app():
