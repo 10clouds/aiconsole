@@ -240,7 +240,7 @@ Structure of a project folder
 
 `/settings.toml` - configuration file containing information about disabled materials
 
-Note that in your home app directory you have additional settings.toml which stored global settings.
+Note that in your home app directory you have additional settings.toml which stores global settings.
 
 Material, Agent and settings files are monitored and automatically loaded, then used as context.
 

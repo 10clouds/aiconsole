@@ -24,10 +24,9 @@ def project_directory() -> ProjectDirectory:
 async def test_should_be_able_to_add_new_project(
     background_tasks: BackgroundTasks, project_directory: ProjectDirectory
 ):
-    await _initialize_app()
-    await _login("test_key")
-
     project_path = Path("./")
+    await _initialize_app(project_path)
+    await _login("test_key")
 
     await project_directory.switch_or_save_project(
         directory=str(project_path),
@@ -37,8 +36,8 @@ async def test_should_be_able_to_add_new_project(
     assert project_path.absolute() in {project.path.absolute() for project in await get_recent_project()}
 
 
-async def _initialize_app():
-    settings().configure(storage=SettingsFileStorage(None))
+async def _initialize_app(project_path: Path):
+    settings().configure(storage=SettingsFileStorage(project_path))
 
 
 async def _login(openai_api_key: str):
