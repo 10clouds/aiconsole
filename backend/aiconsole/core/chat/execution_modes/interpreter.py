@@ -69,7 +69,7 @@ _log = logging.getLogger(__name__)
 class CodeTask(OpenAISchema):
     headline: str = Field(
         ...,
-        description="Short (max 25 chars) title of this task, it will be displayed to the user",
+        description="Short (max 15 chars) title of this task, it will be displayed to the user",
         json_schema_extra={"type": "string"},
     )
 
@@ -82,7 +82,7 @@ class python(CodeTask):
 
     code: str = Field(
         ...,
-        description="python code to execute, it will be executed in a stateful Jupyter notebook environment",
+        description="python code to execute. it will be executed in a stateful Jupyter notebook environment. Use /n only in strings, not in code. Don't use \" in the beging and end of the code. Code must be formated.",
         json_schema_extra={"type": "string"},
     )
 
@@ -220,6 +220,7 @@ async def _generate_response(
                 ],
                 min_tokens=250,
                 preferred_tokens=2000,
+                temperature=0.2,
             )
         ):
             if chunk == CLEAR_STR:
@@ -307,68 +308,64 @@ async def _generate_response(
                                 )
                             )
 
-                    if function_call.arguments:
-                        if function_call.name not in [
-                            python.__name__,
-                            applescript.__name__,
-                        ]:
-                            if tool_call_data.language is None:
-                                await send_language_if_needed("python")
+                    async def send_code_and_language_if_needed(code, language="python", reduce=0):
+                        await send_language_if_needed(language)
+                        code_delta = code[(len(tool_call_data.code)) - reduce :]
+                        await send_code_delta(code_delta)
 
-                                _log.info(f"function_call: {function_call}")
-                                _log.info(f"function_call.arguments: {function_call.arguments}")
+                    if not function_call.arguments:
+                        continue
 
-                                code_delta = f"{function_call.name}(**"
-                                await send_code_delta(code_delta)
-                                tools_requiring_closing_parenthesis.append(tool_call_data.id)
-                            else:
-                                code_delta = function_call.arguments[len(tool_call_data.code) :]
-                                tool_call_data.code = function_call.arguments
-                                await send_code_delta(code_delta)
+                    if function_call.name in [
+                        python.__name__,
+                        applescript.__name__,
+                    ]:
+                        arguments_str = function_call.arguments
+                        languages = language_map.keys()
+
+                        if tool_call_data.language is None and function_call.name in languages:
+                            # Languge is in the name of the function call
+                            await send_language_if_needed(cast(LanguageStr, function_call.name))
+
+                        # This can now be both a string and a json object
+                        try:
+                            arguments = json.loads(arguments_str)
+                            _log.debug(f"arguments: {arguments}")
+                            # [1] this code block executes only once, after full json is received
+                            code = arguments.get("code")
+                            headline = arguments.get("headline")
+
+                            if code:
+                                await send_code_and_language_if_needed(code)
+
+                            if headline:
+                                headline_delta = headline[len(tool_call_data.headline) :]
+                                tool_call_data.headline = headline
+                                await send_code_delta(headline_delta=headline_delta)
+                            # [1] END
+
+                        except json.JSONDecodeError:
+                            if not arguments_str:
+                                pass
+                            elif not arguments_str.startswith("{"):
+                                await send_code_and_language_if_needed(arguments_str)
+                            elif '"code": ' in arguments_str:
+                                code = arguments_str.partition('"code": ')[2].replace('"""', "").replace("}", "")
+                                await send_code_and_language_if_needed(code, reduce=1)
+                    else:
+                        if tool_call_data.language is None:
+                            await send_language_if_needed("python")
+
+                            _log.info(f"function_call: {function_call}")
+                            _log.info(f"function_call.arguments: {function_call.arguments}")
+
+                            code_delta = f"{function_call.name}(**"
+                            await send_code_delta(code_delta)
+                            tools_requiring_closing_parenthesis.append(tool_call_data.id)
                         else:
-                            arguments_str = function_call.arguments
-                            languages = language_map.keys()
-
-                            if tool_call_data.language is None and function_call.name in languages:
-                                # Languge is in the name of the function call
-                                await send_language_if_needed(cast(LanguageStr, function_call.name))
-
-                            # This can now be both a string and a json object
-                            try:
-                                arguments = json.loads(arguments_str)
-
-                                code_delta = ""
-                                headline_delta = ""
-
-                                if arguments and "code" in arguments:
-                                    await send_language_if_needed("python")
-
-                                    code_delta = arguments["code"][len(tool_call_data.code) :]
-                                    tool_call_data.code = arguments["code"]
-
-                                if arguments and "headline" in arguments:
-                                    headline_delta = arguments["headline"][len(tool_call_data.headline) :]
-                                    tool_call_data.headline = arguments["headline"]
-
-                                if code_delta or headline_delta:
-                                    await send_code_delta(code_delta, headline_delta)
-                            except json.JSONDecodeError:
-                                if not arguments_str:
-                                    continue
-
-                                # incorrect OpenAI response, where code is passed like a string, not JSON
-                                if not arguments_str.startswith("{"):
-                                    await send_language_if_needed("python")
-
-                                    code_delta = arguments_str[len(tool_call_data.code) :]
-                                    await send_code_delta(code_delta)
-                                # incorrect OpenAI response, where code is passed JSON like string, so each chunk is a part of JSON
-                                elif '"code": ' in arguments_str:
-                                    await send_language_if_needed("python")
-
-                                    code = arguments_str.partition('"code": ')[2].replace('"""', "").replace("}", "")
-                                    code_delta = code[len(tool_call_data.code) - 1 :]
-                                    await send_code_delta(code_delta)
+                            code_delta = function_call.arguments[len(tool_call_data.code) :]
+                            tool_call_data.code = function_call.arguments
+                            await send_code_delta(code_delta)
 
     finally:
         for tool_id in tools_requiring_closing_parenthesis:

@@ -124,7 +124,7 @@ class SubprocessCodeInterpreter(BaseCodeInterpreter):
             return
 
         while retry_count <= max_retries:
-            _log.info(f"Running code:\n{code}\n---")
+            # _log.info(f"Running code:\n{code}\n---")
 
             self.done.clear()
 
