@@ -1,6 +1,6 @@
 name = "Dalle 3 Image Generator"
 version = "0.0.20"
-usage = "Use it when you need to generate images"
+usage = "Use when you need to generate images. Display image using 'how to display image' material"
 usage_examples = []
 default_status = "enabled"
 content_type = "api"

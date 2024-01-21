@@ -111,6 +111,7 @@ class SubprocessCodeInterpreter(BaseCodeInterpreter):
         ).start()
 
     async def run(self, code: str, materials: list[Material]) -> AsyncGenerator[str, None]:
+        _log.debug(f"Running code:\n{code}\n---")
         retry_count = 0
         max_retries = 3
 

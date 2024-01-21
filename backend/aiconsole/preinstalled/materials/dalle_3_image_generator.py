@@ -37,13 +37,16 @@ def _extract_filename_from_url(url):
     return filename
 
 
-def generate_image(prompt: str, size: Literal["1024x1024", "1792x1024", "1024x1792"]) -> list[Image]:
+def generate_image(prompt: str, size: str) -> list[Image]:
     """
-    Returns a list of:
+    Generates an image using the DALL-E-3 model based on the given prompt and size.
 
-    class Image(BaseModel):
-      relative_path: str
-      revised_prompt: str
+    Args:
+        prompt (str): The prompt for generating the image.
+        size (Literal["1024x1024", "1792x1024", "1024x1792"]): The size of the generated image.
+
+    Returns:
+        list[Image]: A list of Image objects containing the relative path of type str and revised prompt of type str of each generated image.
     """
     openai_key = get_settings().openai_api_key
 
