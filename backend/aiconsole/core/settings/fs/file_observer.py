@@ -6,7 +6,7 @@ from typing import Callable
 from watchdog.observers import Observer
 
 from aiconsole.utils.BatchingWatchDogHandler import BatchingWatchDogHandler
-
+from os.path import exists
 _log = logging.getLogger(__name__)
 
 
@@ -26,6 +26,7 @@ class FileObserver:
 
         # Setup and start new observer
         for file_path in file_paths:
+            print(f"DEBUGGING: File with path {file_path} exists: {exists(file_path)}")
             if not isinstance(file_path, Path):
                 _log.error(f"[{self.__class__.__name__}] Not a valid filepath: {file_path}")
                 continue

@@ -1,4 +1,5 @@
 import logging
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Optional
@@ -40,7 +41,15 @@ class SettingsFileStorage(SettingsStorage):
 
     @property
     def global_settings_file_path(self):
-        return AICONSOLE_USER_CONFIG_DIR() / "settings.toml"
+        user_config_dir = AICONSOLE_USER_CONFIG_DIR()
+        # user_config_dir = "/home/runner/.config"
+        print(f"DEBUGGING: .rustup dir: {os.listdir('/home/runner/.rustup/')}")
+        with open("/home/runner/.rustup/settings.toml", "r") as f:
+            print(f"DEBUGGING: .rustup/settings.toml")
+            print(f.read())
+        for path in Path('/').rglob('settings.toml'):
+            print(f"DEBUGGING: Found settings.toml: {path}")
+        return user_config_dir / "settings.toml"
 
     @property
     def project_settings_file_path(self):
@@ -74,4 +83,5 @@ class SettingsFileStorage(SettingsStorage):
             file_paths.append(self.project_settings_file_path)
 
         if self.observer:
+            print(f"DEBUGGING: File paths: {file_paths}")
             self.observer.start(file_paths=file_paths, on_changed=self._reload)

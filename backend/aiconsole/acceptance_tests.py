@@ -24,8 +24,8 @@ def project_directory() -> ProjectDirectory:
 async def test_should_be_able_to_add_new_project(
     background_tasks: BackgroundTasks, project_directory: ProjectDirectory
 ):
-    await _login("test_key")
     await _initialize_app()
+    await _login("test_key")
 
     project_path = Path("./")
 
