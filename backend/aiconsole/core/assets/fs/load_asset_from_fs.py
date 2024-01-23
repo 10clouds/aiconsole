@@ -58,7 +58,7 @@ async def load_asset_from_fs(asset_type: AssetType, asset_id: str, location: Ass
     else:
         raise KeyError(f"Asset {asset_id} not found")
 
-    with open(path, "r", encoding="utf8", errors='replace') as file:
+    with open(path, "r", encoding="utf8", errors="replace") as file:
         tomldoc = rtoml.loads(file.read())
 
     asset_id = os.path.splitext(os.path.basename(path))[0]

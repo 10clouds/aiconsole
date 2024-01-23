@@ -69,11 +69,7 @@ log_config = {
             "datefmt": "%H:%M:%S ",
             "style": LOG_STYLE,
         },
-        "default": {
-            "()": "logging.Formatter",
-            "fmt": "{asctime} [{levelname}] {name}: {message}",
-            "style": "{"
-        },
+        "default": {"()": "logging.Formatter", "fmt": "{asctime} [{levelname}] {name}: {message}", "style": "{"},
     },
     "handlers": {
         "developmentHandler": {
