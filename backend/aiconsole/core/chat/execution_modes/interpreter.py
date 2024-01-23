@@ -69,7 +69,7 @@ _log = logging.getLogger(__name__)
 class CodeTask(OpenAISchema):
     headline: str = Field(
         ...,
-        description="Short (max 15 chars) title of this task, it will be displayed to the user",
+        description="Must have. Title of this task with maximum 15 characters.",
         json_schema_extra={"type": "string"},
     )
 
@@ -82,7 +82,7 @@ class python(CodeTask):
 
     code: str = Field(
         ...,
-        description="python code to execute. it will be executed in a stateful Jupyter notebook environment. Use /n only in strings, not in code. Don't use \" in the beging and end of the code. Code must be formated.",
+        description="Python code to execute. Code must be formated. Mark the begging of the code with # START and end of the code with # END. It will be executed in the statefull Jupyter notebook environment.",
         json_schema_extra={"type": "string"},
     )
 
@@ -362,8 +362,25 @@ async def _send_code(tool_calls, context, tools_requiring_closing_parenthesis, m
                     # [1] END
 
                 except json.JSONDecodeError:
-                    if not arguments_str:
-                        pass
+                    if arguments_str:
+                        start_marker = "# START"
+                        end_marker = "# END"
+                        arguments_str = arguments_str.replace("\\\\", "\\")
+
+                        arguments_str = arguments_str.rpartition("\n")[0]
+
+                        start_index = arguments_str.find(start_marker)
+                        if start_index != -1:
+                            start_index += len(start_marker)  # Move the index to the end of the start marker
+                        else:
+                            continue
+
+                        end_index = arguments_str.find(end_marker)
+                        if end_index == -1:
+                            end_index = len(arguments_str)
+
+                        code = arguments_str[start_index:end_index]
+                        await send_code_and_language_if_needed(code)
                     # elif not arguments_str.startswith("{"):
                     #     await send_code_and_language_if_needed(arguments_str)
                     # elif '"code": ' in arguments_str:

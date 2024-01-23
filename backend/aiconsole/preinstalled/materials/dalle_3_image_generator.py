@@ -47,6 +47,11 @@ def generate_image(prompt: str, size: str) -> list[Image]:
 
     Returns:
         list[Image]: A list of Image objects containing the relative path of type str and revised prompt of type str of each generated image.
+
+    Where Image is defined as:
+    class Image(BaseModel):
+        relative_path: str
+        revised_prompt: str
     """
     openai_key = get_settings().openai_api_key
 
