@@ -284,7 +284,6 @@ class IncomingMessageHandler:
             agent = self._director_agent
 
             execution_mode = await import_and_validate_execution_mode(agent)
-
             await execution_mode.process_chat(
                 ProcessChatContext(
                     chat_mutator=chat_mutator,

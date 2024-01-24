@@ -132,6 +132,7 @@ def _handle_CreateMessageMutation(chat, mutation: CreateMessageMutation) -> None
         content=mutation.content,
         timestamp=datetime.now().isoformat(),
         tool_calls=[],
+        is_streaming=False,
     )
     message_group.messages.append(message)
 
@@ -153,6 +154,7 @@ def _handle_SetContentMessageMutation(chat, mutation: SetContentMessageMutation)
 
 def _handle_AppendToContentMessageMutation(chat, mutation: AppendToContentMessageMutation) -> None:
     _get_message_location(chat, mutation.message_id).message.content += mutation.content_delta
+    _get_message_location(chat, mutation.message_id).message.is_streaming = True
 
 
 def _handle_SetMessageIsStreamingMutation(chat, mutation: SetIsStreamingMessageMutation) -> None:

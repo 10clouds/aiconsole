@@ -34,6 +34,7 @@ from aiconsole.core.chat.chat_mutations import (
     CreateToolCallMutation,
     SetContentMessageMutation,
     SetIsExecutingToolCallMutation,
+    SetIsStreamingToolCallMutation,
     SetLanguageToolCallMutation,
     SetOutputToolCallMutation,
 )
@@ -255,6 +256,13 @@ async def _generate_response(
                     code_delta=")",
                 )
             )
+        for tool_call in executor.partial_response.choices[0].message.tool_calls:
+            await context.chat_mutator.mutate(
+                SetIsStreamingToolCallMutation(
+                    tool_call_id=tool_call.id,
+                    is_streaming=False,
+                )
+            )
         _log.debug(f"tools_requiring_closing_parenthesis: {tools_requiring_closing_parenthesis}")
 
 
@@ -295,6 +303,13 @@ async def _send_code(tool_calls, context, tools_requiring_closing_parenthesis, m
 
         if not tool_call_data:
             raise Exception(f"Tool call {tool_call.id} not found")
+
+        await context.chat_mutator.mutate(
+            SetIsStreamingToolCallMutation(
+                tool_call_id=tool_call.id,
+                is_streaming=True,
+            )
+        )
 
         if tool_call.type == "function":
             function_call = tool_call.function
