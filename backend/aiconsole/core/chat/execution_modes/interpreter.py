@@ -82,7 +82,7 @@ class python(CodeTask):
 
     code: str = Field(
         ...,
-        description="Python code to execute. Code must be formated. Mark the begging of the code with # START and end of the code with # END. It will be executed in the statefull Jupyter notebook environment.",
+        description="Python code to execute. Code must be formated. The begging of the code MUST be marked with # START and end of the code with # END. It will be executed in the statefull Jupyter notebook environment.",
         json_schema_extra={"type": "string"},
     )
 
@@ -362,32 +362,34 @@ async def _send_code(tool_calls, context, tools_requiring_closing_parenthesis, m
                     # [1] END
 
                 except json.JSONDecodeError:
+                    # The code to run is recived in chunks, so we need to send the code in chunks as well
+                    # try exept is here as hack. Json is not valid until the last chunk is received
+                    # so this code will execute for every chunk except the last one
                     if arguments_str:
                         start_marker = "# START"
                         end_marker = "# END"
-                        arguments_str = arguments_str.replace("\\\\", "\\")
 
-                        arguments_str = arguments_str.rpartition("\n")[0]
+                        # Fixing code returned by GPT
+                        changed_str = arguments_str.replace("\\\\", "\\")
+                        changed_str = changed_str.replace("\\n", "\n")
+                        changed_str = changed_str.replace("\\\n", "\n")
 
-                        start_index = arguments_str.find(start_marker)
+                        start_index = changed_str.find(start_marker)
                         if start_index != -1:
-                            start_index += len(start_marker)  # Move the index to the end of the start marker
+                            start_index += len(start_marker)
                         else:
                             continue
 
-                        end_index = arguments_str.find(end_marker)
+                        end_index = changed_str.find(end_marker)
                         if end_index == -1:
-                            end_index = len(arguments_str)
+                            end_index = len(changed_str)
 
-                        code = arguments_str[start_index:end_index]
+                        # Send code by lines
+                        arguments_str = changed_str.rpartition("\n")[0]
+
+                        # GPT randomly inserts newlines, tabs, spaces in the beginnig.
+                        code = arguments_str[start_index:end_index].lstrip()
                         await send_code_and_language_if_needed(code)
-                    # elif not arguments_str.startswith("{"):
-                    #     await send_code_and_language_if_needed(arguments_str)
-                    # elif '"code": ' in arguments_str:
-                    #     code = arguments_str.partition('"code": ')[2]
-                    #     code = code[1:]
-                    #     # code = .replace('"""', "").replace("}", "")
-                    #     await send_code_and_language_if_needed(code, reduce=1)
             else:
                 if tool_call_data.language is None:
                     await send_language_if_needed("python")

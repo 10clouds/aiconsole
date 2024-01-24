@@ -34,9 +34,10 @@ class SettingsFileStorage(SettingsStorage):
     def __init__(
         self,
         project_path: Path | None,
+        disable_observer: bool = False,
     ):
         self.observer = FileObserver()
-        self.change_project(project_path)
+        self.change_project(project_path, disable_observer)
 
     @property
     def global_settings_file_path(self):
@@ -54,9 +55,11 @@ class SettingsFileStorage(SettingsStorage):
     def project_settings(self):
         return _get_settings_from_path(self.project_settings_file_path)
 
-    def change_project(self, project_path: Optional[Path] = None):
+    def change_project(self, project_path: Optional[Path] = None, disable_observer: bool = False):
         self._project_settings_file_path = project_path / "settings.toml" if project_path else None
-        self._start_observer()
+
+        if not disable_observer:
+            self._start_observer()
 
     def save(self, settings_data: PartialSettingsData, to_global: bool):
         file_path = self.global_settings_file_path if to_global else self.project_settings_file_path
