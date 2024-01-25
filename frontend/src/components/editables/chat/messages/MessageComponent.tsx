@@ -55,7 +55,7 @@ export function MessageComponent({ message, group }: MessageProps) {
       >
         <div className="flex flex-col gap-2">
           {message.is_streaming && !message.content && message.tool_calls.length === 0 && <BlinkingCursor />}
-          {!message.is_streaming && message.content && (
+          {message.content && (
             <div className="max-w-[700px]">
               {group.role !== 'user' && (
                 <div className="flex-grow">

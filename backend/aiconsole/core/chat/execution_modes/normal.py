@@ -32,6 +32,7 @@ from aiconsole.core.chat.chat_mutations import (
     AppendToContentMessageMutation,
     CreateMessageMutation,
     SetContentMessageMutation,
+    SetIsStreamingMessageMutation,
 )
 from aiconsole.core.chat.convert_messages import convert_messages
 from aiconsole.core.chat.execution_modes.execution_mode import (
@@ -104,26 +105,43 @@ async def execution_mode_process(
         )
     )
 
-    async for chunk in gpt_executor.execute(
-        GPTRequest(
-            messages=convert_messages(context.chat_mutator.chat),
-            gpt_mode=context.agent.gpt_mode,
-            system_message=create_full_prompt_with_materials(
-                intro=get_agent_system_message(context.agent),
-                materials=context.rendered_materials,
-            ),
-            min_tokens=250,
-            preferred_tokens=2000,
+    # SetIsStreamingMessageMutation
+    await context.chat_mutator.mutate(
+        SetIsStreamingMessageMutation(
+            message_id=message_id,
+            is_streaming=True,
         )
-    ):
-        if chunk == CLEAR_STR:
-            await context.chat_mutator.mutate(SetContentMessageMutation(message_id=message_id, content=""))
-        else:
-            choices = cast(list[StreamingChoices], chunk.choices)
-
-            await context.chat_mutator.mutate(
-                AppendToContentMessageMutation(message_id=message_id, content_delta=choices[0].delta.content or "")
+    )
+    try:
+        async for chunk in gpt_executor.execute(
+            GPTRequest(
+                messages=convert_messages(context.chat_mutator.chat),
+                gpt_mode=context.agent.gpt_mode,
+                system_message=create_full_prompt_with_materials(
+                    intro=get_agent_system_message(context.agent),
+                    materials=context.rendered_materials,
+                ),
+                min_tokens=250,
+                preferred_tokens=2000,
             )
+        ):
+            if chunk == CLEAR_STR:
+                await context.chat_mutator.mutate(SetContentMessageMutation(message_id=message_id, content=""))
+            else:
+                choices = cast(list[StreamingChoices], chunk.choices)
+
+                await context.chat_mutator.mutate(
+                    AppendToContentMessageMutation(message_id=message_id, content_delta=choices[0].delta.content or "")
+                )
+    except Exception as e:
+        _log.exception(e)
+    finally:
+        await context.chat_mutator.mutate(
+            SetIsStreamingMessageMutation(
+                message_id=message_id,
+                is_streaming=False,
+            )
+        )
 
 
 async def execution_mode_accept_code(

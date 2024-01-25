@@ -88,7 +88,7 @@ async def execution_mode_process(
 
     try:
         try:
-            async for token in get_code_interpreter("python").run(code, []):
+            async for token in get_code_interpreter("python", context.chat_mutator.chat.id).run(code, []):
                 await context.chat_mutator.mutate(
                     AppendToOutputToolCallMutation(
                         tool_call_id=tool_call_id,
@@ -96,7 +96,7 @@ async def execution_mode_process(
                     )
                 )
         except asyncio.CancelledError:
-            get_code_interpreter("python").terminate()
+            get_code_interpreter("python", context.chat_mutator.chat.id).terminate()
             raise
         except Exception:
             await connection_manager().send_to_chat(
