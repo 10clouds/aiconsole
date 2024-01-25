@@ -46,13 +46,16 @@ class SettingsFileStorage(SettingsStorage):
         print(f"DEBUGGING: user_config_dir: {user_config_dir}")
         print(f"DEBUGGING: user_config_dir: {os.listdir(user_config_dir)}")
         print(f"DEBUGGING: user_config_dir exists: {(user_config_dir / 'settings.toml').exists()}")
-        
+
+        print(f"DEBUGGING: runner dir: {os.listdir('/home/runner/')}")
+        print(f"DEBUGGING: .local dir: {os.listdir('/home/runner/.local/')}")
         print(f"DEBUGGING: .rustup dir: {os.listdir('/home/runner/.rustup/')}")
-        with open("/home/runner/.rustup/settings.toml", "r") as f:
-            print(f"DEBUGGING: .rustup/settings.toml")
-            print(f.read())
-        for path in Path('/').rglob('settings.toml'):
-            print(f"DEBUGGING: Found settings.toml: {path}")
+
+        # with open("/home/runner/.rustup/settings.toml", "r") as f:
+        #     print(f"DEBUGGING: .rustup/settings.toml")
+        #     print(f.read())
+        # for path in Path('/').rglob('settings.toml'):
+        #     print(f"DEBUGGING: Found settings.toml: {path}")
         return user_config_dir / "settings.toml"
 
     @property
