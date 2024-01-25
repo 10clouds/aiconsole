@@ -145,15 +145,23 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
     }
 
     if (lastSavedAsset === undefined) {
-      await EditablesAPI.saveNewEditableObject(editableObjectType, asset.id, asset);
+      if (!asset.override) {
+        await EditablesAPI.saveNewEditableObject(editableObjectType, asset.id, asset);
+        await updateStatusIfNecessary();
 
-      await updateStatusIfNecessary();
-
-      showToast({
-        title: 'Saved',
-        message: `The ${assetType} has been successfully saved.`,
-        variant: 'success',
-      });
+        showToast({
+          title: 'Saved',
+          message: `The ${assetType} has been successfully saved.`,
+          variant: 'success',
+        });
+      } else {
+        await EditablesAPI.updateEditableObject(editableObjectType, asset);
+        showToast({
+          title: 'Overwritten',
+          message: `The ${assetType} has been overwritten.`,
+          variant: 'success',
+        });
+      }
     } else if (lastSavedAsset && lastSavedAsset.id !== asset.id) {
       await renameAsset(lastSavedAsset.id, asset);
       showToast({
