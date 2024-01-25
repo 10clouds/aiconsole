@@ -43,6 +43,10 @@ class SettingsFileStorage(SettingsStorage):
     def global_settings_file_path(self):
         user_config_dir = AICONSOLE_USER_CONFIG_DIR()
         # user_config_dir = "/home/runner/.config"
+        print(f"DEBUGGING: user_config_dir: {user_config_dir}")
+        print(f"DEBUGGING: user_config_dir: {os.listdir(user_config_dir)}")
+        print(f"DEBUGGING: user_config_dir exists: {(user_config_dir / 'settings.toml').exists()}")
+        
         print(f"DEBUGGING: .rustup dir: {os.listdir('/home/runner/.rustup/')}")
         with open("/home/runner/.rustup/settings.toml", "r") as f:
             print(f"DEBUGGING: .rustup/settings.toml")
