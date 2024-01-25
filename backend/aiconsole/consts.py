@@ -31,12 +31,16 @@ DIR_WITH_AICONSOLE_PACKAGE = Path(__file__).parent.parent
 
 
 def AICONSOLE_USER_CONFIG_DIR() -> Path:
-    from platformdirs import user_data_dir
+    # WARNING: care with 3rd party imports, we have code that imports this file withot installing 3rd party packages
+    from platformdirs import user_config_dir
 
-    path = Path(user_data_dir(APPLICATION_NAME))
     # windows path fix, no author in the path
-    if not path.exists():
-        path = Path(user_data_dir()) / APPLICATION_NAME
+    windows_path_issue = Path(user_config_dir()) / APPLICATION_NAME
+    if windows_path_issue.exists():
+        return windows_path_issue
+
+    path = Path(user_config_dir(APPLICATION_NAME))
+    path.mkdir(parents=True, exist_ok=True)
     return path
 
 
