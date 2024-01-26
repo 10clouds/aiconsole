@@ -31,7 +31,7 @@ export const useAssets = (assetType: EditableObjectType) => {
   };
 
   const renameAsset = async (previousAssetId: string, updatedAsset: Asset) => {
-    await EditablesAPI.saveNewEditableObject(assetType, previousAssetId, updatedAsset);
+    await EditablesAPI.updateEditableObject(assetType, updatedAsset, previousAssetId);
     await updateStatusIfNecessary();
   };
 

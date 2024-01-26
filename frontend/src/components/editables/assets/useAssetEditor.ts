@@ -22,7 +22,7 @@ export const useAssetEditor = (editableObjectType: AssetType) => {
 
   const getInitialAsset = useCallback(() => {
     if (copyId) {
-      setLastSavedSelectedAsset(undefined);
+      // setLastSavedSelectedAsset(undefined);
 
       EditablesAPI.fetchEditableObject<Asset>({ editableObjectType, id: copyId }).then((assetToCopy) => {
         assetToCopy.name += ' Copy';

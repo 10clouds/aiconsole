@@ -80,13 +80,12 @@ class Assets:
         old_exists = project_asset_exists_fs(self.asset_type, old_asset_id)
 
         if create and exists_in_project:
-            raise Exception(f"Asset {asset.id} already exists.")
+            create = False
 
         if not create and not exists_in_project:
             raise Exception(f"Asset {asset.id} does not exist.")
 
         rename = False
-
         if create and old_asset_id and not exists_in_project and old_exists:
             await move_asset_in_fs(asset.type, old_asset_id, asset.id)
             Assets.rename_asset(asset.type, old_asset_id, asset.id)

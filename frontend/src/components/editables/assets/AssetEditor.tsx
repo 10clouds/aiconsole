@@ -103,7 +103,7 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
 
     return () => {
       setSelectedAsset(undefined);
-      setLastSavedSelectedAsset(undefined);
+      // setLastSavedSelectedAsset(undefined);
     };
   }, [getInitialAsset, setLastSavedSelectedAsset, setSelectedAsset]);
 
@@ -126,7 +126,7 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
       EditablesAPI.doesEdibleExist(assetType, asset?.id, 'aiconsole').then((exists) => {
         setHasCore(exists);
         setSelectedAsset({ ...asset, defined_in: 'project', override: exists } as Asset);
-        setLastSavedSelectedAsset(undefined);
+        // setLastSavedSelectedAsset(undefined);
       });
     }
   }, [
@@ -145,7 +145,9 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
     }
 
     if (lastSavedAsset === undefined) {
-      if (!asset.override) {
+      console.log('1');
+      if (!asset.override && isNew) {
+        console.log('1#1', lastSavedAsset, lastSavedAsset, asset.id, isNew, isSystemAsset, asset);
         await EditablesAPI.saveNewEditableObject(editableObjectType, asset.id, asset);
         await updateStatusIfNecessary();
 
@@ -154,7 +156,16 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
           message: `The ${assetType} has been successfully saved.`,
           variant: 'success',
         });
+      } else if (!asset.override && !isNew) {
+        console.log('1#2', lastSavedAsset, lastSavedAsset, asset.id, isNew, isSystemAsset, asset);
+        await renameAsset(lastSavedAsset.id, asset);
+        showToast({
+          title: 'Overwritten',
+          message: `The ${assetType} has been overwritten.`,
+          variant: 'success',
+        });
       } else {
+        console.log('1#3');
         await EditablesAPI.updateEditableObject(editableObjectType, asset);
         showToast({
           title: 'Overwritten',
@@ -163,6 +174,7 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
         });
       }
     } else if (lastSavedAsset && lastSavedAsset.id !== asset.id) {
+      console.log('2');
       await renameAsset(lastSavedAsset.id, asset);
       showToast({
         title: 'Overwritten',
@@ -170,7 +182,9 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
         variant: 'success',
       });
     } else {
+      console.log('3');
       if (isAssetChanged) {
+        console.log('3#1');
         await EditablesAPI.updateEditableObject(editableObjectType, asset);
 
         showToast({
