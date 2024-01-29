@@ -113,18 +113,20 @@ async def execution_mode_process(
         )
     )
     try:
-        async for chunk in aiter(gpt_executor.execute(
-            GPTRequest(
-                messages=convert_messages(context.chat_mutator.chat),
-                gpt_mode=context.agent.gpt_mode,
-                system_message=create_full_prompt_with_materials(
-                    intro=get_agent_system_message(context.agent),
-                    materials=context.rendered_materials,
-                ),
-                min_tokens=250,
-                preferred_tokens=2000,
+        async for chunk in aiter(
+            gpt_executor.execute(
+                GPTRequest(
+                    messages=convert_messages(context.chat_mutator.chat),
+                    gpt_mode=context.agent.gpt_mode,
+                    system_message=create_full_prompt_with_materials(
+                        intro=get_agent_system_message(context.agent),
+                        materials=context.rendered_materials,
+                    ),
+                    min_tokens=250,
+                    preferred_tokens=2000,
+                )
             )
-        )):
+        ):
             if chunk == CLEAR_STR:
                 await context.chat_mutator.mutate(SetContentMessageMutation(message_id=message_id, content=""))
             else:

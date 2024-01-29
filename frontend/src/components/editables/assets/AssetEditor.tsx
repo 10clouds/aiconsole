@@ -145,9 +145,7 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
     }
 
     if (lastSavedAsset === undefined) {
-      console.log('1');
       if (!asset.override && isNew) {
-        console.log('1#1', lastSavedAsset, lastSavedAsset, asset.id, isNew, isSystemAsset, asset);
         await EditablesAPI.saveNewEditableObject(editableObjectType, asset.id, asset);
         await updateStatusIfNecessary();
 
@@ -157,17 +155,7 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
           variant: 'success',
         });
       }
-      // else if (!asset.override && !isNew) {
-      //   console.log('1#2', lastSavedAsset, lastSavedAsset, asset.id, isNew, isSystemAsset, asset);
-      //   await renameAsset(lastSavedAsset.id, asset);
-      //   showToast({
-      //     title: 'Overwritten',
-      //     message: `The ${assetType} has been overwritten.`,
-      //     variant: 'success',
-      //   });
-      // }
       else {
-        console.log('1#3');
         await EditablesAPI.updateEditableObject(editableObjectType, asset);
         showToast({
           title: 'Overwritten',
@@ -178,19 +166,14 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
     } else if (lastSavedAsset && lastSavedAsset.id !== asset.id) {
       await renameAsset(lastSavedAsset.id, asset);
       lastSavedAsset.status = 'disabled';
-      lastSavedAsset.override = true;
-      console.log('2', asset, lastSavedAsset);
-      await EditablesAPI.updateEditableObject(editableObjectType, lastSavedAsset);
+      await EditablesAPI.setAssetStatus(assetType, lastSavedAsset.id, lastSavedAsset.status);
       showToast({
         title: 'Overwritten',
         message: `The ${assetType} has been overwritten.`,
         variant: 'success',
       });
     } else {
-      console.log('3');
       if (isAssetChanged) {
-        console.log('3#1');
-        console.log(asset);
         await EditablesAPI.updateEditableObject(editableObjectType, asset);
 
         showToast({
@@ -199,7 +182,6 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
           variant: 'success',
         });
       }
-
       await updateStatusIfNecessary();
     }
 
@@ -236,6 +218,7 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
     renameAsset,
     isAssetChanged,
     setSelectedAsset,
+    isNew,
   ]);
 
   const getSubmitButtonLabel = useCallback((): SubmitButtonLabels => {

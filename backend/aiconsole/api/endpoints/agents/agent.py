@@ -67,7 +67,6 @@ async def partially_update_agent(agent_id: str, agent: Agent, agents_service: Ag
 
 @router.post("/{agent_id}/avatar")
 async def set_agent_avatar(agent_id: str, avatar: UploadFile = File(...), agents_service: Agents = Depends(agents)):
-    
     await agents_service.set_agent_avatar(agent_id=agent_id, avatar=avatar)
 
 

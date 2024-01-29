@@ -206,26 +206,28 @@ async def _generate_response(
     )
 
     try:
-        async for chunk in aiter(executor.execute(
-            GPTRequest(
-                system_message=system_message,
-                gpt_mode=context.agent.gpt_mode,
-                messages=messages,
-                tools=[
-                    ToolDefinition(
-                        type="function",
-                        function=ToolFunctionDefinition(**python.openai_schema()),
-                    ),
-                    ToolDefinition(
-                        type="function",
-                        function=ToolFunctionDefinition(**applescript.openai_schema()),
-                    ),
-                ],
-                min_tokens=250,
-                preferred_tokens=2000,
-                temperature=0.2,
+        async for chunk in aiter(
+            executor.execute(
+                GPTRequest(
+                    system_message=system_message,
+                    gpt_mode=context.agent.gpt_mode,
+                    messages=messages,
+                    tools=[
+                        ToolDefinition(
+                            type="function",
+                            function=ToolFunctionDefinition(**python.openai_schema()),
+                        ),
+                        ToolDefinition(
+                            type="function",
+                            function=ToolFunctionDefinition(**applescript.openai_schema()),
+                        ),
+                    ],
+                    min_tokens=250,
+                    preferred_tokens=2000,
+                    temperature=0.2,
+                )
             )
-        )):
+        ):
             # What is this?
             if chunk == CLEAR_STR:
                 await context.chat_mutator.mutate(SetContentMessageMutation(message_id=message_id, content=""))
@@ -345,7 +347,7 @@ async def _send_code(tool_calls, context, tools_requiring_closing_parenthesis, m
 
             async def send_code_and_language_if_needed(code, language: LanguageStr = "python", reduce=0):
                 await send_language_if_needed(language)
-                code_delta = code[(len(tool_call_data.code)) - reduce:]
+                code_delta = code[(len(tool_call_data.code)) - reduce :]
                 await send_code_delta(code_delta)
 
             if not function_call.arguments:
@@ -374,7 +376,7 @@ async def _send_code(tool_calls, context, tools_requiring_closing_parenthesis, m
                         await send_code_and_language_if_needed(code)
 
                     if headline:
-                        headline_delta = headline[len(tool_call_data.headline):]
+                        headline_delta = headline[len(tool_call_data.headline) :]
                         tool_call_data.headline = headline
                         await send_code_delta(headline_delta=headline_delta)
                     # [1] END

@@ -74,7 +74,7 @@ class Assets:
         ]
 
     async def save_asset(self, asset: Asset, old_asset_id: str, create: bool):
-        if asset.defined_in != AssetLocation.PROJECT_DIR:
+        if asset.defined_in != AssetLocation.PROJECT_DIR and not create:
             raise Exception("Cannot save asset not defined in project.")
 
         exists_in_project = project_asset_exists_fs(self.asset_type, asset.id)

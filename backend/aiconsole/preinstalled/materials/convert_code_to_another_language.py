@@ -30,8 +30,8 @@ def convert_language(file_name, desired_language):
                 {
                     "role": "system",
                     "content": f"You are a master programmer, translate the following code into {desired_language}. "
-                               f"Translate what you can, don't complain. "
-                               f"This is just a starter so a human programmer can finish the job.",
+                    f"Translate what you can, don't complain. "
+                    f"This is just a starter so a human programmer can finish the job.",
                 },
                 {"role": "user", "content": file_contents},
             ],
