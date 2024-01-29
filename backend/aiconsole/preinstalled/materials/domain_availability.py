@@ -3,7 +3,8 @@ import subprocess
 
 def is_domain_available(domain) -> bool:
     """
-    Use this function to check whenever domain is free to register, or taken, do not use any other method of checking this.
+    Use this function to check whenever domain is free to register, or taken. 
+    Do not use any other method of checking this.
 
     example use:
     ```python

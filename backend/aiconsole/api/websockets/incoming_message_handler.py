@@ -113,6 +113,7 @@ class IncomingMessageHandler:
         task.add_done_callback(self._get_done_callback(json["chat_id"], task_id))
 
     async def _handle_acquire_lock_ws_message(self, connection: AICConnection, json: dict):
+        message: AcquireLockClientMessage | None = None
         try:
             message = AcquireLockClientMessage(**json)
             await acquire_lock(chat_id=message.chat_id, request_id=message.request_id)
@@ -131,13 +132,14 @@ class IncomingMessageHandler:
                 )
             )
         except Exception:
-            await connection.send(
-                ResponseServerMessage(
-                    request_id=message.request_id,
-                    payload={"error": "Error during acquiring lock", "chat_id": message.chat_id},
-                    is_error=True,
+            if message is not None:
+                await connection.send(
+                    ResponseServerMessage(
+                        request_id=message.request_id,
+                        payload={"error": "Error during acquiring lock", "chat_id": message.chat_id},
+                        is_error=True,
+                    )
                 )
-            )
 
     async def _handle_release_lock_ws_message(self, connection: AICConnection, json: dict):
         message = ReleaseLockClientMessage(**json)
@@ -186,6 +188,7 @@ class IncomingMessageHandler:
             await release_lock(chat_id=message.chat_id, request_id=temporary_request_id)
 
     async def _handle_stop_chat_ws_message(self, connection: AICConnection, json: dict):
+        message: StopChatClientMessage | None = None
         try:
             message = StopChatClientMessage(**json)
             reset_code_interpreters(chat_id=message.chat_id)
@@ -197,13 +200,14 @@ class IncomingMessageHandler:
                 )
             )
         except Exception:
-            await connection.send(
-                ResponseServerMessage(
-                    request_id=message.request_id,
-                    payload={"error": "Error during closing chat", "chat_id": message.chat_id},
-                    is_error=True,
+            if message is not None:
+                await connection.send(
+                    ResponseServerMessage(
+                        request_id=message.request_id,
+                        payload={"error": "Error during closing chat", "chat_id": message.chat_id},
+                        is_error=True,
+                    )
                 )
-            )
 
     async def _handle_close_chat_ws_message(self, connection: AICConnection, json: dict):
         message = CloseChatClientMessage(**json)
@@ -273,7 +277,7 @@ class IncomingMessageHandler:
     async def _handle_process_chat_ws_message(self, connection: AICConnection, json: dict):
         message = ProcessChatClientMessage(**json)
         try:
-            chat = await acquire_lock(chat_id=message.chat_id, request_id=message.request_id)
+            await acquire_lock(chat_id=message.chat_id, request_id=message.request_id)
 
             chat_mutator = DefaultChatMutator(
                 chat_id=message.chat_id,

@@ -15,29 +15,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { ProjectModalMode, useProjectFileManagerStore } from '@/store/projects/useProjectFileManagerStore';
 import { useRecentProjectsStore } from '@/store/projects/useRecentProjectsStore';
 import { ContextMenuItems } from '@/types/common/contextMenu';
 import { RecentProject } from '@/types/projects/RecentProject';
 import { cn } from '@/utils/common/cn';
 import {
+  AlertTriangle,
   Blocks,
+  LocateFixed,
   LucideIcon,
   MessageSquare,
   MoreVertical,
   ScanText,
   StickyNote,
   Trash,
-  AlertTriangle,
-  LocateFixed,
 } from 'lucide-react';
 import { MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useProjectStore } from '../../store/projects/useProjectStore';
 import { ContextMenu, ContextMenuRef } from '../common/ContextMenu';
+import Tooltip from '../common/Tooltip';
 import { Icon } from '../common/icons/Icon';
 import { AgentAvatar } from '../editables/chat/AgentAvatar';
 import { Spinner } from '../editables/chat/Spinner';
-import Tooltip from '../common/Tooltip';
-import { useProjectFileManagerStore, ProjectModalMode } from '@/store/projects/useProjectFileManagerStore';
 
 const MAX_CHATS_TO_DISPLAY = 3;
 interface CounterItemProps {
@@ -273,8 +273,12 @@ export function ProjectCard({ name, path, recentChats, incorrectPath, stats }: P
           <CounterItem icon={ScanText} count={materials_dynamic_note_count} />
           <CounterItem icon={Blocks} count={materials_python_api_count} />
           <div className="flex items-center text-[15px] text-gray-300">
-            <AgentAvatar agentId="1" type="extraSmall" className="mb-0" />
-            <AgentAvatar agentId="2" type="extraSmall" className="relative -left-[12px] mb-0" />
+            <AgentAvatar agentId={agents.agent_ids[0] || '1'} type="extraSmall" className="mb-0" />
+            <AgentAvatar
+              agentId={agents.agent_ids[1] || '2'}
+              type="extraSmall"
+              className="relative -left-[12px] mb-0"
+            />
             <span className="-ml-[2px]">{agents.count}</span>
           </div>
         </div>

@@ -37,7 +37,7 @@ export const AssetInfoBar = ({ asset, hasCore, assetType, lastSavedAsset, onReve
   return hasCore && visible ? (
     <div
       className={cn(
-        'bg-gray-800 flex items-center justify-center gap-[20px] leading-[18px] text-white text-center text-[14px] px-[20px] py-[16px] h-[50px] right-0 left-0 z-10',
+        'bg-gray-800 flex items-center justify-center gap-[20px] leading-[18px] text-white text-center text-[14px] px-[20px] py-[16px] h-[50px] right-0 left-0 z-10 leading-none',
         {
           'bg-grayPurple-800': asset.defined_in === 'project',
         },

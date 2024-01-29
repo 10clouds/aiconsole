@@ -113,7 +113,7 @@ async def execution_mode_process(
         )
     )
     try:
-        async for chunk in gpt_executor.execute(
+        async for chunk in aiter(gpt_executor.execute(
             GPTRequest(
                 messages=convert_messages(context.chat_mutator.chat),
                 gpt_mode=context.agent.gpt_mode,
@@ -124,7 +124,7 @@ async def execution_mode_process(
                 min_tokens=250,
                 preferred_tokens=2000,
             )
-        ):
+        )):
             if chunk == CLEAR_STR:
                 await context.chat_mutator.mutate(SetContentMessageMutation(message_id=message_id, content=""))
             else:

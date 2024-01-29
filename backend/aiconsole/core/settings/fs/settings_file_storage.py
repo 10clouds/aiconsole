@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Optional
 
 from aiconsole.consts import AICONSOLE_USER_CONFIG_DIR
 from aiconsole.core.settings.fs.file_observer import FileObserver
@@ -12,7 +12,6 @@ from aiconsole.core.settings.fs.settings_file_format import (
 from aiconsole.core.settings.settings_storage import SettingsStorage
 from aiconsole.utils.events import InternalEvent, internal_events
 from aiconsole_toolkit.settings.partial_settings_data import PartialSettingsData
-from aiconsole_toolkit.settings.settings_data import SettingsData
 
 _log = logging.getLogger(__name__)
 

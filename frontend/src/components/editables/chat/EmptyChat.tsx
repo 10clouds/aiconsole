@@ -14,27 +14,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useRef, MouseEvent, useMemo } from 'react';
+import { MouseEvent, useMemo, useRef } from 'react';
 
+import { Button } from '@/components/common/Button';
+import { ContextMenu, ContextMenuRef } from '@/components/common/ContextMenu';
+import { LeaveProjectDialog } from '@/components/common/LeaveProjectDialog';
+import { SliderArrowLeft } from '@/components/common/icons/SliderArrowLeft';
+import { SliderArrowRight } from '@/components/common/icons/SliderArrowRight';
+import { useSidebarStore } from '@/store/common/useSidebarStore';
+import { useChatStore } from '@/store/editables/chat/useChatStore';
 import { useEditablesStore } from '@/store/editables/useEditablesStore';
 import { useProjectStore } from '@/store/projects/useProjectStore';
 import { Agent, Asset, AssetType } from '@/types/editables/assetTypes';
+import { cn } from '@/utils/common/cn';
 import { getEditableObjectIcon } from '@/utils/editables/getEditableObjectIcon';
 import { useEditableObjectContextMenu } from '@/utils/editables/useContextMenuForEditable';
 import { useProjectContextMenu } from '@/utils/projects/useProjectContextMenu';
-import { AgentAvatar } from './AgentAvatar';
-import { cn } from '@/utils/common/cn';
-import { ContextMenu, ContextMenuRef } from '@/components/common/ContextMenu';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
-import { SliderArrowLeft } from '@/components/common/icons/SliderArrowLeft';
-import { SliderArrowRight } from '@/components/common/icons/SliderArrowRight';
 import 'swiper/css';
 import 'swiper/css/navigation';
-import { Button } from '@/components/common/Button';
-import { useChatStore } from '@/store/editables/chat/useChatStore';
-import { useSidebarStore } from '@/store/common/useSidebarStore';
-import { LeaveProjectDialog } from '@/components/common/LeaveProjectDialog';
+import { Navigation } from 'swiper/modules';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { AgentAvatar } from './AgentAvatar';
 
 function EmptyChatAgentAvatar({ agent }: { agent: Agent }) {
   const menuItems = useEditableObjectContextMenu({ editableObjectType: 'agent', editable: agent });
@@ -97,6 +97,7 @@ export const EmptyChat = () => {
   const hasAiChoiceMaterials = aiChoiceMaterials.length > 0;
   const submitCommand = useChatStore((state) => state.submitCommand);
   const setActiveTab = useSidebarStore((state) => state.setActiveTab);
+  const initChatHistory = useEditablesStore((state) => state.initChatHistory);
 
   const openContext = (event: MouseEvent) => {
     if (triggerRef.current) {
@@ -109,10 +110,12 @@ export const EmptyChat = () => {
     [aiChoiceMaterials.length],
   );
 
-  const guideMe = () =>
-    submitCommand(
+  const guideMe = async () => {
+    await submitCommand(
       `I need help with using AIConsole, can you suggest what can I do from this point in the conversation?`,
     );
+    initChatHistory();
+  };
 
   return (
     <section className="flex flex-col items-center justify-center container mx-auto px-6 py-[80px] pb-[40px] select-none">

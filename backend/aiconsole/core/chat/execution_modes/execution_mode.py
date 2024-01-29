@@ -7,7 +7,6 @@ from aiconsole.core.assets.agents.agent import Agent
 from aiconsole.core.assets.materials.material import Material
 from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
 from aiconsole.core.chat.chat_mutator import ChatMutator
-from aiconsole.core.chat.types import AICToolCall
 
 
 @dataclass

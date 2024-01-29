@@ -83,7 +83,9 @@ class python(CodeTask):
 
     code: str = Field(
         ...,
-        description="Python code to execute. Code must be formated. The begging of the code MUST be marked with # START and end of the code with # END. It will be executed in the statefull Jupyter notebook environment.",
+        description="Python code to execute. Code must be formated. The begging of the code MUST be marked with "
+        "# START and end of the code with # END. "
+        "It will be executed in the statefull Jupyter notebook environment.",
         json_schema_extra={"type": "string"},
     )
 
@@ -153,6 +155,7 @@ async def _run_code(context: ProcessChatContext, tool_call_id):
         try:
             context.rendered_materials
 
+            assert tool_call.language is not None
             async for token in get_code_interpreter(tool_call.language, context.chat_mutator.chat.id).run(
                 tool_call.code, context.materials
             ):
@@ -203,7 +206,7 @@ async def _generate_response(
     )
 
     try:
-        async for chunk in executor.execute(
+        async for chunk in aiter(executor.execute(
             GPTRequest(
                 system_message=system_message,
                 gpt_mode=context.agent.gpt_mode,
@@ -222,7 +225,7 @@ async def _generate_response(
                 preferred_tokens=2000,
                 temperature=0.2,
             )
-        ):
+        )):
             # What is this?
             if chunk == CLEAR_STR:
                 await context.chat_mutator.mutate(SetContentMessageMutation(message_id=message_id, content=""))
@@ -340,9 +343,9 @@ async def _send_code(tool_calls, context, tools_requiring_closing_parenthesis, m
                         )
                     )
 
-            async def send_code_and_language_if_needed(code, language="python", reduce=0):
+            async def send_code_and_language_if_needed(code, language: LanguageStr = "python", reduce=0):
                 await send_language_if_needed(language)
-                code_delta = code[(len(tool_call_data.code)) - reduce :]
+                code_delta = code[(len(tool_call_data.code)) - reduce:]
                 await send_code_delta(code_delta)
 
             if not function_call.arguments:
@@ -371,7 +374,7 @@ async def _send_code(tool_calls, context, tools_requiring_closing_parenthesis, m
                         await send_code_and_language_if_needed(code)
 
                     if headline:
-                        headline_delta = headline[len(tool_call_data.headline) :]
+                        headline_delta = headline[len(tool_call_data.headline):]
                         tool_call_data.headline = headline
                         await send_code_delta(headline_delta=headline_delta)
                     # [1] END

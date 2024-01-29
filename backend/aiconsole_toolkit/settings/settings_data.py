@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel
 
 from aiconsole.core.assets.models import AssetStatus
 from aiconsole.core.gpt import consts

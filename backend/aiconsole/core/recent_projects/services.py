@@ -8,7 +8,6 @@ from aiconsole.core.assets.materials.material import MaterialContentType
 from aiconsole.core.assets.models import AssetType
 from aiconsole.core.project.paths import get_core_assets_directory
 from aiconsole.utils.list_files_in_file_system import list_files_in_file_system
-from aiconsole.utils.resource_to_path import resource_to_path
 
 
 @dataclass(frozen=True, slots=True)

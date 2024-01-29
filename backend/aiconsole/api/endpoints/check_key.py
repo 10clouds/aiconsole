@@ -15,7 +15,6 @@
 # limitations under the License.
 
 from fastapi import APIRouter
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from aiconsole.core.gpt.check_key import check_key

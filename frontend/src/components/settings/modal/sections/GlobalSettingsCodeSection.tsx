@@ -14,30 +14,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Button } from '@/components/common/Button';
-import { Icon } from '@/components/common/icons/Icon';
+import type { Control } from 'react-hook-form';
+import { useWatch } from 'react-hook-form';
 import { Ban, Check } from 'lucide-react';
 
+import { Button } from '@/components/common/Button';
+import { Icon } from '@/components/common/icons/Icon';
+import { GlobalSettingsFormData } from '@/forms/globalSettingsForm';
+
 interface GlobalSettingsCodeSectionProps {
-  isAutoRun: boolean;
-  setIsAutoRun: (value: boolean) => void;
+  control: Control<GlobalSettingsFormData>;
+  onChange: (autorun: boolean) => void;
 }
 
-const GlobalSettingsCodeSection = ({ isAutoRun, setIsAutoRun }: GlobalSettingsCodeSectionProps) => {
+const GlobalSettingsCodeSection = ({ control, onChange }: GlobalSettingsCodeSectionProps) => {
+  const watchAutorun = useWatch({ control, name: 'code_autorun' });
+
   return (
-    <div className="border border-gray-600 rounded-xl p-[20px] pt-[15px] flex flex-col gap-5">
-      <p className="text-white text-[15px] leading-6">Code run</p>
+    <div className="border border-gray-600 rounded-xl py-[15px] px-5 flex flex-col gap-4">
       <div className="flex items-center gap-5">
-        <h4 className="text-white font-semibold text-[16px] leading-[19px]">Always run code</h4>
+        <h4 className="text-white text-[15px] leading-[19px]">Always run code</h4>
         <div className="flex items-center gap-[10px]">
-          <Button statusColor={isAutoRun ? 'green' : 'base'} variant="status" onClick={() => setIsAutoRun(true)}>
+          <Button statusColor={watchAutorun ? 'green' : 'base'} variant="status" onClick={() => onChange(true)}>
             <Icon icon={Check} /> YES
           </Button>
-          <Button statusColor={!isAutoRun ? 'red' : 'base'} variant="status" onClick={() => setIsAutoRun(false)}>
+          <Button statusColor={!watchAutorun ? 'red' : 'base'} variant="status" onClick={() => onChange(false)}>
             <Icon icon={Ban} /> NO
           </Button>
         </div>
       </div>
+      <span className="text-xs text-gray-400 block">
+        The agents can automatically run code they produce in the chat. Select "Yes" if you want to enable it or "No"
+        if you want to approve the code manually.
+      </span>
     </div>
   );
 };

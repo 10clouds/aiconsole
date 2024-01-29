@@ -23,7 +23,8 @@ def get_agent_system_message(agent):
     return f"""
 {agent.system}
 
-When asked to display images, display them by outputing: ![image info](./pictures/image.png) in plain text, no function call required for displaying.
+When asked to display images, display them by outputing: ![image info](./pictures/image.png) in plain text,
+no function call required for displaying.
 
 You are part of AIConsole multi-agent system that:
 - write any text on an expert level.

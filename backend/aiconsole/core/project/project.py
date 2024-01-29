@@ -38,7 +38,6 @@ from aiconsole.core.code_running.virtual_env.create_dedicated_venv import (
 )
 from aiconsole.core.settings.fs.settings_file_storage import SettingsFileStorage
 from aiconsole.core.settings.settings import settings
-from aiconsole.core.settings.settings_notifications import SettingsNotifications
 
 if TYPE_CHECKING:
     from aiconsole.core.assets import assets

@@ -14,77 +14,55 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { useState } from 'react';
+import { Controller, useWatch } from 'react-hook-form';
+import type { Control } from 'react-hook-form';
+import { Pencil } from 'lucide-react';
+
 import ImageUploader from '@/components/common/ImageUploader';
 import { Icon } from '@/components/common/icons/Icon';
 import { TextInput } from '@/components/editables/assets/TextInput';
-import { useSettingsStore } from '@/store/settings/useSettingsStore';
-import { Pencil } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { GlobalSettingsFormData } from '@/forms/globalSettingsForm';
 
 interface GlobalSettingsUserSectionProps {
-  username?: string;
-  email?: string;
-  setUsername: (value: string) => void;
-  setEmail: (value: string) => void;
-  setImage: (avatar: File) => void;
+  control: Control<GlobalSettingsFormData>;
+  onImageSelected: (avatar: File) => void;
+  avatarUrl?: string;
 }
 
-const GlobalSettingsUserSection = ({
-  email,
-  username,
-  setEmail,
-  setUsername,
-  setImage,
-}: GlobalSettingsUserSectionProps) => {
-  const currentUsername = useSettingsStore((state) => state.username) || '';
-  const currentEmail = useSettingsStore((state) => state.userEmail) || '';
-  const userAvatarUrl = useSettingsStore((state) => state.userAvatarUrl) || undefined;
-
+const GlobalSettingsUserSection = ({ onImageSelected, avatarUrl, control }: GlobalSettingsUserSectionProps) => {
   const [isEditMode, setIsEditMode] = useState(false);
-  const [usernameFormValue, setUsernameFormValue] = useState(username);
-  const [emailFormValue, setEmailFormValue] = useState(email);
 
-  useEffect(() => {
-    if (typeof email === 'string') {
-      setEmailFormValue(email);
-    } else {
-      setEmailFormValue(currentEmail);
-    }
-  }, [email, currentEmail]);
+  const watchName = useWatch({ control, name: 'user_profile.username' });
 
-  useEffect(() => {
-    if (typeof username === 'string') {
-      setUsernameFormValue(username);
-    } else {
-      setUsernameFormValue(currentUsername);
-    }
-  }, [username, currentUsername]);
-
-  const handleNameInputBlur = () => {
-    if (!username) {
-      setUsername(currentUsername);
-    }
-    setIsEditMode(false);
-  };
+  const handleNameInputBlur = () => setIsEditMode(false);
 
   return (
-    <div className="flex items-center w-full gap-[30px]">
-      <ImageUploader currentImage={userAvatarUrl} onUpload={setImage} />
-      <div className="flex flex-col justify-between h-full">
-        <div className="flex gap-2.5 text-[25px] font-black pt-[30px]">
-          <h2 className="text-gray-400">Hello, </h2>
+    <div className="flex items-stretch w-full gap-[30px] bg-secondary-gradient p-5 rounded-xl mb-5 border-gray-600 border">
+      <ImageUploader currentImage={avatarUrl} onUpload={onImageSelected} />
+      <div className="flex flex-col justify-between">
+        <div className="flex gap-2.5 flex-col">
+          <span className="text-white text-[15px]">User name</span>
           {isEditMode ? (
-            <input
-              type="text"
-              value={usernameFormValue}
-              onChange={(e) => setUsername(e.target.value)}
-              className="bg-transparent text-white rounded-[8px] outline-none focus:ring-1 focus:ring-gray-400 transition duration-100"
-              onBlur={handleNameInputBlur}
-              autoFocus
+            <Controller
+              name="user_profile.username"
+              control={control}
+              render={({ field }) => (
+                <TextInput
+                  type="text"
+                  placeholder="Your name"
+                  {...field}
+                  onBlur={handleNameInputBlur}
+                  ref={(e) => {
+                    field.ref(e);
+                    e?.focus();
+                  }}
+                />
+              )}
             />
           ) : (
             <div className="flex gap-5 items-center">
-              <h2 className="text-white">{username || currentUsername}</h2>
+              <h2 className="text-white text-[32px] font-extrabold">{watchName || 'Your name'}</h2>
               <button onClick={() => setIsEditMode(true)}>
                 <Icon icon={Pencil} className="text-gray-400 h-6 w-6" />
               </button>
@@ -93,12 +71,10 @@ const GlobalSettingsUserSection = ({
         </div>
         <div className="flex flex-col gap-2.5 w-[255px]">
           <p className="text-white text-[15px]">E-mail address</p>
-          <TextInput
-            value={emailFormValue || ''}
-            name="email"
-            onChange={setEmail}
-            type="email"
-            placeholder="Write e-mail here"
+          <Controller
+            name="user_profile.email"
+            control={control}
+            render={({ field }) => <TextInput type="email" placeholder="Write e-mail here" {...field} />}
           />
         </div>
       </div>

@@ -1,12 +1,10 @@
 from pathlib import Path
-from typing import Any
 
 import tomlkit
 import tomlkit.container
 import tomlkit.items
 
 from aiconsole_toolkit.settings.partial_settings_data import PartialSettingsData
-from aiconsole_toolkit.settings.settings_data import SettingsData
 
 
 def load_settings_file(file_path: Path) -> PartialSettingsData:

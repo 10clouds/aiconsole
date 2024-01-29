@@ -70,7 +70,7 @@ class openai_function:
         parameters["properties"] = {
             k: v for k, v in parameters["properties"].items() if k not in ("v__duplicate_kwargs", "args", "kwargs")
         }
-        parameters["required"] = sorted(k for k, v in parameters["properties"].items() if not "default" in v)
+        parameters["required"] = sorted(k for k, v in parameters["properties"].items() if "default" not in v)
         _remove_a_key(parameters, "additionalProperties")
         _remove_a_key(parameters, "title")
         self.openai_schema = {
@@ -116,14 +116,15 @@ class OpenAISchema(BaseModel):
         Return the schema in the format of OpenAI's schema as jsonschema
 
         Note:
-            Its important to add a docstring to describe how to best use this class, it will be included in the description attribute and be part of the prompt.
+            It's important to add a docstring to describe how to best use this class.
+            The docstring will be included in the description attribute and be part of the prompt.
 
         Returns:
             model_json_schema (dict): A dictionary in the format of OpenAI's schema as jsonschema
         """
         schema = cls.model_json_schema()
         parameters = {k: v for k, v in schema.items() if k not in ("title", "description")}
-        parameters["required"] = sorted(k for k, v in parameters["properties"].items() if not "default" in v)
+        parameters["required"] = sorted(k for k, v in parameters["properties"].items() if "default" not in v)
 
         if "description" not in schema:
             schema[

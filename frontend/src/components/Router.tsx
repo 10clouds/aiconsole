@@ -15,7 +15,6 @@
 // limitations under the License.
 
 import { useEffect } from 'react';
-import { v4 as uuid } from 'uuid';
 import {
   createHashRouter,
   createRoutesFromElements,
@@ -23,29 +22,47 @@ import {
   Outlet,
   Route,
   RouterProvider,
-  Routes,
+  useMatch,
 } from 'react-router-dom';
+import { v4 as uuid } from 'uuid';
 
 import { TopBar } from '@/components/common/TopBar';
 import { ProjectTopBarElements } from '@/components/projects/ProjectTopBarElements';
+import { useToastsStore } from '@/store/common/useToastsStore';
 import { useProjectStore } from '@/store/projects/useProjectStore';
+import { useAPIStore } from '@/store/useAPIStore';
 import { AssetEditor } from './editables/assets/AssetEditor';
 import { ChatPage } from './editables/chat/ChatPage';
 import SideBar from './editables/sidebar/SideBar';
 import { Home } from './projects/Home';
 import { GlobalSettingsModal } from './settings/modal/GlobalSettingsModal';
-import { useAPIStore } from '@/store/useAPIStore';
-import { useToastsStore } from '@/store/common/useToastsStore';
 
-function MustHaveProject() {
+function Project() {
   const isProjectOpen = useProjectStore((state) => state.isProjectOpen);
   const isProjectLoading = useProjectStore((state) => state.isProjectLoading);
+
+  const isChat = useMatch('/chats/*');
+  const isMaterial = useMatch('/materials/*');
+  const isAgent = useMatch('/agents/*');
 
   if (!isProjectOpen && !isProjectLoading) {
     return <Navigate to="/" />;
   }
 
-  return <Outlet />;
+  const initialTab = isChat ? 'chats' : isMaterial ? 'materials' : isAgent ? 'agents' : 'chats';
+
+  return (
+    <div className="App flex flex-col h-screen fixed top-0 left-0 bottom-0 right-0 bg-gray-900 text-stone-400">
+      <GlobalSettingsModal />
+      <TopBar>
+        <ProjectTopBarElements />
+      </TopBar>
+      <div className="flex flex-row h-full overflow-y-auto">
+        <SideBar initialTab={initialTab} />
+        <Outlet />
+      </div>
+    </div>
+  );
 }
 
 function NoProject() {
@@ -98,30 +115,14 @@ export function Router() {
             <Route path="/" element={<NoProject />}>
               <Route index element={<HomeRoute />} />
             </Route>
-            <Route path="/" element={<MustHaveProject />}>
-              <Route
-                path="*"
-                element={
-                  <div className="App flex flex-col h-screen fixed top-0 left-0 bottom-0 right-0 bg-gray-900 text-stone-400">
-                    <GlobalSettingsModal />
-                    <TopBar>
-                      <ProjectTopBarElements />
-                    </TopBar>
-                    <div className="flex flex-row h-full overflow-y-auto">
-                      <Routes>
-                        <Route path="/agents/*" element={<SideBar initialTab="agents" />} />
-                        <Route path="/materials/*" element={<SideBar initialTab="materials" />} />
-                        <Route path="/chats/*" element={<SideBar initialTab="chats" />} />
-                      </Routes>
-                      <Routes>
-                        <Route path="/chats/:id" element={<ChatPage />} />
-                        <Route path="/materials/:id" element={<AssetEditor assetType={'material'} />} />
-                        <Route path="/agents/:id" element={<AssetEditor assetType={'agent'} />} />
-                      </Routes>
-                    </div>
-                  </div>
-                }
-              />
+            <Route path="/" element={<Project />}>
+              <Route path="chats/:id" element={<ChatPage />} />
+              <Route path="chats/*" element={<Navigate to={`/chats/${uuid()}`} />} />
+              <Route path="materials/:id" element={<AssetEditor assetType={'material'} />} />
+              <Route path="materials/*" element={<></>} />
+              <Route path="agents/:id" element={<AssetEditor assetType={'agent'} />} />
+              <Route path="agents/*" element={<></>} />
+              <Route path="*" element={<Navigate to="/" />} />
             </Route>
           </>,
         ),

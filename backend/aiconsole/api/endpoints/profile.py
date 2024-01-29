@@ -31,7 +31,7 @@ router = APIRouter()
 @router.get("/profile", response_model=UserProfile)
 def profile(
     email: Optional[str] = None,
-    user_profile_service: UserProfileService = Depends(user_profile_service),
+    user_profile_service: UserProfileService = Depends(dependency=user_profile_service),
 ) -> UserProfile:
     return user_profile_service.get_profile(email=email)
 
@@ -39,7 +39,7 @@ def profile(
 @router.get("/profile_image")
 def get_profile_image(
     img_filename: str,
-    user_profile_service: UserProfileService = Depends(user_profile_service),
+    user_profile_service: UserProfileService = Depends(dependency=user_profile_service),
 ) -> FileResponse:
     file_path = user_profile_service.get_profile_image_path(img_filename)
     if not file_path.exists():
@@ -53,7 +53,7 @@ def get_profile_image(
 @router.post("/profile_image", status_code=status.HTTP_201_CREATED)
 def set_profile_image(
     avatar: UploadFile = File(...),
-    user_profile_service: UserProfileService = Depends(user_profile_service),
+    user_profile_service: UserProfileService = Depends(dependency=user_profile_service),
 ):
     try:
         user_profile_service.save_avatar(

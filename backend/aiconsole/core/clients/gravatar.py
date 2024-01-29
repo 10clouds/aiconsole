@@ -21,7 +21,7 @@ class GravatarClient:
             gravatar_data = response.json()
             entry = gravatar_data["entry"][0]
             return GravatarUserProfile(**entry)
-        except requests.RequestException as e:
+        except requests.RequestException:
             _log.exception(f"[{self.__class__.__name__}] Request to {gravatar_url} failed.")
             return None
 

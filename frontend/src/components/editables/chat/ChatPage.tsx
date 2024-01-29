@@ -23,6 +23,7 @@ import { EmptyChat } from '@/components/editables/chat/EmptyChat';
 import { MessageGroup } from '@/components/editables/chat/MessageGroup';
 import { useToastsStore } from '@/store/common/useToastsStore';
 import { useChatStore } from '@/store/editables/chat/useChatStore';
+import { useEditablesStore } from '@/store/editables/useEditablesStore';
 import { useProjectStore } from '@/store/projects/useProjectStore';
 import { Chat } from '@/types/editables/chatTypes';
 import { cn } from '@/utils/common/cn';
@@ -35,7 +36,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { EditorHeader } from '../EditorHeader';
 import { CommandInput } from './CommandInput';
 import { Spinner } from './Spinner';
-import { useEditablesStore } from '@/store/editables/useEditablesStore';
 
 // Electron adds the path property to File objects
 interface FileWithPath extends File {
@@ -174,10 +174,10 @@ export function ChatPage() {
   const isProcessesAreNotRunning = !isExecutionRunning && !isAnalysisRunning;
 
   useEffect(() => {
-    if (hasAnyCommandInput || chat?.message_groups.length === 0 || isProcessesAreNotRunning) {
+    if (hasAnyCommandInput || chat?.message_groups.length === 0) {
       initChatHistory();
     }
-  }, [chat?.message_groups.length, hasAnyCommandInput, initChatHistory, isProcessesAreNotRunning]);
+  }, [chat?.message_groups.length, hasAnyCommandInput, initChatHistory]);
 
   if (!chat) {
     return (

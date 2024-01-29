@@ -17,7 +17,6 @@
 import os
 from contextlib import asynccontextmanager
 from logging import config, getLogger
-from pathlib import Path
 
 import sentry_sdk
 from fastapi import FastAPI
@@ -25,7 +24,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from aiconsole.api.routers import app_router
 from aiconsole.consts import log_config
-from aiconsole.core.project import project
 from aiconsole.core.project.paths import get_project_directory_safe
 from aiconsole.core.settings.fs.settings_file_storage import SettingsFileStorage
 from aiconsole.core.settings.settings import settings

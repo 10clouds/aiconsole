@@ -100,7 +100,7 @@ class ResponseServerMessage(BaseServerMessage):
         project_path = get_project_directory()
         payload = {**payload, "project_path": str(project_path), "project_name": os.path.basename(project_path)}
 
-        super().__init__(request_id=request_id, payload=payload, is_error=is_error)
+        super().__init__(**{"request_id": request_id, "payload": payload, "is_error": is_error})
 
 
 class ChatOpenedServerMessage(BaseServerMessage):

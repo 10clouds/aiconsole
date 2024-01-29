@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import logging
 import os
 from pathlib import Path
 
@@ -22,7 +22,6 @@ from aiconsole.core.chat.list_possible_historic_chat_ids import (
     list_possible_historic_chat_ids,
 )
 from aiconsole.core.chat.load_chat_history import load_chat_history
-from aiconsole.core.chat.types import Chat
 from aiconsole.core.recent_projects.registry import recent_projects_stats
 from aiconsole.core.recent_projects.types import (
     RecentProject,
@@ -31,8 +30,6 @@ from aiconsole.core.recent_projects.types import (
 )
 
 _RECENT_PROJECTS_LAST_CHATS_COUNT = 4
-
-import logging
 
 _log = logging.getLogger(__name__)
 

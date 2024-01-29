@@ -16,16 +16,15 @@
 
 import logging
 
-import openai
 from openai import OpenAI
-
-_log = logging.getLogger(__name__)
 
 from aiconsole.core.gpt.consts import (
     GPT_MODE_COST_MODEL,
     GPT_MODE_QUALITY_MODEL,
     GPT_MODE_SPEED_MODEL,
 )
+
+_log = logging.getLogger(__name__)
 
 MODELS_TO_CHECK_WHILE_VERIFYING_KEY = [
     GPT_MODE_COST_MODEL,

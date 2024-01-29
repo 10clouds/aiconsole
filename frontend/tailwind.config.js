@@ -71,6 +71,7 @@ export default {
         'recent-bg': "url('/bg1.png')",
         'top-elipse': "url('/elipse-top.png')",
         'primary-gradient': 'radial-gradient(circle at 50% -40%, rgba(173,122,255,1) -150%, rgba(26,26,26,1) 60%)',
+        'secondary-gradient': 'linear-gradient(180deg, rgba(31,31,31,1) 0%, rgba(17,17,17,1) 100%)',
         'project-item-gradient': 'linear-gradient(180deg, #161616 29.17%, #2D253E 100%)',
         'project-item-gradient-2': 'linear-gradient(180deg, rgba(17, 17, 17, 0.00) 65.1%, #111 100%)',
       },

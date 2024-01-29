@@ -1,5 +1,3 @@
-from typing import Any, Coroutine
-
 from fastapi import UploadFile
 
 from aiconsole.core.assets.agents.agent import Agent

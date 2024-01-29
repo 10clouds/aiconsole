@@ -61,11 +61,11 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
       {openModalButton && <ReactAlertDialog.Trigger asChild>{openModalButton}</ReactAlertDialog.Trigger>}
       <ReactAlertDialog.Portal>
         <ReactAlertDialog.Overlay
-          className="data-[state=open]:animate-overlayShow fixed inset-0 bg-black/50"
+          className="data-[state=open]:animate-overlayShow fixed inset-0 bg-black/50 z-[98]"
           onClick={onBackgroundClick}
         />
         <ReactAlertDialog.Content
-          className="p-10 flex flex-col gap-[30px] text-center text-white data-[state=open]:animate-contentShow fixed top-[50%] left-[50%] max-h-[85vh] max-w-[380px] translate-x-[-50%] translate-y-[-50%] rounded-xl bg-primary-gradient shadow-dark focus:outline-none z-50"
+          className="p-10 flex flex-col gap-[30px] text-center text-white data-[state=open]:animate-contentShow fixed top-[50%] left-[50%] max-h-[85vh] max-w-[380px] translate-x-[-50%] translate-y-[-50%] rounded-xl bg-primary-gradient shadow-dark focus:outline-none z-[99]"
           onEscapeKeyDown={handleClose}
           onOpenAutoFocus={(e) => e.preventDefault()}
         >

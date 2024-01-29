@@ -22,7 +22,7 @@ import { useProjectStore } from '../../store/projects/useProjectStore';
 import { ProjectCard } from './ProjectCard';
 import { RecentProjectsEmpty } from './RecentProjectsEmpty';
 import AlertDialog from '../common/AlertDialog';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useProjectFileManagerStore, ProjectModalMode } from '@/store/projects/useProjectFileManagerStore';
 
 export function Home() {
@@ -106,6 +106,15 @@ export function Home() {
     projectModalMode,
     tempPath,
   ]);
+
+  useEffect(() => {
+    if (
+      (isProjectDirectory === false && projectModalMode === ProjectModalMode.OPEN_NEW) ||
+      (isProjectDirectory === true && projectModalMode === ProjectModalMode.OPEN_EXISTING)
+    ) {
+      openProjectConfirmation();
+    }
+  }, [openProjectConfirmation, projectModalMode, isProjectDirectory]);
 
   return (
     <div className="min-h-[100vh] bg-recent-bg bg-cover bg-top">

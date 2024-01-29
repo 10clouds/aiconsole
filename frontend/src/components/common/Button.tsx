@@ -28,7 +28,7 @@ const getStatusColor = (statusColor?: StatusColor) => {
     case 'purple':
       return 'border-primary text-gray-300 [&>svg]:text-primary bg-gray-700';
     default:
-      return 'border-gray-500 text-white [&>svg]:text-white bg-gray-700';
+      return 'border-gray-500 text-gray-300 [&>svg]:text-gray-500 bg-gray-900';
   }
 };
 
@@ -50,6 +50,7 @@ interface ButtonProps {
   onMouseEnter?: MouseEventHandler<HTMLButtonElement>;
   onMouseLeave?: MouseEventHandler<HTMLButtonElement>;
   onContextMenu?: MouseEventHandler<HTMLButtonElement>;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -72,6 +73,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       dataAutofocus,
       transparent,
       onContextMenu,
+      type = 'button',
       ...props
     },
     ref,
@@ -85,7 +87,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         case 'tertiary':
           return 'bg-transparent border-transparent text-gray-300 hover:border-transparent hover:text-secondary hover:bg-transparent font-normal text-[15px] focus:bg-transparent px-0';
         case 'status':
-          return `!px-[14px] !py-[13px] max-h-[48px] bg-gray-800 border-gray-500 text-gray-300 [&>svg]:text-gray-500 font-normal text-[15px] hover:text-gray-300 hover:border-gray-300 hover:bg-gray-800 [&>svg]:hover:text-gray-300 [&>svg]:focus:text-gray-300 [&>svg]:transition-colors [&>svg]:duration-200 focus:border-gray-300 focus:text-gray-300 focus:bg-gray-800 ${getStatusColor(
+          return `leading-none !px-[14px] !py-[13px] max-h-[48px] bg-gray-800 border-gray-500 text-gray-300 [&>svg]:text-gray-500 font-normal text-[15px] hover:text-gray-300 hover:border-gray-300 hover:bg-gray-800 [&>svg]:hover:text-gray-300 [&>svg]:focus:text-gray-300 [&>svg]:transition-colors [&>svg]:duration-200 focus:border-gray-300 focus:text-gray-300 focus:bg-gray-800 ${getStatusColor(
             statusColor,
           )}`;
         default:
@@ -95,6 +97,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     return (
       <button
+        type={type}
         ref={ref}
         autoFocus={autoFocus}
         onClick={onClick}

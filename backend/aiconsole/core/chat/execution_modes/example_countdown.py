@@ -46,7 +46,7 @@ async def execution_mode_process(
             message_group_id=context.chat_mutator.chat.message_groups[-1].id,
             message_id=message_id,
             timestamp=datetime.now().isoformat(),
-            content=f"This is a demo of execution mode. I will count down from 10 to 1 and then hello world code.\n\n",
+            content="This is a demo of execution mode. I will count down from 10 to 1 and then hello world code.\n\n",
         )
     )
 
@@ -67,7 +67,7 @@ async def execution_mode_process(
             message_group_id=context.chat_mutator.chat.message_groups[-1].id,
             message_id=message_id,
             timestamp=datetime.now().isoformat(),
-            content=f"Done",
+            content="Done",
         )
     )
 

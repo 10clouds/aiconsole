@@ -37,7 +37,8 @@ _log = logging.getLogger(__name__)
 
 
 class Assets:
-    # _assets have lists, where the first element is the one overriding the others (currently there can be only one overriden element)
+    # _assets have lists, where the 1st element is the one overriding the others
+    # Currently there can be only 1 overriden element
     _assets: dict[str, list[Asset]]
 
     def __init__(self, asset_type: AssetType):

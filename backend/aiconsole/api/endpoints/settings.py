@@ -32,7 +32,7 @@ class PartialSettingsDataWithLocation(PartialSettingsData):
 
 @router.patch("")
 async def partially_update_project_settings(
-    patch_data: PartialSettingsDataWithLocation, settings: Settings = Depends(settings)
+    patch_data: PartialSettingsDataWithLocation, settings: Settings = Depends(dependency=settings)
 ):
     try:
         settings.save(patch_data, to_global=patch_data.to_global)
@@ -43,5 +43,5 @@ async def partially_update_project_settings(
 
 
 @router.get("")
-async def get_settings(settings: Settings = Depends(settings)):
+async def get_settings(settings: Settings = Depends(dependency=settings)):
     return JSONResponse(settings.unified_settings.model_dump())

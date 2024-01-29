@@ -1,8 +1,8 @@
 {
   "python.analysis.typeCheckingMode": "basic",
+  "flake8.cwd": "${workspaceFolder}",
   "flake8.args": [
-    "--config",
-    "backend/pyproject.toml"
+    "--max-line-length", "119",
   ],
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,

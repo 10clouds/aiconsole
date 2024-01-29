@@ -47,14 +47,14 @@ class ChatTestFramework:
         self._project_path = None
 
     @property
-    def chat_id(self) -> str:
+    def chat_id(self) -> str | None:
         return self._chat_id
 
     def repeat(self, times: int) -> pytest.MarkDecorator:
         return pytest.mark.repeat(times)
 
     @asynccontextmanager
-    async def initialize_project_with_chat(self, project_path: str) -> None:
+    async def initialize_project_with_chat(self, project_path: str):
         self._chat_id = str(uuid4())
         self._request_id = str(uuid4())
         self._message_group_id = str(uuid4())
@@ -66,9 +66,10 @@ class ChatTestFramework:
         await self._project_directory.switch_or_save_project(
             directory=project_path, background_tasks=self._background_tasks
         )
-        try:
-            with self._client.websocket_connect("/ws") as websocket:
-                await OpenChatClientMessage(chat_id=self._chat_id).send(websocket)
+
+        with self._client.websocket_connect("/ws") as websocket:
+            try:
+                await OpenChatClientMessage(request_id=self._request_id, chat_id=self._chat_id).send(websocket)
                 self._wait_for_websocket_response("ChatOpenedServerMessage", websocket)
 
                 await AcquireLockClientMessage(
@@ -95,13 +96,16 @@ class ChatTestFramework:
                 self._websocket = websocket
 
                 yield
-        finally:
-            await CloseChatClientMessage(chat_id=self._chat_id).send(websocket)
+            finally:
+                await CloseChatClientMessage(request_id=self._request_id, chat_id=self._chat_id).send(websocket)
 
     async def process_user_code_request(self, message: str) -> list[AICMessage]:
         if self._websocket is None:
             raise Exception("You have to initialize project with chat first")
 
+        assert self._message_group_id is not None
+        assert self._request_id is not None
+        assert self._chat_id is not None
         await InitChatMutationClientMessage(
             request_id=self._request_id,
             chat_id=self._chat_id,
@@ -141,7 +145,9 @@ class ChatTestFramework:
 
         raise Exception(f"Response of type {response_type} not received")
 
-    async def _get_chat_messages_for_agent(self, agent_id: str, _retries: int = 0) -> list[AICMessage]:
+    async def _get_chat_messages_for_agent(self, agent_id: str, _retries: int = 0) -> list[AICMessage] | list:
+        assert self._chat_id is not None
+        assert self._project_path is not None
         chat = await load_chat_history(id=self._chat_id, project_path=Path(self._project_path))
         automator_message_group_messages = None
         for message_group in chat.message_groups:
@@ -154,7 +160,7 @@ class ChatTestFramework:
             return await self._get_chat_messages_for_agent(agent_id, _retries + 1)
         elif automator_message_group_messages is None and _retries >= 30:
             raise Exception(f"[CHAT_ID: {self._chat_id}] Automator message group not found in chat")
-        return automator_message_group_messages
+        return automator_message_group_messages or []  # Add type hint to indicate possible None value
 
 
 chat_test_framework = ChatTestFramework()

@@ -51,7 +51,7 @@ class Material(Asset):
     def inlined_content(self):
         # if starts with file:// then load the file, take into account file://./relative paths
         if self.content.startswith("file://"):
-            content_file = self.content[len("file://") :]
+            content_file = self.content[len("file://"):]
 
             from aiconsole.core.project.paths import (
                 get_core_assets_directory,

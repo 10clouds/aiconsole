@@ -17,7 +17,6 @@
 import asyncio
 import logging
 from typing import cast
-from uuid import uuid4
 
 from aiconsole.core.assets.agents.agent import Agent
 from aiconsole.core.assets.materials.content_evaluation_context import (
@@ -25,27 +24,16 @@ from aiconsole.core.assets.materials.content_evaluation_context import (
 )
 from aiconsole.core.assets.materials.material import Material
 from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
-from aiconsole.core.chat.chat_mutations import CreateMessageGroupMutation
-from aiconsole.core.chat.convert_messages import convert_messages
 from aiconsole.core.chat.execution_modes.analysis.director import director_analyse
 from aiconsole.core.chat.execution_modes.execution_mode import (
     AcceptCodeContext,
     ExecutionMode,
     ProcessChatContext,
 )
-from aiconsole.core.chat.execution_modes.get_agent_system_message import (
-    get_agent_system_message,
-)
 from aiconsole.core.chat.execution_modes.import_and_validate_execution_mode import (
     import_and_validate_execution_mode,
 )
 from aiconsole.core.chat.types import AICMessageGroup
-from aiconsole.core.gpt.create_full_prompt_with_materials import (
-    create_full_prompt_with_materials,
-)
-from aiconsole.core.gpt.gpt_executor import GPTExecutor
-from aiconsole.core.gpt.request import GPTRequest
-from aiconsole.core.gpt.types import CLEAR_STR
 from aiconsole.core.project import project
 
 _log = logging.getLogger(__name__)
