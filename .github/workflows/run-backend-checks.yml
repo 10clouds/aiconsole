@@ -24,7 +24,7 @@ jobs:
         cd backend && poetry run pytest . 
     - name: Run black check
       run: |
-        cd backend && black --check .
+        cd backend && black --line-length 119 --check .
     - name: Run isort check
       run: |
         cd backend && isort --check-only --atomic .
