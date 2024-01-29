@@ -51,7 +51,7 @@ class Material(Asset):
     def inlined_content(self):
         # if starts with file:// then load the file, take into account file://./relative paths
         if self.content.startswith("file://"):
-            content_file = self.content[len("file://"):]
+            content_file = self.content[len("file://") :]
 
             from aiconsole.core.project.paths import (
                 get_core_assets_directory,
@@ -60,10 +60,19 @@ class Material(Asset):
 
             project_dir_path = get_project_assets_directory(self.type)
             core_resource_path = get_core_assets_directory(self.type)
-            if self.defined_in == AssetLocation.PROJECT_DIR:
+            # TODO: content_file path is relative. If material is default, only .toml file is copied to project
+            #  directory, so content_file is not found. If material is in project, then content_file is found.
+            # if self.defined_in == AssetLocation.PROJECT_DIR:
+            #     base_search_path = project_dir_path
+            # else:
+            #     base_search_path = core_resource_path
+
+            # This is a workaround for now, but it should be fixed in the future
+            if (project_dir_path / content_file).exists():
                 base_search_path = project_dir_path
             else:
                 base_search_path = core_resource_path
+
             with open(base_search_path / content_file, "r", encoding="utf8", errors="replace") as file:
                 return file.read()
 
