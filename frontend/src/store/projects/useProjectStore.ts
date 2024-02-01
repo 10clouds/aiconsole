@@ -31,6 +31,7 @@ export type ProjectSlice = {
   onProjectOpened: ({ path, name, initial }: { path: string; name: string; initial: boolean }) => Promise<void>;
   onProjectClosed: () => Promise<void>;
   onProjectLoading: () => void;
+  resetProjectSwitchFetching: () => void;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -79,6 +80,11 @@ export const useProjectStore = create<ProjectSlice>((set, _) => ({
       isProjectLoading: true,
       isProjectSwitchFetching: false,
     }));
+  },
+  resetProjectSwitchFetching: () => {
+    set({
+      isProjectSwitchFetching: false,
+    });
   },
   chooseProject: async (path?: string) => {
     // If we are in electron environment, use electron dialog, otherwise rely on the backend to open the dialog

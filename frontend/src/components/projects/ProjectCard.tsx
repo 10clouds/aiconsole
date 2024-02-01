@@ -68,6 +68,8 @@ export function ProjectCard({ name, path, recentChats, incorrectPath, stats }: P
   const isProjectSwitchFetching = useProjectStore((state) => state.isProjectSwitchFetching);
   const [isCurrentProjectFetching, setIsCurrentProjectFetching] = useState(false);
   const projectModalMode = useProjectFileManagerStore((state) => state.projectModalMode);
+  const initProjects = useRecentProjectsStore((state) => state.getRecentProjects);
+  const resetFetching = useProjectStore((state) => state.resetProjectSwitchFetching);
   const openModal = useProjectFileManagerStore((state) => state.openModal);
 
   const { chats_count, materials_dynamic_note_count, materials_note_count, materials_python_api_count, agents } =
@@ -82,11 +84,19 @@ export function ProjectCard({ name, path, recentChats, incorrectPath, stats }: P
     if (isFocused || isProjectSwitchFetching) return;
 
     if (!isEditing && !isFocused && event.button === 0) {
-      chooseProject(path);
-      // set timeout to prevent flickering
-      setTimeout(() => {
-        setIsCurrentProjectFetching(true);
-      }, 0);
+      chooseProject(path)
+        .then(() =>
+          // set timeout to prevent flickering
+          setTimeout(() => {
+            setIsCurrentProjectFetching(true);
+          }, 0),
+        )
+        .catch(() => {
+          console.log('projects', path, name);
+          openModal(ProjectModalMode.OPEN_NEW, path, name);
+          initProjects();
+          resetFetching();
+        });
     }
   };
 
@@ -188,8 +198,7 @@ export function ProjectCard({ name, path, recentChats, incorrectPath, stats }: P
         className={cn(
           'border-2 border-gray-600 p-[30px] pb-[20px] rounded-[20px] w-full transition-bg duration-150  cursor-pointer bg-gray-900 hover:bg-project-item-gradient flex flex-col justify-between relative',
           {
-            'bg-project-item-gradient': isShowingContext,
-            'opacity-50 hover:bg-gray-900 cursor-default': isProjectSwitchFetching,
+            'bg-project-item-gradient opacity-50 hover:bg-gray-900 cursor-default': isProjectSwitchFetching,
             group: !isProjectSwitchFetching,
             'opacity-50': incorrectPath,
           },

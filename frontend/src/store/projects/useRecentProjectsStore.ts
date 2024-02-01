@@ -24,6 +24,7 @@ export type RecentProjectsStore = {
   initRecentProjects: () => Promise<void>;
   recentProjects: RecentProject[];
   removeRecentProject: (projectPath: string) => Promise<void>;
+  getRecentProjects: () => void;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -39,6 +40,11 @@ export const useRecentProjectsStore = create<RecentProjectsStore>((set, _) => ({
   },
   removeRecentProject: async (projectPath: string) => {
     await ProjectsAPI.removeRecentProject(projectPath);
+    const recentProjects = await ProjectsAPI.getRecentProjects();
+    set({ recentProjects });
+  },
+  getRecentProjects: async () => {
+    console.log('test get');
     const recentProjects = await ProjectsAPI.getRecentProjects();
     set({ recentProjects });
   },
