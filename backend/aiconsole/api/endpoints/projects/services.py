@@ -1,10 +1,8 @@
-from math import e
 import os
 from pathlib import Path
 from tkinter import Tk, filedialog
 
 from fastapi import BackgroundTasks
-from aiconsole import init
 
 from aiconsole.core.project.paths import get_project_directory
 from aiconsole.core.project.project import choose_project, is_project_initialized
