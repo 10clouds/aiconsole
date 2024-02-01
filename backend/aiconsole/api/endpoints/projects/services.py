@@ -1,8 +1,10 @@
+from math import e
 import os
 from pathlib import Path
 from tkinter import Tk, filedialog
 
 from fastapi import BackgroundTasks
+from aiconsole import init
 
 from aiconsole.core.project.paths import get_project_directory
 from aiconsole.core.project.project import choose_project, is_project_initialized
@@ -18,8 +20,15 @@ class ProjectDirectory:
         else:
             self._root.deiconify()
         self._root.withdraw()
-        initial_dir = get_project_directory() if is_project_initialized() else os.getcwd()
-        directory = filedialog.askdirectory(initialdir=initial_dir)
+        try:
+            initial_dir = get_project_directory() if is_project_initialized() else os.getcwd()
+            initial_dir = Path(initial_dir)
+            if not (initial_dir.exists() and initial_dir.is_dir()):
+                raise Exception
+            else:
+                directory = filedialog.askdirectory(initialdir=initial_dir)
+        except Exception:
+            directory = filedialog.askdirectory()
 
         # Check if the dialog was cancelled (directory is an empty string)
         if directory == "":
