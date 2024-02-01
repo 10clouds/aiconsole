@@ -48,7 +48,6 @@ const ChatOptions = () => {
   const materialsIds = chosenMaterials.map((material) => material.id);
 
   useEffect(() => {
-    console.log('chat changed', chat?.id);
     setSelectedAgentId('');
     setChosenMaterials([]);
     setAllowExtraMaterials(false);
