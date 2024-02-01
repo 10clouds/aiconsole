@@ -45,19 +45,24 @@ const ChatOptions = () => {
   const [chosenMaterials, setChosenMaterials] = useState<Material[]>([]);
   const [allowExtraMaterials, setAllowExtraMaterials] = useState<boolean>(false);
 
+  console.log(chosenMaterials, chat?.chat_options, materials);
+
   useEffect(() => {
-    setSelectedAgentId(chat?.chat_options.agent_id || '')
-    setChosenMaterials(chat?.chat_options.materials_ids || []);
+    setSelectedAgentId(chat?.chat_options.agent_id || '');
+    const filteredMaterials = materials?.filter(({ id }) => (chat?.chat_options.materials_ids || []).includes(id));
+    setChosenMaterials(filteredMaterials || []);
     setAllowExtraMaterials(chat?.chat_options.let_ai_add_extra_materials || false);
-  }, [chat]);
+  }, [chat, materials]);
 
   const debounceChatUpdate = useDebounceCallback(async () => {
     try {
-      ChatAPI.patchChatOptions(chat?.id, {
+      if (chat) {
+        ChatAPI.patchChatOptions(chat?.id, {
           agent_id: selectedAgentId,
           materials_ids: chosenMaterials.map((material) => material.id),
           let_ai_add_extra_materials: allowExtraMaterials,
         });
+      }
 
       console.log('Chat options updated successfully');
     } catch (error) {
