@@ -196,7 +196,8 @@ export function ProjectCard({ name, path, recentChats, incorrectPath, stats }: P
         className={cn(
           'border-2 border-gray-600 p-[30px] pb-[20px] rounded-[20px] w-full transition-bg duration-150  cursor-pointer bg-gray-900 hover:bg-project-item-gradient flex flex-col justify-between relative',
           {
-            'bg-project-item-gradient opacity-50 hover:bg-gray-900 cursor-default': isProjectSwitchFetching,
+            'bg-project-item-gradient': isShowingContext,
+            'opacity-50 hover:bg-gray-900 cursor-default': isProjectSwitchFetching,
             group: !isProjectSwitchFetching,
             'opacity-50': incorrectPath,
           },
