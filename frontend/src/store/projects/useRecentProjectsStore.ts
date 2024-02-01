@@ -44,7 +44,6 @@ export const useRecentProjectsStore = create<RecentProjectsStore>((set, _) => ({
     set({ recentProjects });
   },
   getRecentProjects: async () => {
-    console.log('test get');
     const recentProjects = await ProjectsAPI.getRecentProjects();
     set({ recentProjects });
   },

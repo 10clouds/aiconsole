@@ -68,7 +68,7 @@ export function ProjectCard({ name, path, recentChats, incorrectPath, stats }: P
   const isProjectSwitchFetching = useProjectStore((state) => state.isProjectSwitchFetching);
   const [isCurrentProjectFetching, setIsCurrentProjectFetching] = useState(false);
   const projectModalMode = useProjectFileManagerStore((state) => state.projectModalMode);
-  const initProjects = useRecentProjectsStore((state) => state.getRecentProjects);
+  const reloadProjects = useRecentProjectsStore((state) => state.getRecentProjects);
   const resetFetching = useProjectStore((state) => state.resetProjectSwitchFetching);
   const openModal = useProjectFileManagerStore((state) => state.openModal);
 
@@ -92,9 +92,7 @@ export function ProjectCard({ name, path, recentChats, incorrectPath, stats }: P
           }, 0),
         )
         .catch(() => {
-          console.log('projects', path, name);
-          openModal(ProjectModalMode.OPEN_NEW, path, name);
-          initProjects();
+          reloadProjects();
           resetFetching();
         });
     }
