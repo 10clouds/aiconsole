@@ -398,6 +398,7 @@ async def _send_code(tool_calls, context, tools_requiring_closing_parenthesis, m
                         changed_str = arguments_str.replace("\\\\", "\\")
                         changed_str = changed_str.replace("\\n", "\n")
                         changed_str = changed_str.replace("\\\n", "\n")
+                        changed_str = changed_str.replace('\\"', '"')
 
                         start_index = changed_str.find(start_marker)
                         if start_index != -1:

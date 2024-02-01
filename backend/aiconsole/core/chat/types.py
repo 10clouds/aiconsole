@@ -16,8 +16,9 @@
 
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional
 
-from pydantic import BaseModel, field_serializer
+from pydantic import BaseModel, Field, field_serializer
 
 from aiconsole.core.assets.models import EditableObject
 from aiconsole.core.code_running.code_interpreters.language import LanguageStr
@@ -77,9 +78,16 @@ class AICToolCallLocation:
     tool_call: AICToolCall
 
 
+class ChatOptions(BaseModel):
+    agent_id: Optional[str] = ""
+    materials_ids: Optional[list[str]] = Field(default_factory=list)
+    let_ai_add_extra_materials: bool = False
+
+
 class Chat(ChatHeadline):
     lock_id: str | None = None
     title_edited: bool = False
+    chat_options: ChatOptions = Field(default_factory=ChatOptions)
     message_groups: list[AICMessageGroup]
     is_analysis_in_progress: bool = False
 

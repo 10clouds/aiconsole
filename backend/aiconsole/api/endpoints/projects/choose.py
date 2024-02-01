@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel
 
 from aiconsole.api.endpoints.projects.registry import project_directory
@@ -49,4 +49,7 @@ async def switch_project_endpoint(
     background_tasks: BackgroundTasks,
     project_directory: ProjectDirectory = Depends(dependency=project_directory),
 ):
-    await project_directory.switch_or_save_project(params.directory, background_tasks)
+    try:
+        await project_directory.switch_or_save_project(params.directory, background_tasks)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(object=e))

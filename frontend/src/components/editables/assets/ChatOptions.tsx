@@ -30,6 +30,7 @@ import { getEditableObjectIcon } from '@/utils/editables/getEditableObjectIcon';
 
 import { AgentAvatar } from '../chat/AgentAvatar';
 import Autocomplete from './Autocomplete';
+import { ChatAPI } from '@/api/api/ChatAPI';
 
 const ChatOptions = () => {
   const chat = useChatStore((state) => state.chat);
@@ -40,21 +41,28 @@ const ChatOptions = () => {
   const setIsChatOptionsExpanded = useChatStore((state) => state.setIsChatOptionsExpanded);
 
   const [materialsOptions, setMaterialsOptions] = useState<Material[]>([]);
-  const [selectedAgentId, setSelectedAgentId] = useState<string>('aiChoice');
+  const [selectedAgentId, setSelectedAgentId] = useState<string>('');
   const [chosenMaterials, setChosenMaterials] = useState<Material[]>([]);
   const [allowExtraMaterials, setAllowExtraMaterials] = useState<boolean>(false);
 
   useEffect(() => {
-    // TODO: set options from chat
-    // console.log(chat);
+    setSelectedAgentId(chat?.chat_options.agent_id || '')
+    setChosenMaterials(chat?.chat_options.materials_ids || []);
+    setAllowExtraMaterials(chat?.chat_options.let_ai_add_extra_materials || false);
   }, [chat]);
 
-  const debounceChatUpdate = useDebounceCallback(() => {
-    // TODO: send data to backend
-    // console.log(`Chat ${chat?.id} options updated`);
-    // console.log('chosenMaterials', chosenMaterials);
-    // console.log('selectedAgentId', selectedAgentId);
-    // console.log('allowExtraMaterials', allowExtraMaterials);
+  const debounceChatUpdate = useDebounceCallback(async () => {
+    try {
+      ChatAPI.patchChatOptions(chat?.id, {
+          agent_id: selectedAgentId,
+          materials_ids: chosenMaterials.map((material) => material.id),
+          let_ai_add_extra_materials: allowExtraMaterials,
+        });
+
+      console.log('Chat options updated successfully');
+    } catch (error) {
+      console.error('An error occurred while updating chat options:', error);
+    }
   }, 500);
 
   useEffect(() => {
@@ -198,7 +206,7 @@ const AgentsDropdown = ({ agents, selectedAgent, onSelect }: AgentsDropdownProps
       >
         <Item
           className="group flex p-0 rounded-none hover:bg-gray-600 hover:outline-none w-full cursor-pointer"
-          onClick={() => onSelect('aiChoice')}
+          onClick={() => onSelect('')}
         >
           <div className="flex items-center h-11 gap-[12px] px-[16px] py-[10px] text-[14px] text-gray-300 group-hover:text-white w-full">
             <p>AI Choice</p>
