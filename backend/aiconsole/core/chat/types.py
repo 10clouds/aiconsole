@@ -83,6 +83,9 @@ class ChatOptions(BaseModel):
     materials_ids: Optional[list[str]] = Field(default_factory=list)
     let_ai_add_extra_materials: bool = False
 
+    def is_default(self):
+        return (self.agent_id == "" and self.materials_ids == [] and not self.let_ai_add_extra_materials)
+
 
 class Chat(ChatHeadline):
     lock_id: str | None = None

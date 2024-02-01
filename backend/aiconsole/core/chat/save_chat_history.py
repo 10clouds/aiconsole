@@ -27,7 +27,7 @@ def save_chat_history(chat: Chat):
 
     new_content = chat.model_dump(exclude={"id", "last_modified"})
 
-    if len(chat.message_groups) == 0:
+    if len(chat.message_groups) == 0 and chat.chat_options.is_default():
         # delete instead
         if os.path.exists(file_path):
             os.remove(file_path)
