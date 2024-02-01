@@ -21,16 +21,18 @@ from aiconsole.core.chat.execution_modes.analysis.agents_to_choose_from import (
 )
 
 
-def create_agents_str() -> str:
+def create_agents_str(agent_id) -> str:
     """
     Randomization of agents is done because LLMs have a tendency to overfit to the first few examples.
     """
 
     # Forced agents if available or enabled agents otherwise
-    possible_agent_choices = agents_to_choose_from()
+    if agent_id:
+        possible_agent_choices = [agent for agent in agents_to_choose_from() if agent.id == agent_id]
+    else:
+        possible_agent_choices = agents_to_choose_from()
 
     new_line = "\n"
-
     random_agents = new_line.join(
         [f"* {c.id} - {c.usage}" for c in random.sample(possible_agent_choices, len(possible_agent_choices))]
     )

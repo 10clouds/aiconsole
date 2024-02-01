@@ -48,29 +48,30 @@ const ChatOptions = () => {
   const materialsIds = chosenMaterials.map((material) => material.id);
 
   useEffect(() => {
+    console.log('chat changed', chat?.id);
+    setSelectedAgentId('');
+    setChosenMaterials([]);
+    setAllowExtraMaterials(false);
+  }, [chat?.id]);
+
+  useEffect(() => {
     if (chat?.chat_options.agent_id) {
       setSelectedAgentId(chat?.chat_options.agent_id);
     }
-  }, [chat?.chat_options.agent_id]);
+  }, [chat?.chat_options.agent_id, chat?.id]);
 
   useEffect(() => {
     const filteredMaterials = materials?.filter(({ id }) => (chat?.chat_options.materials_ids || []).includes(id));
     if (filteredMaterials) {
       setChosenMaterials(filteredMaterials);
     }
-  }, [chat?.chat_options.materials_ids, materials]);
+  }, [chat?.chat_options.materials_ids, materials, chat?.id]);
 
   useEffect(() => {
     if (chat?.chat_options.let_ai_add_extra_materials) {
       setAllowExtraMaterials(chat?.chat_options.let_ai_add_extra_materials);
     }
-  }, [chat?.chat_options.let_ai_add_extra_materials]);
-
-  useEffect(() => {
-    setSelectedAgentId('');
-    setChosenMaterials([]);
-    setAllowExtraMaterials(false);
-  }, [chat?.id]);
+  }, [chat?.chat_options.let_ai_add_extra_materials, chat?.id]);
 
   const debounceChatUpdate = useDebounceCallback(async () => {
     try {
@@ -120,8 +121,8 @@ const ChatOptions = () => {
   };
 
   useEffect(() => {
-    setMaterialsOptions(materials as Material[]);
-  }, [materials]);
+    setMaterialsOptions(materials?.filter((material) => !chosenMaterials.includes(material)) as Material[]);
+  }, [chat?.id, materials, chosenMaterials]);
 
   if (!chat && !isChatLoading) {
     return;

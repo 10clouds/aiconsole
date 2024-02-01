@@ -142,7 +142,11 @@ async def gpt_analysis_function_step(
     )
 
     # Pick from forced or enabled agents if no agent is forced
-    possible_agent_choices = agents_to_choose_from()
+    if chat_mutator.chat.chat_options.agent_id:
+        agent_id = chat_mutator.chat.chat_options.agent_id
+        possible_agent_choices = [agent for agent in agents_to_choose_from(all=True) if agent.id == agent_id]
+    else:
+        possible_agent_choices = agents_to_choose_from()
 
     if len(possible_agent_choices) == 0:
         raise ValueError("No active agents")

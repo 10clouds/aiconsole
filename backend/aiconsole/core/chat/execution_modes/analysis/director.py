@@ -45,7 +45,7 @@ Materials are special files that contain instructions for agents, you can choose
 
 # Agents
 You have the following agents available to handle the next step of this conversation, it can be one of the following ids (if next step is for user to respond, it should be 'user'):
-{create_agents_str()}
+{create_agents_str(agent_id=chat_mutator.chat.chat_options.agent_id)}
 
 
 # Materials
@@ -62,7 +62,7 @@ What happened in the last few messages in the conversation? who wrote last? and 
 If it's agent's turn: briefly describe what the next, atomic, simple step of this conversation is, it can be both an action by a single agent or waiting for user response.
 4. Establish who should handle the next step, it can be one of the following ids:
 * user - if the next step is for the user to respond
-{create_agents_str()}
+{create_agents_str(agent_id=chat_mutator.chat.chat_options.agent_id)}
 
 5. Figure out and provide a list of ids of materials that are needed to execute the task, choose among the following ids:
 {create_materials_str(materials_ids=chat_mutator.chat.chat_options.materials_ids)}
