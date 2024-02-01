@@ -21,13 +21,12 @@ import { RecentProject } from '@/types/projects/RecentProject';
 const closeProject = () => ky.post(`${getBaseURL()}/api/projects/close`, { hooks: API_HOOKS });
 
 const chooseProject = (path?: string) => {
-  if (path) {
-    return ky.post(`${getBaseURL()}/api/projects/switch`, {
-      json: { directory: path },
-      hooks: API_HOOKS,
-      timeout: false, // infinite timeout
-    });
-  }
+  if (!path) return;
+  return ky.post(`${getBaseURL()}/api/projects/switch`, {
+    json: { directory: path },
+    hooks: API_HOOKS,
+    timeout: false, // infinite timeout
+  });
 };
 
 const isProjectDirectory = async (path: string) =>
