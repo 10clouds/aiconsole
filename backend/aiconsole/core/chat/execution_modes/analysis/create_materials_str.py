@@ -20,14 +20,20 @@ from aiconsole.core.assets.models import AssetStatus
 from aiconsole.core.project import project
 
 
-def create_materials_str() -> str:
+def create_materials_str(materials_ids: list | None) -> str:
     new_line = "\n"
 
     # We add forced becuase it may influence the choice of enabled materials
-    available_materials = [
-        *project.get_project_materials().assets_with_status(AssetStatus.FORCED),
-        *project.get_project_materials().assets_with_status(AssetStatus.ENABLED),
-    ]
+    available_materials = []
+    if materials_ids:
+        for material in project.get_project_materials()._assets.values():
+            if material[0].id in materials_ids:
+                available_materials.append(material[0])
+    else:
+        available_materials = [
+            *project.get_project_materials().assets_with_status(AssetStatus.FORCED),
+            *project.get_project_materials().assets_with_status(AssetStatus.ENABLED),
+        ]
 
     random_materials = (
         new_line.join([f"* {c.id} - {c.usage}" for c in random.sample(available_materials, len(available_materials))])

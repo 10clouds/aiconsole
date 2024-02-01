@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from aiconsole.core.chat.chat_mutator import ChatMutator
 from aiconsole.core.chat.execution_modes.analysis.create_agents_str import (
     create_agents_str,
@@ -51,7 +50,7 @@ You have the following agents available to handle the next step of this conversa
 
 # Materials
 A list of ids of materials that are needed to execute the task, make sure that the agent has a prioritised list of those materials to look at, agents are not able to read all of them nor change your choice:
-{create_materials_str()}
+{create_materials_str(materials_ids=chat_mutator.chat.chat_options.materials_ids)}
 
 """.strip(),
         last_system_prompt=f"""
@@ -66,7 +65,7 @@ If it's agent's turn: briefly describe what the next, atomic, simple step of thi
 {create_agents_str()}
 
 5. Figure out and provide a list of ids of materials that are needed to execute the task, choose among the following ids:
-{create_materials_str()}
+{create_materials_str(materials_ids=chat_mutator.chat.chat_options.materials_ids)}
 
 Questions to ask yourself:
 - Is there a next step phrased as a next step, and a task for a given agent?
