@@ -92,6 +92,7 @@ export function ProjectCard({ name, path, recentChats, incorrectPath, stats }: P
           }, 0),
         )
         .catch(() => {
+          setIsCurrentProjectFetching(false);
           reloadProjects();
           resetFetching();
         });

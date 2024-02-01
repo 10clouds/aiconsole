@@ -22,7 +22,7 @@ const closeProject = () => ky.post(`${getBaseURL()}/api/projects/close`, { hooks
 
 const chooseProject = (path?: string) => {
   if (path) {
-    ky.post(`${getBaseURL()}/api/projects/switch`, {
+    return ky.post(`${getBaseURL()}/api/projects/switch`, {
       json: { directory: path },
       hooks: API_HOOKS,
       timeout: false, // infinite timeout

@@ -24,7 +24,7 @@ export type RecentProjectsStore = {
   initRecentProjects: () => Promise<void>;
   recentProjects: RecentProject[];
   removeRecentProject: (projectPath: string) => Promise<void>;
-  getRecentProjects: () => void;
+  getRecentProjects: () => Promise<void>;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
