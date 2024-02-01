@@ -112,7 +112,6 @@ export function Home() {
       (isProjectDirectory === false && projectModalMode === ProjectModalMode.OPEN_NEW) ||
       (isProjectDirectory === true && projectModalMode === ProjectModalMode.OPEN_EXISTING)
     ) {
-      console.log('home');
       openProjectConfirmation();
     }
   }, [openProjectConfirmation, projectModalMode, isProjectDirectory]);
