@@ -20,5 +20,5 @@ interface SpinnerProps {
 }
 
 export function Spinner({ width = 60, height = 60 }: SpinnerProps) {
-  return <img src="/spinner.svg" alt="loading..." width={width} height={height} />;
+  return <img src="spinner.svg" alt="loading..." width={width} height={height} />;
 }
