@@ -27,8 +27,10 @@ export function EditorHeader({ editable, onRename, children, isChanged, editable
   const lastUsedChat = useChatStore((state) => state.lastUsedChat);
 
   const goBack = () => {
+    console.log(editableObjectType);
+
     if (lastUsedChat) {
-      navigate(`/chats/${lastUsedChat.id}`);
+      navigate(-1);
     }
   };
 
