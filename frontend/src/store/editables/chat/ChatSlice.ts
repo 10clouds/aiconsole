@@ -26,7 +26,7 @@ export type ChatSlice = {
   lastUsedChat?: Chat;
   isChatLoading: boolean;
   isChatOptionsExpanded: boolean;
-  setLastUsedChat: (chat: Chat) => void;
+  setLastUsedChat: (chat: Chat | undefined) => void;
   setChat: (chat: Chat) => void;
   renameChat: (newChat: Chat) => Promise<void>;
   setIsChatLoading: (isLoading: boolean) => void;
@@ -40,7 +40,7 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set,
   lastUsedChat: undefined,
   isChatOptionsExpanded: true,
   materials: [],
-  setLastUsedChat: (chat: Chat) => {
+  setLastUsedChat: (chat) => {
     set({ lastUsedChat: chat });
   },
   setChat: (chat: Chat) => {

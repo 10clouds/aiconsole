@@ -40,6 +40,8 @@ const SideBarItem = ({
   const location = useLocation();
   const navigate = useNavigate();
 
+  const setLastUsedChat = useChatStore((state) => state.setLastUsedChat);
+
   const renameChat = useChatStore((state) => state.renameChat);
   const setIsChatLoading = useChatStore((state) => state.setIsChatLoading);
 
@@ -151,6 +153,8 @@ const SideBarItem = ({
   const handleLinkClick = () => {
     if (editableObjectType === 'chat' && editableObject.id !== useChatStore.getState().chat?.id) {
       setIsChatLoading(true);
+    } else if (editableObjectType !== 'chat') {
+      setLastUsedChat(undefined);
     }
   };
 
