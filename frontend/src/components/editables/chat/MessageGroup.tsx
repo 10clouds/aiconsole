@@ -22,7 +22,6 @@ import { AnalysisClosed, AnalysisOpened } from './Analysis';
 import { MessageComponent } from './messages/MessageComponent';
 import { MessageControls } from './messages/MessageControls';
 import { useChatStore } from '@/store/editables/chat/useChatStore';
-import { log } from 'console';
 
 export function MessageGroup({ group }: { group: AICMessageGroup }) {
   const [isAnalysisManuallyOpen, setIsAnalysisManuallyOpen] = useState<boolean | undefined>(undefined);
