@@ -150,7 +150,7 @@ const SideBarItem = ({
 
   const triggerRef = useRef<ContextMenuRef>(null);
 
-  const handleLinkClick = () => {
+  const handleLinkClick = (e: MouseEvent) => {
     if (editableObjectType === 'chat' && editableObject.id !== useChatStore.getState().chat?.id) {
       setIsChatLoading(true);
     } else if (editableObjectType !== 'chat') {
@@ -189,7 +189,7 @@ const SideBarItem = ({
               );
             }}
             to={`/${editableObjectType}s/${editableObject.id}`}
-            onClick={handleLinkClick}
+            onClick={(e) => handleLinkClick(e)}
           >
             {({ isActive }) => (
               <>

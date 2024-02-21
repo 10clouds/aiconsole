@@ -114,7 +114,6 @@ export function ActorInfo({
     const openContext = (event: MouseEvent) => {
       if (triggerRef.current && actorId.type === 'user') {
         triggerRef?.current.handleTriggerClick(event);
-        console.log('aaa');
       }
     };
 
