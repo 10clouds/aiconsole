@@ -252,59 +252,46 @@ export function ChatPage() {
       <ContextMenu options={menuItems}>
         <EditorHeader editableObjectType="chat" editable={chat} onRename={handleRename} isChanged={false} />
       </ContextMenu>
-      <div className="overflow-y-hidden h-full w-full">
-        <div className="h-full w-full overflow-hidden">
-          {!isProjectLoading && !loadingMessages ? ( // This is needed because of https://github.com/compulim/react-scroll-to-bottom/issues/61#issuecomment-1608456508
-            <div
-              className="transition-height duration-200"
-              style={{
-                height: `calc(100% - ${commandInputHeight}px)`,
-                width: '100%',
-              }}
+      <div className="flex flex-col overflow-hidden h-full w-full">
+        <div className="flex-1 overflow-hidden">
+          {!isProjectLoading && !loadingMessages ? (
+            <ScrollToBottom
+              className="h-full w-full overflow-auto"
+              scrollViewClassName="main-chat-window flex-1"
+              initialScrollBehavior="auto"
+              mode={'bottom'}
+              followButtonClassName="hidden"
             >
-              {' '}
-              <ScrollToBottom
-                className={`h-full w-full`}
-                scrollViewClassName="main-chat-window"
-                initialScrollBehavior="auto"
-                mode={'bottom'}
-                followButtonClassName="hidden"
-              >
-                <ChatWindowScrollToBottomSave />
-                {chat.message_groups.length === 0 ? (
-                  <EmptyChat />
-                ) : (
-                  <div className="flex flex-col overflow-y-auto w-full">
-                    {chat.message_groups.map((group) => (
-                      <MessageGroup group={group} key={group.id} />
-                    ))}
-                    <ScrollToBottomButton />
-                  </div>
-                )}
-              </ScrollToBottom>
-            </div>
+              <ChatWindowScrollToBottomSave />
+              {chat.message_groups.length === 0 ? (
+                <EmptyChat />
+              ) : (
+                chat.message_groups.map((group) => <MessageGroup group={group} key={group.id} />)
+              )}
+              <ScrollToBottomButton />
+            </ScrollToBottom>
           ) : (
-            <div className="h-full flex flex-col"></div>
+            <Spinner />
           )}
-          <CommandInput
-            className="flex-none"
-            actionIcon={ActionButtonIcon}
-            actionLabel={actionButtonLabel}
-            onSubmit={actionButtonAction}
-            setCommandInputHeight={setCommandInputHeight}
-          />
-          <AlertDialog
-            title="Are you sure you want to exit this chat?"
-            isOpen={blockerState === 'blocked'}
-            onClose={reset}
-            onConfirm={confirm}
-            confirmationButtonText="Yes, exit"
-            cancelButtonText="No, stay"
-          >
-            Changes that you made may not be saved.
-          </AlertDialog>
         </div>
+        <CommandInput
+          className="mt-auto"
+          actionIcon={ActionButtonIcon}
+          actionLabel={actionButtonLabel}
+          onSubmit={actionButtonAction}
+          setCommandInputHeight={setCommandInputHeight}
+        />
       </div>
+      <AlertDialog
+        title="Are you sure you want to exit this chat?"
+        isOpen={blockerState === 'blocked'}
+        onClose={reset}
+        onConfirm={confirm}
+        confirmationButtonText="Yes, exit"
+        cancelButtonText="No, stay"
+      >
+        Changes that you made may not be saved.
+      </AlertDialog>
     </div>
   );
 }
