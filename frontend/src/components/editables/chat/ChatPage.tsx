@@ -254,7 +254,7 @@ export function ChatPage() {
       </ContextMenu>
       <div className="flex flex-col overflow-hidden h-full w-full">
         <div className="flex-1 overflow-hidden">
-          {!isProjectLoading && !loadingMessages ? (
+          {!isProjectLoading && !loadingMessages ? ( // This is needed because of https://github.com/compulim/react-scroll-to-bottom/issues/61#issuecomment-1608456508
             <ScrollToBottom
               className="h-full w-full overflow-auto"
               scrollViewClassName="main-chat-window flex-1"
