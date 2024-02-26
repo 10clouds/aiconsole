@@ -123,7 +123,7 @@ export function useAssetContextMenu({
         icon: Copy,
         title: 'Duplicate',
         action: () => {
-          navigate(`/assets/${assetType === 'chat' ? uuidv4() : 'new'}?copy=${asset.id}`);
+          navigate(`/assets/new?type=chat&copy=${asset.id}`);
         },
       },
       {

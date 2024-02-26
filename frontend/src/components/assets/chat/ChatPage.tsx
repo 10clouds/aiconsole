@@ -155,6 +155,9 @@ export function ChatPage() {
         orgChat.name = orgChat.name + ' (copy)';
         orgChat.title_edited = true;
         setChat(orgChat);
+        AssetsAPI.closeChat(orgChat.id).then(() => {
+          AssetsAPI.fetchAsset<AICChat>({ assetType, id: copyId }).then((orgChat) => {});
+        });
       });
     } else {
       //For id === 'new' This will get a default new asset
