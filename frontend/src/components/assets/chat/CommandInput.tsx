@@ -37,6 +37,8 @@ interface MessageInputProps {
 export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel }: MessageInputProps) => {
   const ActionIcon = actionIcon;
   const [showChatOptions, setShowChatOptions] = useState(false);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const chatOptionsInputRef = useRef<HTMLInputElement>(null);
 
   const setSelectedAgentId = useChatStore((state) => state.setSelectedAgentId);
   const selectedAgentId = useChatStore((state) => state.chatOptions?.agentId);
@@ -44,21 +46,19 @@ export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel }: M
   const setAICanAddExtraMaterials = useChatStore((state) => state.setAICanAddExtraMaterials);
   const aiCanAddExtraMaterials = useChatStore((state) => state.chatOptions?.aiCanAddExtraMaterials);
 
+  const chat = useChatStore((state) => state.chat);
   const draftCommand = useChatStore((state) => state.chatOptions?.draft_command);
   const setDraftCommand = useChatStore((state) => state.setDraftCommand);
-
   const command = useChatStore((state) => state.commandHistory[state.commandIndex]);
-
   const setCommand = useChatStore((state) => state.editCommand);
+
   const promptUp = useChatStore((state) => state.historyUp);
   const promptDown = useChatStore((state) => state.historyDown);
-  const chat = useChatStore((state) => state.chat);
-  const assets = useAssetStore((state) => state.assets);
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const chatOptionsInputRef = useRef<HTMLInputElement>(null);
 
+  const assets = useAssetStore((state) => state.assets);
   const setSelectedMaterialIds = useChatStore((state) => state.setSelectedMaterialsIds);
   const selectedMaterialIds = useChatStore((state) => state.chatOptions?.materialsIds || []);
+
   const selectedMaterials = useMemo(
     () => assets?.filter(({ id }) => selectedMaterialIds.includes(id)) || [],
     [assets, selectedMaterialIds],
@@ -132,11 +132,11 @@ export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel }: M
 
   useEffect(() => {
     setCommand(draftCommand || '');
-
-    if (textAreaRef.current) {
-      textAreaRef.current.setSelectionRange(draftCommand?.length || 0, draftCommand?.length || 0);
-    }
   }, [draftCommand, setCommand]);
+
+  useEffect(() => {
+    textAreaRef.current?.setSelectionRange(draftCommand?.length || 0, draftCommand?.length || 0);
+  }, []);
 
   const getAgent = (agentId: string) => assets.find((agent) => agent.id === agentId);
 
