@@ -14,16 +14,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useEffect, useMemo, useState } from 'react';
+import { RefreshCcw } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Icon } from '@/components/common/icons/Icon';
 import { useChatStore } from '@/store/assets/chat/useChatStore';
 import { useAssetStore } from '@/store/assets/useAssetStore';
 import { Asset } from '@/types/assets/assetTypes';
 import { cn } from '@/utils/common/cn';
-import { RefreshCcw } from 'lucide-react';
+import useMousePosition from '@/utils/common/useMousePosition';
+import { COMMANDS } from '@/utils/constants';
 
 const NUMBER_OF_DISPLAYED_EXAMPLES = 2;
+const COLOR_PRIMARY_SEMITRANSPARENT = '#A67CFF40';
 
 interface ExamplePromptProps {
   asset: Asset;
@@ -34,16 +37,53 @@ interface ExamplePromptProps {
 }
 
 const ExamplePrompt: React.FC<ExamplePromptProps> = ({ asset, example, onSelected, showExamples, isSelected }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const mousePosition = useMousePosition(ref);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    if (ref.current) {
+      ref.current.addEventListener(
+        'mouseenter',
+        () => {
+          setIsHovered(true);
+        },
+        { signal: abortController.signal },
+      );
+      ref.current.addEventListener(
+        'mouseleave',
+        () => {
+          setIsHovered(false);
+        },
+        { signal: abortController.signal },
+      );
+    }
+
+    return () => {
+      abortController.abort();
+    };
+  }, [ref]);
+
   return (
     <div
       className={cn(
-        'bg-gray-600/10 w-1/3 m-2 p-6 h-40 cursor-pointer transition duration-300 ease-in-out transform hover:scale-105 rounded-lg flex flex-col justify-center items-center text-center',
+        'bg-gray-900 w-1/3 m-2 p-6 h-40 max-w-[400px] cursor-pointer transition duration-300 ease-in-out transform hover:scale-105 rounded-xl flex flex-col justify-center items-center text-center border border-gray-700',
         !showExamples && 'opacity-0',
         showExamples && isSelected ? 'bg-gray-600' : '',
       )}
       onClick={onSelected(asset, example)}
+      // it is not possible to declare tailwindcss class with a dynamic value
+      style={{
+        backgroundImage:
+          !isSelected && isHovered
+            ? `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, ${COLOR_PRIMARY_SEMITRANSPARENT} 0px, transparent 180px)`
+            : '',
+      }}
+      ref={ref}
     >
-      <p className="text-gray-100 text-md mb-4 overflow-hidden line-clamp-5">{example}</p>
+      <p className="text-gray-100 text-md overflow-hidden line-clamp-5">{example}</p>
     </div>
   );
 };
@@ -84,6 +124,8 @@ export const EmptyChat = () => {
   const setSelectedAgentId = useChatStore((state) => state.setSelectedAgentId);
   const setSelectedMaterialsIds = useChatStore((state) => state.setSelectedMaterialsIds);
   const setAICanAddExtraMaterials = useChatStore((state) => state.setAICanAddExtraMaterials);
+
+  const submitCommand = useChatStore((state) => state.submitCommand);
 
   const assets = useAssetStore((state) => state.assets);
   const [lastExamples, setLastExamples] = useState<string[]>([]);
@@ -143,12 +185,19 @@ export const EmptyChat = () => {
     setAICanAddExtraMaterials(true);
   };
 
+  const handleGuideMe = () => {
+    submitCommand(COMMANDS.GUIDE_ME);
+  };
+
   return (
-    <section className="flex flex-col container mx-auto px-6 py-[64px] pb-[40px] select-none flex-grow h-full w-ful text-gray-500 ">
-      <img src="chat-page-glow.png" alt="glow" className="absolute top-[100px] -z-[1] opacity-70" />
-      <p className="text-md text-center mt-[100px] mb-[15px]">What can I help you with?</p>
+    <section className="flex flex-col container mx-auto px-6 py-[64px] pb-[40px] select-none flex-grow h-full w-ful text-gray-300 ">
+      <img src="chat-page-glow.png" className="absolute top-[75px] left-1/2 -z-[1] opacity-70" />
+      <img src="chat-page-glow.png" className="absolute top-[75px] -left-1/2 -z-[1] opacity-70" />
+      <p className="text-2xl font-extrabold	leading-[34px] text-white text-center mt-[100px] mb-[15px]">
+        Hello. What can I help you with?
+      </p>
       {examplePrompts.length >= 2 && (
-        <div className=" w-full flex flex-row gap-4 justify-center items-center">
+        <div className=" w-full flex flex-row gap-3 justify-center items-center">
           <ExamplePrompt
             asset={examplePrompts[0].asset}
             example={examplePrompts[0].example}
@@ -168,11 +217,21 @@ export const EmptyChat = () => {
       )}
       <div className="flex items-center justify-center">
         <button
-          className="flex items-center justify-center cursor-pointer hover:text-white mt-[20px] text-md"
+          className="flex items-center gap-2 justify-center cursor-pointer hover:text-white mt-[20px] text-md"
           onClick={refreshUsageExamples}
         >
-          <span className="mr-2">More</span>
           <Icon icon={RefreshCcw} width={16} height={16} />
+          <span className="mr-2">Shuffle prompts</span>
+        </button>
+      </div>
+
+      <div className="flex items-center justify-center gap-1 mt-10">
+        <p>Need help?</p>
+        <button
+          className="text-secondary underline underline-offset-2 hover:text-secondary-dark"
+          onClick={handleGuideMe}
+        >
+          Guide me
         </button>
       </div>
     </section>

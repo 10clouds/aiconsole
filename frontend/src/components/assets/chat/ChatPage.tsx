@@ -26,6 +26,7 @@ import { useProjectStore } from '@/store/projects/useProjectStore';
 import { AICChat } from '@/types/assets/chatTypes';
 import { useAssetContextMenu } from '@/utils/assets/useContextMenuForEditable';
 import { cn } from '@/utils/common/cn';
+import { COMMANDS } from '@/utils/constants';
 import { ArrowDown, ReplyIcon, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
@@ -222,10 +223,7 @@ export function ChatPage() {
         return {
           label: 'Are you stuck? Let me guide you',
           icon: QuestionMarkIcon,
-          action: () =>
-            submitCommand(
-              `I need help with using AIConsole, can you suggest what can I do from this point in the conversation?`,
-            ),
+          action: () => submitCommand(COMMANDS.GUIDE_ME),
         };
       }
 
