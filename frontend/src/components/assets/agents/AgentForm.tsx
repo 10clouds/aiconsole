@@ -1,30 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { FormGroup } from '@/components/common/FormGroup';
+import ImageUploader from '@/components/common/ImageUploader';
 import { Select } from '@/components/common/Select';
+import { useAssetStore } from '@/store/assets/useAssetStore';
+import { useAPIStore } from '@/store/useAPIStore';
 import { Agent, Asset } from '@/types/assets/assetTypes';
+import { EXECUTION_MODES, getExecutionMode } from '@/utils/assets/getExecutionMode';
 import { useEffect, useMemo, useState } from 'react';
 import { CodeInput } from '../CodeInput';
 import { HelperLabel } from '../HelperLabel';
-import { ErrorObject, TextInput } from '../TextInput';
 import { MarkdownSupported } from '../MarkdownSupported';
-import ImageUploader from '@/components/common/ImageUploader';
-import { useAPIStore } from '@/store/useAPIStore';
-import { useAssetStore } from '@/store/assets/useAssetStore';
-
-const executionModes = [
-  {
-    value: 'aiconsole.core.chat.execution_modes.normal:execution_mode',
-    label: 'Normal - conversational agent',
-  },
-  {
-    value: 'aiconsole.core.chat.execution_modes.interpreter:execution_mode',
-    label: 'Interpreter - code running agent',
-  },
-  {
-    value: 'custom',
-    label: 'Custom - (eg. custom.custom:custom_mode)',
-  },
-];
+import { ErrorObject, TextInput } from '../TextInput';
 
 interface AgentFormProps {
   agent: Agent;
@@ -48,28 +34,18 @@ export const AgentForm = ({
   setIsAvatarOverwritten,
   onRevert: _onRevert,
 }: AgentFormProps) => {
-  const [executionMode, setExecutionMode] = useState('');
-  const [customExecutionMode, setCustomExecutionMode] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const setSelectedAsset = useAssetStore((state) => state.setSelectedAsset);
   const handleUsageChange = (value: string) => setSelectedAsset({ ...agent, usage: value });
   const setExecutionModeState = (value: string) => setSelectedAsset({ ...agent, execution_mode: value } as Asset);
   const getBaseURL = useAPIStore((state) => state.getBaseURL);
 
-  const isCustomMode = useMemo(() => executionMode === 'custom', [executionMode]);
+  const executionMode = useMemo(() => getExecutionMode(agent.execution_mode), [agent.execution_mode]);
+  const isCustomMode = executionMode === 'custom';
 
   const handleSetExecutionMode = (value: string) => {
-    setExecutionMode(value);
-    if (!isCustomMode) {
-      setCustomExecutionMode('');
-      setErrors?.((prev) => ({ ...prev, executionMode: '' }));
-      setExecutionModeState(value);
-    }
-  };
-
-  const handleCustomExecutionModeChange = (value: string) => {
-    setCustomExecutionMode(value);
-    setExecutionModeState(value);
+    setErrors?.((prev) => ({ ...prev, executionMode: '' }));
+    setExecutionModeState(value === 'custom' ? '' : value);
   };
 
   const setAsset = (value: string) =>
@@ -94,7 +70,10 @@ export const AgentForm = ({
   return (
     <>
       <div className="flex gap-[20px]">
-        <ImageUploader currentImage={avatarUrl} onUpload={(avatar: string) => handleSetImage(new File([avatar], "avatar"))} />
+        <ImageUploader
+          currentImage={avatarUrl}
+          onUpload={(avatar: string) => handleSetImage(new File([avatar], 'avatar'))}
+        />
         <FormGroup className="w-full">
           <TextInput
             label="Usage"
@@ -120,16 +99,18 @@ export const AgentForm = ({
               placeholder="Write text here"
               setErrors={setErrors}
               errors={errors}
-              value={customExecutionMode}
-              onChange={handleCustomExecutionModeChange}
+              value={agent.execution_mode}
+              onChange={setExecutionModeState}
               className="mb-[20px] leading-relaxed"
               helperText="a Python module governing how the agent behaves."
               hidden={!isCustomMode}
               labelChildren={
                 <Select
-                  options={executionModes}
+                  key={executionMode}
+                  options={EXECUTION_MODES}
                   placeholder="Choose execution mode"
                   onChange={handleSetExecutionMode}
+                  initialValue={executionMode}
                 />
               }
             />
