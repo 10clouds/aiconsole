@@ -1,7 +1,7 @@
 name = "Programmer"
 usage = "Useful when you want to write code, but not when it needs execution. This is only when the user is working on something on their own and you want to help them with their code. Not when you need to execute code to perform a task."
 gpt_mode = "quality"
-execution_mode = "aiconsole.core.chat.execution_modes.interpreter:execution_mode"
+execution_mode = { module_path = "aiconsole.core.chat.execution_modes.interpreter:execution_mode" }
 system = """
 You are an expert programmer.\n
 You need to know what the tech stack is, if you don't have it ask for it.\n

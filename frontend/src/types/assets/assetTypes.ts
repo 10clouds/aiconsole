@@ -78,7 +78,10 @@ export type Asset = z.infer<typeof AssetSchema>;
 export const AgentSchema = AssetSchema.extend({
   system: z.string(),
   gpt_mode: GPTModeSchema,
-  execution_mode: z.string(),
+  execution_mode: z.object({
+    module_path: z.string(),
+    params_values: z.record(z.string()),
+  }),
 });
 
 export type Agent = z.infer<typeof AgentSchema>;

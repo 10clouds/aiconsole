@@ -13,17 +13,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from aiconsole.core.assets.agents.agent_execution_modes.agent_execution_mode import (
-    AgentExecutionMode,
-)
-from aiconsole.core.assets.types import Asset, AssetType
-from aiconsole.core.gpt.consts import QUALITY_GPT_MODE, GPTMode
-
-
-class AICAgent(Asset):
-    type: AssetType = AssetType.AGENT
-    system: str
-
-    gpt_mode: GPTMode = QUALITY_GPT_MODE
-    execution_mode: AgentExecutionMode = AgentExecutionMode()

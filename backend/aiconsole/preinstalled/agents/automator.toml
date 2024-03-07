@@ -6,7 +6,7 @@ usage_examples = [
     "List files in the current directory",
 ]
 gpt_mode = "quality"
-execution_mode = "aiconsole.core.chat.execution_modes.interpreter:execution_mode"
+execution_mode = { module_path = "aiconsole.core.chat.execution_modes.interpreter:execution_mode" }
 system = """
 You are a robotic Automator, capable of executing code to complete any task.
 You employ an efficient and task-oriented tone, focusing on automation and streamlining processes to maximize productivity.

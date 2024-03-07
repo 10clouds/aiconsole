@@ -37,15 +37,25 @@ export const AgentForm = ({
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const setSelectedAsset = useAssetStore((state) => state.setSelectedAsset);
   const handleUsageChange = (value: string) => setSelectedAsset({ ...agent, usage: value });
-  const setExecutionModeState = (value: string) => setSelectedAsset({ ...agent, execution_mode: value } as Asset);
+  const setExecutionModeModulePathState = (value: string) =>
+    setSelectedAsset({
+      ...agent,
+      execution_mode: {
+        ...agent.execution_mode,
+        module_path: value,
+      },
+    } as Asset);
   const getBaseURL = useAPIStore((state) => state.getBaseURL);
 
-  const executionMode = useMemo(() => getExecutionMode(agent.execution_mode), [agent.execution_mode]);
-  const isCustomMode = executionMode === 'custom';
+  const executionModeModulePath = useMemo(
+    () => getExecutionMode(agent.execution_mode.module_path),
+    [agent.execution_mode.module_path],
+  );
+  const isCustomMode = executionModeModulePath === 'custom';
 
   const handleSetExecutionMode = (value: string) => {
     setErrors?.((prev) => ({ ...prev, executionMode: '' }));
-    setExecutionModeState(value === 'custom' ? '' : value);
+    setExecutionModeModulePathState(value === 'custom' ? '' : value);
   };
 
   const setAsset = (value: string) =>
@@ -99,18 +109,18 @@ export const AgentForm = ({
               placeholder="Write text here"
               setErrors={setErrors}
               errors={errors}
-              value={agent.execution_mode}
-              onChange={setExecutionModeState}
+              value={agent.execution_mode.module_path}
+              onChange={setExecutionModeModulePathState}
               className="mb-[20px] leading-relaxed"
               helperText="a Python module governing how the agent behaves."
               hidden={!isCustomMode}
               labelChildren={
                 <Select
-                  key={executionMode}
+                  key={executionModeModulePath}
                   options={EXECUTION_MODES}
                   placeholder="Choose execution mode"
                   onChange={handleSetExecutionMode}
-                  initialValue={executionMode}
+                  initialValue={executionModeModulePath}
                 />
               }
             />
