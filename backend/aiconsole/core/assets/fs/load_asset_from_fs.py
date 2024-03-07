@@ -69,6 +69,8 @@ async def load_asset_from_fs(asset_type: AssetType, asset_id: str, location: Ass
     if asset_type == AssetType.AGENT and asset_id == _USER_AGENT_ID:
         raise UserIsAnInvalidAgentIdError()
 
+    print("Is loading: ", asset_id)
+
     location, path = await _find_asset_path(asset_type, asset_id, location)
 
     async with aiofiles.open(path, mode="r", encoding="utf8", errors="replace") as file:

@@ -96,7 +96,7 @@ async def save_asset_to_fs(asset: Asset, old_asset_id: str) -> Asset:
         toml_data.update(
             {
                 "system": asset.system,
-                "gpt_mode": str(asset.gpt_mode),
+                "gpt_mode": asset.gpt_mode,
                 "execution_mode": asset.execution_mode,
             }
         )
