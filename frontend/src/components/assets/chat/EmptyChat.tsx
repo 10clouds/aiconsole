@@ -22,6 +22,7 @@ import { useChatStore } from '@/store/assets/chat/useChatStore';
 import { useAssetStore } from '@/store/assets/useAssetStore';
 import { Asset } from '@/types/assets/assetTypes';
 import { cn } from '@/utils/common/cn';
+import useIsHovered from '@/utils/common/useIsHovered';
 import useMousePosition from '@/utils/common/useMousePosition';
 import { COMMANDS } from '@/utils/constants';
 
@@ -39,32 +40,7 @@ interface ExamplePromptProps {
 const ExamplePrompt: React.FC<ExamplePromptProps> = ({ asset, example, onSelected, showExamples, isSelected }) => {
   const ref = useRef<HTMLDivElement>(null);
   const mousePosition = useMousePosition(ref);
-  const [isHovered, setIsHovered] = useState(false);
-
-  useEffect(() => {
-    const abortController = new AbortController();
-
-    if (ref.current) {
-      ref.current.addEventListener(
-        'mouseenter',
-        () => {
-          setIsHovered(true);
-        },
-        { signal: abortController.signal },
-      );
-      ref.current.addEventListener(
-        'mouseleave',
-        () => {
-          setIsHovered(false);
-        },
-        { signal: abortController.signal },
-      );
-    }
-
-    return () => {
-      abortController.abort();
-    };
-  }, [ref]);
+  const isHovered = useIsHovered(ref);
 
   return (
     <div
@@ -185,10 +161,6 @@ export const EmptyChat = () => {
     setAICanAddExtraMaterials(true);
   };
 
-  const handleGuideMe = () => {
-    submitCommand(COMMANDS.GUIDE_ME);
-  };
-
   return (
     <section className="flex flex-col container mx-auto px-6 py-[64px] pb-[40px] select-none flex-grow h-full w-ful text-gray-300 ">
       <img src="chat-page-glow.png" className="absolute top-[75px] left-1/2 -z-[1] opacity-70" />
@@ -229,7 +201,7 @@ export const EmptyChat = () => {
         <p>Need help?</p>
         <button
           className="text-secondary underline underline-offset-2 hover:text-secondary-dark"
-          onClick={handleGuideMe}
+          onClick={() => submitCommand(COMMANDS.GUIDE_ME)}
         >
           Guide me
         </button>
