@@ -14,8 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { MouseEventHandler, ReactNode, forwardRef } from 'react';
 import { cn } from '@/utils/common/cn';
+import { MouseEventHandler, ReactNode, forwardRef } from 'react';
 
 type StatusColor = 'green' | 'red' | 'purple' | 'base';
 
@@ -106,7 +106,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         onContextMenu={onContextMenu}
         data-autofocus={dataAutofocus}
         className={cn(
-          'rounded-[36px]  px-[30px] py-[20px] outline-none w-[fit-content]  font-semibold flex items-center justify-center gap-2 max-h-[60px] border border-secondary button hover:bg-gray-600 hover:text-secondary  transition-colors duration-200 focus:bg-gray-600 focus:text-secondary min-w-fit',
+          'rounded-[36px]  px-[30px] py-[20px] outline-none w-[fit-content]  font-semibold flex items-center justify-center max-h-[60px] border border-secondary button hover:bg-gray-600 hover:text-secondary  transition-colors duration-200 focus:bg-gray-600 focus:text-secondary min-w-fit leading-none',
           getVariant(),
           {
             'w-full': fullWidth,
@@ -123,7 +123,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         {...props} // Spread any additional props
       >
-        {children}
+        <span className="flex items-center leading-6 gap-2">{children}</span>
       </button>
     );
   },

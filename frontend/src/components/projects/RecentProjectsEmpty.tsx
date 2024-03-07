@@ -15,6 +15,8 @@
 // limitations under the License.
 
 import OpenAiApiKeyForm from '@/components/settings/OpenAiApiKeyForm';
+import { useEffect, useState } from 'react';
+import Offline from './Offline';
 import { ProjectButtons } from './ProjectButtons';
 
 interface RecentProjectsEmptyProps {
@@ -24,6 +26,21 @@ interface RecentProjectsEmptyProps {
 
 export function RecentProjectsEmpty({ openAiApiKey, isApiKeyValid }: RecentProjectsEmptyProps) {
   const isApiKeySet = openAiApiKey && isApiKeyValid;
+  const [onlineStatus, setOnlineStatus] = useState(() => navigator.onLine);
+
+  useEffect(() => {
+    window.addEventListener('online', () => setOnlineStatus(true));
+    window.addEventListener('offline', () => setOnlineStatus(false));
+
+    return () => {
+      window.removeEventListener('online', () => setOnlineStatus(true));
+      window.removeEventListener('offline', () => setOnlineStatus(false));
+    };
+  }, []);
+
+  if (!onlineStatus) {
+    return <Offline />;
+  }
 
   return (
     <div className="flex justify-center items-center flex-col min-h-[100vh] px-[60px] relative">
@@ -32,7 +49,6 @@ export function RecentProjectsEmpty({ openAiApiKey, isApiKeyValid }: RecentProje
         <h1 className="text-center font-black text-white">
           Welcome to <span className=" text-primary">AIConsole</span>
         </h1>
-
         {isApiKeySet ? (
           <ProjectButtons className="relative flex justify-center gap-[20px] mt-5 py-[10px] z-10" />
         ) : (
