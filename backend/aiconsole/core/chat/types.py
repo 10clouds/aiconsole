@@ -24,10 +24,10 @@ from aiconsole.core.chat.actor_id import ActorId
 from aiconsole.core.code_running.code_interpreters.language import LanguageStr
 from aiconsole.core.gpt.tool_definition import ToolDefinition
 from aiconsole.core.gpt.types import GPTRole
+from fastmutation.types import BaseObject
 
 
-class AICToolCall(BaseModel):
-    id: str
+class AICToolCall(BaseObject):
     language: LanguageStr | None = None
     code: str
     headline: str
@@ -38,8 +38,7 @@ class AICToolCall(BaseModel):
     is_executing: bool = False
 
 
-class AICMessage(BaseModel):
-    id: str
+class AICMessage(BaseObject):
     timestamp: str
     content: str
     requested_format: ToolDefinition | None = None
@@ -47,8 +46,7 @@ class AICMessage(BaseModel):
     is_streaming: bool = False
 
 
-class AICMessageGroup(BaseModel):
-    id: str
+class AICMessageGroup(BaseObject):
     actor_id: ActorId
     role: GPTRole
     analysis: str

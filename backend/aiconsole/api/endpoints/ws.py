@@ -41,7 +41,7 @@ async def websocket_endpoint(
     try:
         while True:
             _log.debug("Waiting for message")
-            json_data = await connection.websocket.receive_json()
+            json_data = await connection.receive_json()
             _log.debug(f"Received message: {json_data}")
             try:
                 await handle_incoming_message(connection, json_data)

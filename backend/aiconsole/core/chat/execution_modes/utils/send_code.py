@@ -1,19 +1,12 @@
 import logging
 from typing import cast
 
-from aiconsole.core.chat.chat_mutations import (
-    AppendToCodeToolCallMutation,
-    AppendToHeadlineToolCallMutation,
-    CreateToolCallMutation,
-    SetCodeToolCallMutation,
-    SetHeadlineToolCallMutation,
-    SetIsStreamingToolCallMutation,
-    SetLanguageToolCallMutation,
-)
-from aiconsole.core.chat.chat_mutator import ChatMutator
+from aiconsole.core.chat.locations import MessageRef
+from aiconsole.core.chat.types import AICToolCall
 from aiconsole.core.code_running.code_interpreters.language import LanguageStr
 from aiconsole.core.code_running.code_interpreters.language_map import language_map
 from aiconsole.core.gpt.partial import GPTPartialToolsCall
+from fastmutation.mutation_executor import MutationExecutor
 
 _log = logging.getLogger(__name__)
 
@@ -27,9 +20,9 @@ def tool_name_to_language(name: str) -> str:
 
 async def send_code(
     tool_calls: list[GPTPartialToolsCall],
-    chat_mutator: ChatMutator,
+    executor: MutationExecutor,
+    message_ref: MessageRef,
     tools_requiring_closing_parenthesis,
-    message_id,
     language_classes: list[type],
 ):
     for index, tool_call in enumerate(tool_calls):
@@ -37,33 +30,29 @@ async def send_code(
 
         # All tool calls with lower indexes are finished
         prev_tool = tool_calls[index - 1] if index > 0 else None
-        if prev_tool and prev_tool.id in tools_requiring_closing_parenthesis:
-            await chat_mutator.mutate(
-                AppendToCodeToolCallMutation(
-                    tool_call_id=prev_tool.id,
-                    code_delta=")",
-                )
-            )
-
-            tools_requiring_closing_parenthesis.remove(prev_tool.id)
 
         if prev_tool:
-            tool_call_location = chat_mutator.chat.get_tool_call_location(prev_tool.id)
-            if tool_call_location and tool_call_location.tool_call.is_streaming:
-                await chat_mutator.mutate(
-                    SetIsStreamingToolCallMutation(
-                        tool_call_id=prev_tool.id,
-                        is_streaming=False,
-                    )
-                )
+            prev_tool_mutator = message_ref.tool_calls[prev_tool.id]
 
-        tool_call_info = chat_mutator.chat.get_tool_call_location(tool_call.id)
+            if prev_tool.id in tools_requiring_closing_parenthesis:
+                await prev_tool_mutator.code.append(executor, ")")
+                tools_requiring_closing_parenthesis.remove(prev_tool.id)
 
-        if not tool_call_info:
-            await chat_mutator.mutate(
-                CreateToolCallMutation(
-                    message_id=message_id,
-                    tool_call_id=tool_call.id,
+            tool_call_mutator = message_ref.tool_calls[prev_tool.id]
+            if tool_call_mutator.is_streaming.get(
+                executor,
+            ):
+                await prev_tool_mutator.is_streaming.set(executor, False)
+
+        tool_call_mutator = message_ref.tool_calls[tool_call.id]
+
+        if not tool_call_mutator.exists(
+            executor,
+        ):
+            await message_ref.tool_calls.create(
+                executor,
+                AICToolCall(
+                    id=tool_call.id,
                     code="",
                     headline="",
                     language=None,
@@ -71,69 +60,57 @@ async def send_code(
                     is_streaming=True,
                     is_executing=False,
                     is_successful=False,
-                )
+                ),
             )
 
-            tool_call_info = chat_mutator.chat.get_tool_call_location(tool_call.id)
-
-            if not tool_call_info:
-                raise Exception(f"Tool call {tool_call.id} should have been created")
-
-        tool_call_data = tool_call_info.tool_call
-
-        if not tool_call_data:
-            raise Exception(f"Tool call {tool_call.id} not found")
-
         async def send_language_if_needed(lang: LanguageStr):
-            if tool_call_data.language is None:
-                await chat_mutator.mutate(
-                    SetLanguageToolCallMutation(
-                        tool_call_id=tool_call.id,
-                        language=lang,
-                    )
+            if (
+                tool_call_mutator.language.get(
+                    executor,
                 )
+                is None
+            ):
+                await tool_call_mutator.language.set(executor, lang)
 
         async def send_headline_delta_for_headline(headline: str):
-            if not headline.startswith(tool_call_data.headline):
+            if not headline.startswith(
+                tool_call_mutator.headline.get(
+                    executor,
+                )
+            ):
                 _log.warning(f"Reseting headline to: {headline}")
-                await chat_mutator.mutate(
-                    SetHeadlineToolCallMutation(
-                        tool_call_id=tool_call.id,
-                        headline=headline,
+                await tool_call_mutator.headline.set(executor, headline)
+            else:
+                start_index = len(
+                    tool_call_mutator.headline.get(
+                        executor,
                     )
                 )
-            else:
-                start_index = len(tool_call_data.headline)
                 headline_delta = headline[start_index:]
 
                 if headline_delta:
-                    await chat_mutator.mutate(
-                        AppendToHeadlineToolCallMutation(
-                            tool_call_id=tool_call.id,
-                            headline_delta=headline_delta,
-                        )
-                    )
+                    await tool_call_mutator.headline.append(executor, headline_delta)
 
         async def send_code_delta_for_code(code: str):
-            if not code.startswith(tool_call_data.code):
-                _log.warning(f"Reseting code, code={repr(code)} original={repr(tool_call_data.code)}")
-                await chat_mutator.mutate(
-                    SetCodeToolCallMutation(
-                        tool_call_id=tool_call.id,
-                        code=code,
+            if not code.startswith(
+                tool_call_mutator.code.get(
+                    executor,
+                )
+            ):
+                _log.warning(
+                    f"Reseting code, code={repr(code)} original={repr(tool_call_mutator.code.get(executor, ))}"
+                )
+                await tool_call_mutator.code.set(executor, code)
+            else:
+                start_index = len(
+                    tool_call_mutator.code.get(
+                        executor,
                     )
                 )
-            else:
-                start_index = len(tool_call_data.code)
                 code_delta = code[start_index:]
 
                 if code_delta:
-                    await chat_mutator.mutate(
-                        AppendToCodeToolCallMutation(
-                            tool_call_id=tool_call.id,
-                            code_delta=code_delta,
-                        )
-                    )
+                    await tool_call_mutator.code.append(executor, code_delta)
 
         if tool_call.type == "function":
             function_call = tool_call.function
@@ -146,7 +123,13 @@ async def send_code(
 
                 languages = language_map.keys()
 
-                if tool_call_data.language is None and function_call.name in languages:
+                if (
+                    tool_call_mutator.language.get(
+                        executor,
+                    )
+                    is None
+                    and function_call.name in languages
+                ):
                     await send_language_if_needed(cast(LanguageStr, function_call.name))
 
                 code = None

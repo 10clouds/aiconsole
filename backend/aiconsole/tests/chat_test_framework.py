@@ -4,37 +4,77 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 from time import sleep
-from typing import Any
+from typing import Type, TypeVar
 from uuid import uuid4
 
 import pytest
 from fastapi import BackgroundTasks
 from fastapi.testclient import TestClient
+from starlette.testclient import WebSocketTestSession
 
 from aiconsole.api.endpoints.projects.services import ProjectDirectory
+from aiconsole.api.websockets.base_server_message import BaseServerMessage
 from aiconsole.api.websockets.client_messages import (
     AcquireLockClientMessage,
-    CloseChatClientMessage,
-    InitChatMutationClientMessage,
-    OpenChatClientMessage,
+    DoMutationClientMessage,
     ProcessChatClientMessage,
     ReleaseLockClientMessage,
+    SubscribeToClientMessage,
+    UnsubscribeClientMessage,
+)
+from aiconsole.api.websockets.server_messages import (
+    ChatOpenedServerMessage,
+    NotifyAboutAssetMutationServerMessage,
 )
 from aiconsole.app import app
 from aiconsole.core.chat.actor_id import ActorId
-from aiconsole.core.chat.chat_mutations import (
-    CreateMessageGroupMutation,
-    CreateMessageMutation,
-)
+from aiconsole.core.chat.apply_mutation import apply_mutation
 from aiconsole.core.chat.load_chat_history import load_chat_history
-from aiconsole.core.chat.types import AICMessage
+from aiconsole.core.chat.locations import ChatRef
+from aiconsole.core.chat.root import Root
+from aiconsole.core.chat.types import AICMessage, AICMessageGroup
+from fastmutation.mutation_executor import MutationExecutor
+from fastmutation.types import (
+    AnyRef,
+    AssetMutation,
+    BaseObject,
+    CollectionRef,
+    LockReleasedMutation,
+    ObjectRef,
+)
+
+TServerMessage = TypeVar("TServerMessage", bound=BaseServerMessage)
+
+TMutation = TypeVar("TMutation", bound=AssetMutation)
+
+
+class ClientSideExecutor(MutationExecutor):
+
+    def __init__(self, root: Root, websocket: WebSocketTestSession, request_id: str):
+        self._root = root
+        self._websocket = websocket
+        self._request_id = request_id
+
+    async def mutate(self, mutation: AssetMutation) -> None:
+        # apply mutation to chat
+        apply_mutation(self._root, mutation)
+
+        await DoMutationClientMessage(
+            request_id=self._request_id,
+            mutation=mutation,
+        ).send(self._websocket)
+
+    def get(self, ref: ObjectRef | CollectionRef) -> BaseObject | list[BaseObject]:
+        raise NotImplementedError("This method is not implemented")
+
+    def exists(self, ref: AnyRef) -> bool:
+        raise NotImplementedError("This method is not implemented")
 
 
 class ChatTestFramework:
     def __init__(self) -> None:
         os.environ["CORS_ORIGIN"] = "http://localhost:3000"
 
-        self._chat_id: str | None = None
         self._request_id: str | None = None
         self._message_group_id: str | None = None
 
@@ -42,19 +82,15 @@ class ChatTestFramework:
         self._background_tasks = BackgroundTasks()
         self._client = TestClient(app())
 
-        self._websocket = None
+        self._websocket: WebSocketTestSession | None = None
         self._project_path: Path | None = None
-
-    @property
-    def chat_id(self) -> str | None:
-        return self._chat_id
+        self._executor: ClientSideExecutor | None = None
 
     def repeat(self, times: int) -> pytest.MarkDecorator:
         return pytest.mark.repeat(times)
 
     @asynccontextmanager
     async def initialize_project_with_chat(self, project_path: str):
-        self._chat_id = str(uuid4())
         self._request_id = str(uuid4())
         self._message_group_id = str(uuid4())
         self._project_path = Path(project_path).absolute()
@@ -64,33 +100,51 @@ class ChatTestFramework:
 
         with self._client.websocket_connect("/ws") as websocket:
             try:
-                await OpenChatClientMessage(request_id=self._request_id, chat_id=self._chat_id).send(websocket)
-                self._wait_for_websocket_response("ChatOpenedServerMessage", websocket)
+                self.chat_ref = ChatRef(id=str(uuid4()))
+                await SubscribeToClientMessage(
+                    request_id=self._request_id,
+                    ref=self.chat_ref,
+                ).send(websocket)
+
+                chat = self._wait_for_websocket_response(websocket, ChatOpenedServerMessage).chat
+
+                root = Root(
+                    assets=[
+                        chat,
+                    ]
+                )
+
+                self._executor = ClientSideExecutor(
+                    root=root,
+                    websocket=websocket,
+                    request_id=self._request_id,
+                )
 
                 await AcquireLockClientMessage(
                     request_id=self._request_id,
-                    chat_id=self._chat_id,
+                    ref=self.chat_ref,
                 ).send(websocket)
-                self._wait_for_websocket_response("NotifyAboutChatMutationServerMessage", websocket)
 
-                await InitChatMutationClientMessage(
-                    request_id=self._request_id,
-                    chat_id=self._chat_id,
-                    mutation=CreateMessageGroupMutation(
-                        message_group_id=self._message_group_id,
+                self._wait_for_websocket_response(websocket, NotifyAboutAssetMutationServerMessage)
+
+                await self.chat_ref.message_groups.create(
+                    self._executor,
+                    AICMessageGroup(
+                        id=self._message_group_id,
                         actor_id=ActorId(type="user", id="user"),
                         role="user",
                         task="",
                         materials_ids=[],
                         analysis="",
+                        messages=[],
                     ),
-                ).send(websocket)
+                )
 
                 self._websocket = websocket
 
                 yield
             finally:
-                await CloseChatClientMessage(request_id=self._request_id, chat_id=self._chat_id).send(websocket)
+                await UnsubscribeClientMessage(request_id=self._request_id, ref=self.chat_ref).send(websocket)
 
     async def process_user_code_request(self, message: str, agent_id: str) -> list[AICMessage]:
         if self._websocket is None:
@@ -98,50 +152,56 @@ class ChatTestFramework:
 
         assert self._message_group_id is not None
         assert self._request_id is not None
-        assert self._chat_id is not None
-        await InitChatMutationClientMessage(
-            request_id=self._request_id,
-            chat_id=self._chat_id,
-            mutation=CreateMessageMutation(
-                message_group_id=self._message_group_id,
-                message_id=str(uuid4()),
+        assert self.chat_ref is not None
+        assert self._executor is not None
+
+        await self.chat_ref.message_groups[self._message_group_id].messages.create(
+            self._executor,
+            AICMessage(
+                id=str(uuid4()),
                 timestamp=str(datetime.now()),
                 content=message,
             ),
-        ).send(self._websocket)
-        await ReleaseLockClientMessage(
-            request_id=self._request_id,
-            chat_id=self._chat_id,
-        ).send(self._websocket)
+        )
 
-        await ProcessChatClientMessage(request_id=self._request_id, chat_id=self._chat_id).send(self._websocket)
+        await ReleaseLockClientMessage(request_id=self._request_id, ref=self.chat_ref).send(self._websocket)
 
-        self._wait_for_mutation_type("LockReleasedMutation", self._websocket)
+        await ProcessChatClientMessage(request_id=self._request_id, chat_ref=self.chat_ref).send(self._websocket)
+
+        self._wait_for_mutation_type(self._websocket, LockReleasedMutation)
 
         return await self._get_chat_messages_for_agent(agent_id)
 
-    def _wait_for_mutation_type(self, mutation_type: str, websocket: Any) -> None:
+    def _wait_for_mutation_type(self, websocket: WebSocketTestSession, message_class: Type[TMutation]) -> None:
         while True:
             json = websocket.receive_json()
             if mutation := json.get("mutation"):
-                if mutation["type"] == mutation_type:
+                if mutation["type"] == message_class.__name__:
                     return
 
-    def _wait_for_websocket_response(self, response_type: str, websocket: Any) -> None:
+    def _wait_for_websocket_response(
+        self, websocket: WebSocketTestSession, message_class: Type[TServerMessage]
+    ) -> TServerMessage:
         tries_count = 0
         while tries_count < 100:
             json = websocket.receive_json()
-            if json["type"] == response_type:
-                return
+            if json["type"] == "ResponseServerMessage" and json["payload"].get("error", None):
+                raise Exception(f"Error received: {json['payload']['error']}")
+            if json["type"] == message_class.__name__:
+                return message_class(**json)
             tries_count += 1
             sleep(0.1)
 
-        raise Exception(f"Response of type {response_type} not received")
+        raise Exception(f"Response of type {message_class.__name__} not received")
 
     async def _get_chat_messages_for_agent(self, agent_id: str, _retries: int = 0) -> list[AICMessage] | list:
-        assert self._chat_id is not None
+        # TODO: this should be extracted to use self._chat_mutator.chat, not read from the database
+
+        assert self.chat_ref is not None
         assert self._project_path is not None
-        chat = await load_chat_history(id=self._chat_id, project_path=self._project_path)
+        assert self._executor is not None
+
+        chat = await load_chat_history(id=self.chat_ref.id, project_path=self._project_path)
         automator_message_group_messages = None
         for message_group in chat.message_groups:
             if message_group.actor_id.id == agent_id:
@@ -152,7 +212,7 @@ class ChatTestFramework:
             await asyncio.sleep(5)
             return await self._get_chat_messages_for_agent(agent_id, _retries + 1)
         elif automator_message_group_messages is None and _retries >= 30:
-            raise Exception(f"[CHAT_ID: {self._chat_id}] Automator message group not found in chat")
+            raise Exception(f"[CHAT_ID: {self.chat_ref.id}] Automator message group not found in chat")
         return automator_message_group_messages or []  # Add type hint to indicate possible None value
 
 

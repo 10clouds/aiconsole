@@ -19,6 +19,8 @@ from enum import Enum
 
 from pydantic import BaseModel, field_serializer
 
+from fastmutation.types import BaseObject
+
 
 class AssetLocation(str, Enum):
     AICONSOLE_CORE = "aiconsole"
@@ -32,8 +34,7 @@ class AssetType(str, Enum):
     USER = "user"
 
 
-class Asset(BaseModel):
-    id: str
+class Asset(BaseObject):
     name: str
     version: str = "0.0.1"
     usage: str

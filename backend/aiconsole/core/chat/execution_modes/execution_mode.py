@@ -3,13 +3,15 @@ from typing import Protocol
 from aiconsole.core.assets.agents.agent import AICAgent
 from aiconsole.core.assets.materials.material import AICMaterial
 from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
-from aiconsole.core.chat.chat_mutator import ChatMutator
+from aiconsole.core.chat.locations import ChatRef, ToolCallRef
+from fastmutation.mutation_executor import MutationExecutor
 
 
 class ProcessChatDataProtocol(Protocol):
     async def __call__(
         self,
-        chat_mutator: ChatMutator,
+        executor: MutationExecutor,
+        chat_ref: ChatRef,
         agent: AICAgent,
         materials: list[AICMaterial],
         rendered_materials: list[RenderedMaterial],
@@ -18,10 +20,11 @@ class ProcessChatDataProtocol(Protocol):
 
 
 class AcceptCodeDataProtocol(Protocol):
+
     async def __call__(
         self,
-        chat_mutator: ChatMutator,
-        tool_call_id: str,
+        executor: MutationExecutor,
+        tool_call_ref: ToolCallRef,
         agent: AICAgent,
         materials: list[AICMaterial],
         rendered_materials: list[RenderedMaterial],
@@ -35,7 +38,8 @@ class FetchDataProtocol(Protocol):
 
 
 def process_chat_not_supported(
-    chat_mutator: ChatMutator,
+    executor: MutationExecutor,
+    chat_ref: ChatRef,
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
@@ -44,8 +48,8 @@ def process_chat_not_supported(
 
 
 def accept_code_not_supported(
-    chat_mutator: ChatMutator,
-    tool_call_id: str,
+    executor: MutationExecutor,
+    tool_call_ref: ToolCallRef,
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],

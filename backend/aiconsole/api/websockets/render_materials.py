@@ -12,6 +12,7 @@ from aiconsole.core.assets.materials.material import (
     MaterialRenderErrorEvent,
 )
 from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
+from aiconsole.core.chat.locations import AssetRef
 from aiconsole.core.chat.types import AICChat
 from aiconsole.core.project import project
 from aiconsole.utils.events import InternalEvent, internal_events
@@ -32,9 +33,9 @@ async def render_materials(
 
     async def _notify(event, **kwargs):
         if isinstance(event, MaterialRenderErrorEvent):
-            await connection_manager().send_to_chat(
+            await connection_manager().send_to_ref(
                 ErrorServerMessage(error=f"Incorrect material. {kwargs.get('details')}"),
-                chat.id,
+                AssetRef(id=chat.id),
             )
 
     try:

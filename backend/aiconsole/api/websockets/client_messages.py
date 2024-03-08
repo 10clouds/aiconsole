@@ -17,12 +17,11 @@
 from pydantic import BaseModel
 from starlette.testclient import WebSocketTestSession
 
-from aiconsole.core.chat.chat_mutations import ChatMutation
+from aiconsole.core.chat.locations import AssetRef, ChatRef, ToolCallRef
+from fastmutation.types import AnyRef, AssetMutation, ObjectRef
 
 
 class BaseClientMessage(BaseModel):
-    chat_id: str
-
     def get_type(self):
         return self.__class__.__name__
 
@@ -32,21 +31,24 @@ class BaseClientMessage(BaseModel):
 
 
 # This is both an incoming and an outgoing message
-class InitChatMutationClientMessage(BaseClientMessage):
+class DoMutationClientMessage(BaseClientMessage):
     request_id: str
-    mutation: ChatMutation
+    mutation: AssetMutation
 
 
 class AcquireLockClientMessage(BaseClientMessage):
     request_id: str
+    ref: ObjectRef
 
 
 class ReleaseLockClientMessage(BaseClientMessage):
     request_id: str
+    ref: ObjectRef
 
 
-class OpenChatClientMessage(BaseClientMessage):
+class SubscribeToClientMessage(BaseClientMessage):
     request_id: str
+    ref: AnyRef
 
 
 class DuplicateChatClientMessage(BaseClientMessage):
@@ -54,18 +56,26 @@ class DuplicateChatClientMessage(BaseClientMessage):
     request_id: str
 
 
-class StopChatClientMessage(BaseClientMessage):
+class UnsubscribeClientMessage(BaseClientMessage):
     request_id: str
+    ref: AnyRef
 
 
-class CloseChatClientMessage(BaseClientMessage):
-    request_id: str
+#
+# Chat specific messages
+#
 
 
 class AcceptCodeClientMessage(BaseClientMessage):
     request_id: str
-    tool_call_id: str
+    tool_call_ref: ToolCallRef
 
 
 class ProcessChatClientMessage(BaseClientMessage):
     request_id: str
+    chat_ref: ChatRef
+
+
+class StopChatClientMessage(BaseClientMessage):
+    request_id: str
+    chat_ref: AssetRef

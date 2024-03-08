@@ -24,19 +24,20 @@ from aiconsole.core.assets.materials.content_evaluation_context import (
 )
 from aiconsole.core.assets.materials.material import AICMaterial
 from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
-from aiconsole.core.chat.chat_mutations import DeleteMessageGroupMutation
-from aiconsole.core.chat.chat_mutator import ChatMutator
 from aiconsole.core.chat.execution_modes.analysis.director import director_analyse
 from aiconsole.core.chat.execution_modes.execution_mode import ExecutionMode
 from aiconsole.core.chat.execution_modes.utils.import_and_validate_execution_mode import (
     import_and_validate_execution_mode,
 )
+from aiconsole.core.chat.locations import ChatRef
+from fastmutation.mutation_executor import MutationExecutor
 
 _log = logging.getLogger(__name__)
 
 
 async def _execution_mode_process(
-    chat_mutator: ChatMutator,
+    executor: MutationExecutor,
+    chat_ref: ChatRef,
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
@@ -44,33 +45,35 @@ async def _execution_mode_process(
     _log.debug("execution_mode_director")
 
     # Assumes an existing message group that was created for us
-    last_message_group = chat_mutator.chat.message_groups[-1]
+    last_message_group = chat_ref.message_groups[chat_ref.message_groups.get_item_id_by_index(executor, -1)]
 
     # if there are no messages in message groups, stop processing
-    if not any(group.messages for group in chat_mutator.chat.message_groups):
+    if not any(group.messages for group in chat_ref.message_groups.get(executor)):
         # Send an error notification and delete the current message group
         _log.error("No messages in message groups")
 
-        await connection_manager().send_to_chat(
+        await connection_manager().send_to_ref(
             message=NotificationServerMessage(title="Error", message="No messages to respond to"),
-            chat_id=chat_mutator.chat.id,
+            ref=chat_ref,
         )
 
-        await chat_mutator.mutate(DeleteMessageGroupMutation(message_group_id=last_message_group.id))
+        await chat_ref.message_groups[last_message_group.id].delete(executor)
 
         return
 
-    last_messages = chat_mutator.chat.message_groups[-2].messages
+    last_messages = chat_ref.message_groups[chat_ref.message_groups.get_item_id_by_index(executor, -2)].messages.get(
+        executor
+    )
     for message in last_messages:
         if message.tool_calls and not all(call.output for call in message.tool_calls):
-            await chat_mutator.mutate(DeleteMessageGroupMutation(message_group_id=last_message_group.id))
+            await chat_ref.message_groups[last_message_group.id].delete(executor)
             return
 
-    analysis = await director_analyse(chat_mutator, last_message_group.id)
+    analysis = await director_analyse(executor, chat_ref, last_message_group.id)
 
     if analysis.agent.id != "user" and analysis.next_step:
         content_context = ContentEvaluationContext(
-            chat=chat_mutator.chat,
+            chat=chat_ref.get(executor),
             agent=analysis.agent,
             gpt_mode=analysis.agent.gpt_mode,
             relevant_materials=analysis.relevant_materials,
@@ -80,17 +83,18 @@ async def _execution_mode_process(
             await material.render(content_context) for material in content_context.relevant_materials
         ]
 
-        execution_mode = await import_and_validate_execution_mode(analysis.agent, chat_mutator.chat.id)
+        execution_mode = await import_and_validate_execution_mode(analysis.agent, chat_ref)
 
         await execution_mode.process_chat(
-            chat_mutator=chat_mutator,
+            executor=executor,
+            chat_ref=chat_ref,
             agent=analysis.agent,
             materials=analysis.relevant_materials,
             rendered_materials=rendered_materials,
         )
     else:
         # Delete the current message group
-        await chat_mutator.mutate(DeleteMessageGroupMutation(message_group_id=last_message_group.id))
+        await chat_ref.message_groups[last_message_group.id].delete(executor)
 
 
 execution_mode = ExecutionMode(

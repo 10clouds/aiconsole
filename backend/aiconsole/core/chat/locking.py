@@ -10,20 +10,22 @@ from aiconsole.api.websockets.connection_manager import (
     connection_manager,
 )
 from aiconsole.api.websockets.server_messages import (
-    NotifyAboutChatMutationServerMessage,
+    NotifyAboutAssetMutationServerMessage,
 )
 from aiconsole.core.chat.apply_mutation import apply_mutation
-from aiconsole.core.chat.chat_mutations import (
-    ChatMutation,
-    LockAcquiredMutation,
-    LockReleasedMutation,
-)
-from aiconsole.core.chat.chat_mutator import ChatMutator
 from aiconsole.core.chat.load_chat_history import load_chat_history
+from aiconsole.core.chat.load_chat_options import load_chat_options
+from aiconsole.core.chat.root import Root
 from aiconsole.core.chat.save_chat_history import save_chat_history
 from aiconsole.core.chat.types import AICChat
-
-from aiconsole.core.chat.load_chat_options import load_chat_options
+from fastmutation.mutation_executor import MutationExecutor
+from fastmutation.types import (
+    AnyRef,
+    AssetMutation,
+    LockAcquiredMutation,
+    LockReleasedMutation,
+    ObjectRef,
+)
 
 chats: dict[str, AICChat] = {}
 lock_events: dict[str, asyncio.Event] = defaultdict(asyncio.Event)
@@ -41,27 +43,30 @@ async def wait_for_lock(chat_id: str) -> None:
         raise HTTPException(status_code=408, detail="Lock acquisition timed out")
 
 
-async def acquire_lock(chat_id: str, request_id: str, skip_mutating_clients: bool = False):
-    _log.debug(f"Acquiring lock {chat_id} {request_id}")
-    if chat_id in chats and chats[chat_id].lock_id:
-        await wait_for_lock(chat_id)
+async def acquire_lock(ref: ObjectRef, request_id: str, skip_mutating_clients: bool = False):
+    locked_id = ref.id
 
-    if chat_id not in chats:
-        chat_history = await load_chat_history(chat_id)
+    _log.debug(f"Acquiring lock {locked_id} {request_id}")
+    if locked_id in chats and chats[locked_id].lock_id:
+        await wait_for_lock(locked_id)
+
+    if locked_id not in chats:
+        chat_history = await load_chat_history(locked_id)
         chat_history.lock_id = None
-        chats[chat_id] = chat_history
+        chats[locked_id] = chat_history
 
-    chats[chat_id].lock_id = request_id
-    lock_events[chat_id].clear()
+    chats[locked_id].lock_id = request_id
+    lock_events[locked_id].clear()
 
     if not skip_mutating_clients:
-        await connection_manager().send_to_chat(
-            NotifyAboutChatMutationServerMessage(
-                request_id=request_id, chat_id=chat_id, mutation=LockAcquiredMutation(lock_id=request_id)
+        await connection_manager().send_to_ref(
+            NotifyAboutAssetMutationServerMessage(
+                request_id=request_id,
+                mutation=LockAcquiredMutation(ref=ref, lock_id=request_id),
             ),
-            chat_id,
+            ref,
         )
-    return chats[chat_id]
+    return chats[locked_id]
 
 
 async def _read_chat_outside_of_lock(chat_id: str):
@@ -75,82 +80,116 @@ async def _read_chat_outside_of_lock(chat_id: str):
     return chats[chat_id]
 
 
-async def release_lock(chat_id: str, request_id: str) -> None:
-    if chat_id in chats and chats[chat_id].lock_id == request_id:
-        chats[chat_id].lock_id = None
-        await save_chat_history(chats[chat_id], scope="message_groups")
-        del chats[chat_id]
-        lock_events[chat_id].set()
+async def release_lock(ref: ObjectRef, request_id: str) -> None:
+    locked_id = ref.id
 
-        await connection_manager().send_to_chat(
-            NotifyAboutChatMutationServerMessage(
-                request_id=request_id, chat_id=chat_id, mutation=LockReleasedMutation(lock_id=request_id)
+    if locked_id in chats and chats[locked_id].lock_id == request_id:
+        chats[locked_id].lock_id = None
+        await save_chat_history(chats[locked_id], scope="message_groups")
+        del chats[locked_id]
+        lock_events[locked_id].set()
+
+        await connection_manager().send_to_ref(
+            NotifyAboutAssetMutationServerMessage(
+                request_id=request_id,
+                mutation=LockReleasedMutation(lock_id=request_id, ref=ref),
             ),
-            chat_id,
+            ref,
         )
 
 
-class DefaultChatMutator(ChatMutator):
-    def __init__(self, chat_id: str, request_id: str, connection: AICConnection | None):
-        self.chat_id = chat_id
+class DefaultRootMutationExecutor(MutationExecutor):
+    def __init__(self, root: Root, request_id: str, connection: AICConnection | None):
+        self.root = root
         self.request_id = request_id
         self.connection = connection
 
-    @property
-    def chat(self) -> AICChat:
-        return chats[self.chat_id]
+    async def get(self, ref: AnyRef) -> AICChat:
+        if ref.parent is not None and ref.parent.id == "assets":
+            return await _read_chat_outside_of_lock(ref.id)
 
-    async def mutate(self, mutation: ChatMutation) -> None:
-        if self.chat_id not in chats or chats[self.chat_id].lock_id != self.request_id:
+        if ref.id in chats and chats[ref.id].lock_id == self.request_id:
+            return chats[ref.id]
+
+        await wait_for_lock(ref.id)
+        return chats[ref.id]
+
+    async def exists(self, ref: AnyRef) -> bool:
+        if ref.parent is not None and ref.parent.id == "assets":
+            return ref.id in chats
+
+        if ref.id in chats and chats[ref.id].lock_id == self.request_id:
+            return True
+
+        await wait_for_lock(ref.id)
+
+        return ref.id in chats
+
+    async def mutate(self, mutation: AssetMutation) -> None:
+        # if ref in mutation is a chat ref, then we need to check if the lock is acquired
+
+        if isinstance(mutation.ref, ObjectRef) and mutation.ref.parent.id == "assets":
+            chat_id = mutation.ref.id
+            if chat_id not in chats or chats[chat_id].lock_id != self.request_id:
+                raise Exception(
+                    f"Lock not acquired for chat {chat_id} request_id={self.request_id}",
+                )
+
+        if mutation.ref.id not in chats or chats[mutation.ref.id].lock_id != self.request_id:
             raise Exception(
-                f"Lock not acquired for chat {self.chat_id} request_id={self.request_id}",
+                f"Lock not acquired for chat {mutation.ref.id} request_id={self.request_id}",
             )
 
-        apply_mutation(self.chat, mutation)
+        apply_mutation(self.root, mutation)
 
-        await connection_manager().send_to_chat(
-            NotifyAboutChatMutationServerMessage(
+        await connection_manager().send_to_ref(
+            NotifyAboutAssetMutationServerMessage(
                 request_id=self.request_id,
-                chat_id=self.chat_id,
                 mutation=mutation,
             ),
-            self.chat_id,
+            mutation.ref,
             except_connection=self.connection,
         )
 
 
 # This lock is responsible for sequencing the mutations and reads on a given chat
-_waiting_mutations: dict[str, deque[Coroutine]] = defaultdict(deque)
-_running_mutations: dict[str, asyncio.Task | None] = defaultdict(lambda: None)
-_mutation_complete_events: dict[str, asyncio.Event] = defaultdict(asyncio.Event)
+_waiting_mutations: dict[AnyRef, deque[Coroutine]] = defaultdict(deque)
+_running_mutations: dict[AnyRef, asyncio.Task | None] = defaultdict(lambda: None)
+_mutation_complete_events: dict[AnyRef, asyncio.Event] = defaultdict(asyncio.Event)
 
 
-def _check_mutation_queue(chat_id: str):
-    if _running_mutations[chat_id] is not None or not _waiting_mutations[chat_id]:
+def _check_mutation_queue(ref: AnyRef):
+    if _running_mutations[ref] is not None or not _waiting_mutations[ref]:
         return
 
-    h = _waiting_mutations[chat_id].popleft()
+    h = _waiting_mutations[ref].popleft()
     task = asyncio.create_task(h)
-    _running_mutations[chat_id] = task
+    _running_mutations[ref] = task
 
     def clear_task(future):
-        _running_mutations[chat_id] = None
-        _mutation_complete_events[chat_id].set()
-        _mutation_complete_events[chat_id].clear()
-        _check_mutation_queue(chat_id)
+        _running_mutations[ref] = None
+        _mutation_complete_events[ref].set()
+        _mutation_complete_events[ref].clear()
+        _check_mutation_queue(ref)
 
     task.add_done_callback(clear_task)
 
 
-class SequentialChatMutator(ChatMutator):
-    def __init__(self, mutator: DefaultChatMutator):
+class SequentialRootMutationExecutor(MutationExecutor):
+    def __init__(self, mutator: DefaultRootMutationExecutor):
         self.mutator = mutator
 
     @property
-    def chat(self) -> AICChat:
-        return self.mutator.chat
+    def root(self):
+        return self.mutator.root
 
-    async def mutate(self, mutation: ChatMutation) -> None:
+    async def get(self, ref: AnyRef):
+        return self.mutator.get(ref)
+
+    async def exists(self, ref: AnyRef):
+        return self.mutator.exists(ref)
+
+    async def mutate(self, mutation: AssetMutation) -> None:
         async def h():
             try:
                 await self.mutator.mutate(mutation)
@@ -158,20 +197,29 @@ class SequentialChatMutator(ChatMutator):
                 _log.exception(f"Error during mutation: {e}")
                 raise
 
-        _waiting_mutations[self.mutator.chat_id].append(h())
-        _check_mutation_queue(self.mutator.chat_id)
+        _waiting_mutations[mutation.ref].append(h())
+        _check_mutation_queue(mutation.ref)
 
-        await self.wait_for_all_mutations()
+        await self.wait_for_all_mutations(mutation.ref)
 
-    async def wait_for_all_mutations(self):
-        chat_id = self.mutator.chat_id
-        while _waiting_mutations[chat_id] or _running_mutations[chat_id] is not None:
-            await _mutation_complete_events[chat_id].wait()
+    async def wait_for_all_mutations(self, ref: AnyRef):
+        while ref.parent is not None:
+            ref = ref.parent
 
-    async def in_sequence(self, f: Callable[[], Coroutine]):
-        _waiting_mutations[self.mutator.chat_id].append(f())
-        _check_mutation_queue(self.mutator.chat_id)
+        while _waiting_mutations[ref] or _running_mutations[ref] is not None:
+            await _mutation_complete_events[ref].wait()
 
-    async def read(self) -> AICChat:
-        await self.wait_for_all_mutations()
-        return await _read_chat_outside_of_lock(chat_id=self.mutator.chat_id)
+    async def in_sequence(self, ref: AnyRef, f: Callable[[], Coroutine]):
+        while ref.parent is not None:
+            ref = ref.parent
+
+        _waiting_mutations[ref].append(f())
+        _check_mutation_queue(ref)
+
+    async def read(self, ref: AnyRef) -> AICChat:
+        assert ref.parent is not None
+        assert ref.parent.id == "assets"
+        assert ref.parent.parent is None
+
+        await self.wait_for_all_mutations(ref)
+        return await _read_chat_outside_of_lock(chat_id=ref.id)

@@ -5,10 +5,11 @@ import os
 from fastapi.testclient import TestClient
 
 from aiconsole.api.websockets.client_messages import (
-    OpenChatClientMessage,
     ProcessChatClientMessage,
+    SubscribeToClientMessage,
 )
 from aiconsole.app import app
+from aiconsole.core.chat.locations import ChatRef
 
 #
 # This is a playground for building a CLI for the backend.
@@ -43,9 +44,9 @@ async def main():
             print(chat_info["name"])
             request_id = "test"
 
-            await OpenChatClientMessage(request_id=request_id, chat_id=chat_info["id"]).send(websocket)
+            await SubscribeToClientMessage(request_id=request_id, ref=ChatRef(id=chat_info["id"])).send(websocket)
 
-            await ProcessChatClientMessage(chat_id=chat_info["id"], request_id=request_id).send(websocket)
+            await ProcessChatClientMessage(chat_ref=ChatRef(id=chat_info["id"]), request_id=request_id).send(websocket)
 
             while True:
                 data = websocket.receive_json()

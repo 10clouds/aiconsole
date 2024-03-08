@@ -6,6 +6,7 @@ from aiconsole.api.websockets.server_messages import NotificationServerMessage
 from aiconsole.core.assets.agents.agent import AICAgent
 from aiconsole.core.chat.execution_modes.execution_mode import ExecutionMode
 from aiconsole.utils.events import InternalEvent, internal_events
+from fastmutation.types import CollectionRef, ObjectRef
 
 
 @dataclass(frozen=True, slots=True)
@@ -13,19 +14,19 @@ class ExecutionModeWarningEvent(InternalEvent):
     pass
 
 
-async def import_and_validate_execution_mode(agent: AICAgent, chat_id: str):
+async def import_and_validate_execution_mode(agent: AICAgent, ref: ObjectRef | CollectionRef):
     events_to_sub: list[type[InternalEvent]] = [
         ExecutionModeWarningEvent,
     ]
 
     async def _notify(event, **kwargs):
         if isinstance(event, ExecutionModeWarningEvent):
-            await connection_manager().send_to_chat(
+            await connection_manager().send_to_ref(
                 NotificationServerMessage(
                     title=f"{kwargs.get('title', 'execution mode')}",
                     message=f"{kwargs.get('message')}",
                 ),
-                chat_id,
+                ref=ref,
             )
 
     try:

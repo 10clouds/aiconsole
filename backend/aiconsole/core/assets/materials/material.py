@@ -13,10 +13,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from pathlib import Path
 import traceback
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from aiconsole.core.assets.materials.documentation_from_code import (
@@ -138,7 +138,7 @@ class AICMaterial(Asset):
         filename = Path(f"{asset_id}.py")
         file_path = directory / filename
 
-        with open(file_path, 'w') as file:
+        with open(file_path, "w") as file:
             file.write(content)
 
         return file_path

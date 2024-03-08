@@ -19,5 +19,5 @@ async def test_should_calculate_factorial_of_given_number():
         # it should be code output and final sentence
         assert (
             len(output_messages) == 2
-        ), f"[CHAT_ID: {chat_test_framework.chat_id}] Automator message group should have only one response, now has: "
+        ), f"[CHAT_ID: {chat_test_framework.chat_ref.id}] Automator message group should have only one response, now has: "
         f"{len(output_messages)}"

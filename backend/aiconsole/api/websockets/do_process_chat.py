@@ -13,30 +13,31 @@ from aiconsole.consts import DIRECTOR_AGENT_ID
 from aiconsole.core.assets.agents.agent import AICAgent
 from aiconsole.core.assets.types import AssetType
 from aiconsole.core.chat.actor_id import ActorId
-from aiconsole.core.chat.chat_mutations import CreateMessageGroupMutation
-from aiconsole.core.chat.chat_mutator import ChatMutator
 from aiconsole.core.chat.execution_modes.analysis.agents_to_choose_from import (
     agents_to_choose_from,
 )
 from aiconsole.core.chat.execution_modes.utils.import_and_validate_execution_mode import (
     import_and_validate_execution_mode,
 )
+from aiconsole.core.chat.locations import ChatRef
+from aiconsole.core.chat.types import AICMessageGroup
 from aiconsole.core.gpt.types import GPTRole
 from aiconsole.core.project import project
+from fastmutation.mutation_executor import MutationExecutor
 
 _log = logging.getLogger(__name__)
 
 
-async def do_process_chat(chat_mutator: ChatMutator):
+async def do_process_chat(executor: MutationExecutor, chat_ref: ChatRef):
     role: GPTRole = "assistant"
 
     agent: AICAgent | None = None
     visible_agent_id = None
 
-    if chat_mutator.chat.chat_options.agent_id:
+    if chat_ref.chat_options.get(executor).agent_id:
         # The user selected an agent for the chat
         for _agent in agents_to_choose_from():
-            if _agent.id == chat_mutator.chat.chat_options.agent_id:
+            if _agent.id == chat_ref.chat_options.get(executor).agent_id:
                 agent = _agent
 
         if not agent:
@@ -47,7 +48,7 @@ async def do_process_chat(chat_mutator: ChatMutator):
             )
             return
 
-    if not agent or chat_mutator.chat.chat_options.ai_can_add_extra_materials:
+    if not agent or chat_ref.chat_options.get(executor).ai_can_add_extra_materials:
         # We need to run the director agent
 
         director_agent = cast(
@@ -92,16 +93,13 @@ async def do_process_chat(chat_mutator: ChatMutator):
         )
         return
 
-    if chat_mutator.chat.chat_options.materials_ids:
-        materials_ids = chat_mutator.chat.chat_options.materials_ids
-    else:
-        materials_ids = []
+    materials_ids = chat_ref.chat_options.get(executor).materials_ids or []
 
     if materials_ids:
         try:
-            materials_and_rmats = await render_materials(materials_ids, chat_mutator.chat, agent, init=True)
+            materials_and_rmats = await render_materials(materials_ids, chat_ref.get(executor), agent, init=True)
         except ValueError:
-            _log.debug(f"Failed to render materials {materials_ids} for chat {chat_mutator.chat.id}")
+            _log.debug(f"Failed to render materials {materials_ids} for chat {chat_ref.id}")
             return
 
         materials = materials_and_rmats.materials
@@ -113,21 +111,24 @@ async def do_process_chat(chat_mutator: ChatMutator):
     # Create a new message group for analysis
     message_group_id = str(uuid4())
 
-    await chat_mutator.mutate(
-        CreateMessageGroupMutation(
-            message_group_id=message_group_id,
+    await chat_ref.message_groups.create(
+        executor,
+        AICMessageGroup(
+            id=message_group_id,
             actor_id=ActorId(type="agent", id=visible_agent_id or agent.id),
             role=role,
             materials_ids=materials_ids,
             analysis="",
             task="",
-        )
+            messages=[],
+        ),
     )
 
-    execution_mode = await import_and_validate_execution_mode(agent, chat_mutator.chat.id)
+    execution_mode = await import_and_validate_execution_mode(agent, chat_ref)
 
     await execution_mode.process_chat(
-        chat_mutator=chat_mutator,
+        executor=executor,
+        chat_ref=chat_ref,
         agent=agent,
         materials=materials,
         rendered_materials=rendered_materials,
