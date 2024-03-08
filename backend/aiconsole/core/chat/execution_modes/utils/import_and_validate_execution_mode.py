@@ -35,26 +35,23 @@ async def import_and_validate_execution_mode(agent: AICAgent, chat_id: str):
                 _notify,
             )
 
-        execution_mode = agent.execution_mode
+        execution_mode_path = agent.execution_mode.module_path
 
-        # Port 2.9 agent to 2.11
-        if execution_mode == "aiconsole.core.execution_modes.normal:execution_mode_normal":
-            execution_mode = "aiconsole.core.chat.execution_modes.normal:execution_mode"
-        elif execution_mode == "aiconsole.core.execution_modes.interpreter:execution_mode_interpreter":
-            execution_mode = "aiconsole.core.chat.execution_modes.interpreter:execution_mode"
-        elif execution_mode == "aiconsole.core.execution_modes.example_countdown:execution_mode_example_countdown":
-            execution_mode = "aiconsole.core.chat.execution_modes.example_countdown:execution_mode"
-
-        split = execution_mode.split(":")
+        split = execution_mode_path.split(":")
 
         if len(split) != 2:
             raise ValueError(
-                f"Invalid execution_mode in agent {agent.name}: {execution_mode} - should be module_name:object_name"
+                f"Invalid execution_mode in agent {agent.name}: {execution_mode_path} - should be module_name:object_name"
             )
 
-        module_name, object_name = execution_mode.split(":")
+        module_name, object_name = execution_mode_path.split(":")
         module = importlib.import_module(module_name)
+        initializer = getattr(module, "init_execution_mode_with_params", None)
         obj = getattr(module, object_name, None)
+
+        if initializer and callable(initializer):
+            obj = initializer(agent.execution_mode.params_values)
+
         emit_warning_event = getattr(module, "emit_warning_event", None)
         if emit_warning_event:
             await emit_warning_event()

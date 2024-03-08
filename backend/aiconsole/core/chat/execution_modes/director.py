@@ -40,6 +40,7 @@ async def _execution_mode_process(
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
+    **kwargs,
 ):
     _log.debug("execution_mode_director")
 

@@ -75,6 +75,7 @@ async def _execution_mode_process(
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
+    **kwargs,
 ):
     system_message = create_full_prompt_with_materials(
         intro=get_agent_system_message(agent),

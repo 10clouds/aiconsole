@@ -67,6 +67,7 @@ async def _execution_mode_process(
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
+    **kwargs,
 ):
     # Assumes an existing message group that was created for us
     last_message_group = chat_mutator.chat.message_groups[-1]
