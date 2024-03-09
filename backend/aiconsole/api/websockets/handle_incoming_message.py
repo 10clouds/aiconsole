@@ -307,13 +307,14 @@ async def _handle_accept_code_ws_message(connection: AICConnection, json: dict):
 
 async def _handle_process_chat_ws_message(connection: AICConnection, json: dict):
     message = ProcessChatClientMessage(**json)
-    message.chat_ref.context = SequentialRootMutationContext(
+    context = SequentialRootMutationContext(
         DefaultRootMutationContext(
             root=Root(assets=project.get_project_assets().all_assets()),
             request_id=message.request_id,
             connection=None,  # Source connection is None because the originating mutations come from server
         )
     )
+    message.chat_ref.context = context
 
     async def cancelable_task_function():
         try:
@@ -321,8 +322,9 @@ async def _handle_process_chat_ws_message(connection: AICConnection, json: dict)
             async def f():
                 await acquire_lock(ref=message.chat_ref, request_id=message.request_id)
 
-            await message.chat_ref.context.in_sequence(message.chat_ref, f)
-            await message.chat_ref.context.wait_for_all_mutations(message.chat_ref)
+            # Potential deadlock in original code - What if one connection wants to acquire a lock and another is processing and wants to do another mutation in sequence?
+            await context.in_sequence(message.chat_ref, f)
+            await context.wait_for_all_mutations(message.chat_ref)
 
             await do_process_chat(message.chat_ref)
         finally:
