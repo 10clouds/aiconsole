@@ -83,7 +83,6 @@ class AICChatOptions(BaseModel):
 
 
 class AICChat(AICChatHeadline):
-    lock_id: str | None = None
     title_edited: bool = False
     chat_options: AICChatOptions = Field(default_factory=AICChatOptions)
     message_groups: list[AICMessageGroup]

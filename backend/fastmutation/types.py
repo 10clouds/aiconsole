@@ -9,6 +9,7 @@ T = TypeVar("T")
 
 class BaseObject(BaseModel):
     id: str
+    lock_id: str | None = None
 
 
 TBaseObject = TypeVar("TBaseObject", bound=BaseObject)
