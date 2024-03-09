@@ -19,23 +19,21 @@ from aiconsole.core.gpt.types import (
     EnforcedFunctionCall,
     EnforcedFunctionCallFuncSpec,
 )
-from fastmutation.mutation_executor import MutationExecutor
 
 _log = logging.getLogger(__name__)
 
 
 async def generate_response_message_with_code(
-    executor: MutationExecutor,
     chat_ref: ChatRef,
     agent: AICAgent,
     system_message: str,
     language_classes: list[Type[OpenAISchema]],
     enforced_language: Type[OpenAISchema] | None = None,
 ):
-    executor2 = GPTExecutor()
+    executor = GPTExecutor()
 
     # Assumes an existing message group that was created for us
-    chat = chat_ref.get(executor)
+    chat = chat_ref.get()
     last_message_group = chat.message_groups[-1]
     last_message_group_ref = chat_ref.message_groups[last_message_group.id]
 
@@ -43,7 +41,6 @@ async def generate_response_message_with_code(
 
     message_id = str(uuid4())
     await last_message_group_ref.messages.create(
-        executor,
         AICMessage(
             id=message_id,
             timestamp=datetime.now().isoformat(),
@@ -54,7 +51,7 @@ async def generate_response_message_with_code(
     message_ref = last_message_group_ref.messages[message_id]
 
     try:
-        await message_ref.is_streaming.set(executor, True)
+        await message_ref.is_streaming.set(True)
 
         all_requested_formats: list[ToolDefinition] = []
         for message_group in chat.message_groups:
@@ -62,7 +59,7 @@ async def generate_response_message_with_code(
                 if message.requested_format:
                     all_requested_formats.append(message.requested_format)
 
-        async for chunk_or_clear in executor2.execute(
+        async for chunk_or_clear in executor.execute(
             GPTRequest(
                 system_message=system_message,
                 gpt_mode=agent.gpt_mode,
@@ -90,7 +87,7 @@ async def generate_response_message_with_code(
             )
         ):
             if chunk_or_clear == CLEAR_STR:
-                await message_ref.content.set(executor, "")
+                await message_ref.content.set("")
                 continue
 
             chunk: ModelResponse = chunk_or_clear
@@ -101,36 +98,35 @@ async def generate_response_message_with_code(
             else:
                 delta_content = chunk["choices"][0]["delta"].get("content")
                 if delta_content:
-                    await message_ref.content.append(executor, delta_content)
+                    await message_ref.content.append(delta_content)
 
                 message_location = chat.get_message_location(message_id)
                 if not message_location:
                     raise Exception(f"Message {message_id} should have been created")
 
-                if executor2.partial_response.choices[0].message.tool_calls and message_location.message.is_streaming:
-                    await message_ref.is_streaming.set(executor, False)
+                if executor.partial_response.choices[0].message.tool_calls and message_location.message.is_streaming:
+                    await message_ref.is_streaming.set(False)
 
                 await send_code(
-                    executor2.partial_response.choices[0].message.tool_calls,
-                    executor,
+                    executor.partial_response.choices[0].message.tool_calls,
                     message_ref,
                     tools_requiring_closing_parenthesis,
                     language_classes=language_classes,
                 )
 
     finally:
-        message_location = chat_ref.get(executor).get_message_location(message_id)
+        message_location = chat_ref.get().get_message_location(message_id)
 
         if message_location and message_location.message.is_streaming:
-            await message_ref.is_streaming.set(executor, False)
+            await message_ref.is_streaming.set(False)
 
         for tool_id in tools_requiring_closing_parenthesis:
-            await message_ref.tool_calls[tool_id].code.append(executor, ")")
+            await message_ref.tool_calls[tool_id].code.append(")")
 
         # Finish streaming for all tool calls
-        for tool_call in executor2.partial_response.choices[0].message.tool_calls:
-            tool_call_location = chat_ref.get(executor).get_tool_call_location(tool_call.id)
+        for tool_call in executor.partial_response.choices[0].message.tool_calls:
+            tool_call_location = chat_ref.get().get_tool_call_location(tool_call.id)
             if tool_call_location and tool_call_location.tool_call.is_streaming:
-                await message_ref.tool_calls[tool_call.id].is_streaming.set(executor, False)
+                await message_ref.tool_calls[tool_call.id].is_streaming.set(False)
 
         _log.debug(f"tools_requiring_closing_parenthesis: {tools_requiring_closing_parenthesis}")

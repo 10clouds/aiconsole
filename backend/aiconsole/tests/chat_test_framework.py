@@ -33,7 +33,7 @@ from aiconsole.core.chat.load_chat_history import load_chat_history
 from aiconsole.core.chat.locations import ChatRef
 from aiconsole.core.chat.root import Root
 from aiconsole.core.chat.types import AICMessage, AICMessageGroup
-from fastmutation.mutation_executor import MutationExecutor
+from fastmutation.mutation_context import MutationContext
 from fastmutation.types import (
     AnyRef,
     AssetMutation,
@@ -48,7 +48,7 @@ TServerMessage = TypeVar("TServerMessage", bound=BaseServerMessage)
 TMutation = TypeVar("TMutation", bound=AssetMutation)
 
 
-class ClientSideExecutor(MutationExecutor):
+class ClientSideMutationContext(MutationContext):
 
     def __init__(self, root: Root, websocket: WebSocketTestSession, request_id: str):
         self._root = root
@@ -84,7 +84,7 @@ class ChatTestFramework:
 
         self._websocket: WebSocketTestSession | None = None
         self._project_path: Path | None = None
-        self._executor: ClientSideExecutor | None = None
+        self._context: ClientSideMutationContext | None = None
 
     def repeat(self, times: int) -> pytest.MarkDecorator:
         return pytest.mark.repeat(times)
@@ -100,12 +100,6 @@ class ChatTestFramework:
 
         with self._client.websocket_connect("/ws") as websocket:
             try:
-                self.chat_ref = ChatRef(id=str(uuid4()))
-                await SubscribeToClientMessage(
-                    request_id=self._request_id,
-                    ref=self.chat_ref,
-                ).send(websocket)
-
                 chat = self._wait_for_websocket_response(websocket, ChatOpenedServerMessage).chat
 
                 root = Root(
@@ -114,11 +108,17 @@ class ChatTestFramework:
                     ]
                 )
 
-                self._executor = ClientSideExecutor(
+                self._context = ClientSideMutationContext(
                     root=root,
                     websocket=websocket,
                     request_id=self._request_id,
                 )
+
+                self.chat_ref = ChatRef(id=str(uuid4()), context=self._context)
+                await SubscribeToClientMessage(
+                    request_id=self._request_id,
+                    ref=self.chat_ref,
+                ).send(websocket)
 
                 await AcquireLockClientMessage(
                     request_id=self._request_id,
@@ -128,7 +128,6 @@ class ChatTestFramework:
                 self._wait_for_websocket_response(websocket, NotifyAboutAssetMutationServerMessage)
 
                 await self.chat_ref.message_groups.create(
-                    self._executor,
                     AICMessageGroup(
                         id=self._message_group_id,
                         actor_id=ActorId(type="user", id="user"),
@@ -153,10 +152,8 @@ class ChatTestFramework:
         assert self._message_group_id is not None
         assert self._request_id is not None
         assert self.chat_ref is not None
-        assert self._executor is not None
 
         await self.chat_ref.message_groups[self._message_group_id].messages.create(
-            self._executor,
             AICMessage(
                 id=str(uuid4()),
                 timestamp=str(datetime.now()),
@@ -199,7 +196,6 @@ class ChatTestFramework:
 
         assert self.chat_ref is not None
         assert self._project_path is not None
-        assert self._executor is not None
 
         chat = await load_chat_history(id=self.chat_ref.id, project_path=self._project_path)
         automator_message_group_messages = None

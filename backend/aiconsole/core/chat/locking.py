@@ -18,7 +18,7 @@ from aiconsole.core.chat.load_chat_options import load_chat_options
 from aiconsole.core.chat.root import Root
 from aiconsole.core.chat.save_chat_history import save_chat_history
 from aiconsole.core.chat.types import AICChat
-from fastmutation.mutation_executor import MutationExecutor
+from fastmutation.mutation_context import MutationContext
 from fastmutation.types import (
     AnyRef,
     AssetMutation,
@@ -98,7 +98,7 @@ async def release_lock(ref: ObjectRef, request_id: str) -> None:
         )
 
 
-class DefaultRootMutationExecutor(MutationExecutor):
+class DefaultRootMutationExecutor(MutationContext):
     def __init__(self, root: Root, request_id: str, connection: AICConnection | None):
         self.root = root
         self.request_id = request_id
@@ -175,7 +175,7 @@ def _check_mutation_queue(ref: AnyRef):
     task.add_done_callback(clear_task)
 
 
-class SequentialRootMutationExecutor(MutationExecutor):
+class SequentialRootMutationExecutor(MutationContext):
     def __init__(self, mutator: DefaultRootMutationExecutor):
         self.mutator = mutator
 
@@ -215,11 +215,3 @@ class SequentialRootMutationExecutor(MutationExecutor):
 
         _waiting_mutations[ref].append(f())
         _check_mutation_queue(ref)
-
-    async def read(self, ref: AnyRef) -> AICChat:
-        assert ref.parent is not None
-        assert ref.parent.id == "assets"
-        assert ref.parent.parent is None
-
-        await self.wait_for_all_mutations(ref)
-        return await _read_chat_outside_of_lock(chat_id=ref.id)

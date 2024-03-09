@@ -12,7 +12,6 @@ from aiconsole.core.code_running.code_interpreters.language import LanguageStr
 from fastmutation.types import (
     AttributeRef,
     CollectionRef,
-    MutationExecutor,
     ObjectRef,
     StringAttributeRef,
 )
@@ -24,23 +23,29 @@ class AssetsRef(CollectionRef):
 
 
 class AssetRef(ObjectRef):
-    parent: AssetsRef = AssetsRef()
+    parent: AssetsRef
+
+    def __init__(self, id: str, context):
+        super().__init__(id=id, parent=AssetsRef(context=context), context=context)
 
 
 class ChatRef(ObjectRef[AICChat]):
-    parent: AssetsRef = AssetsRef()
+    parent: AssetsRef
+
+    def __init__(self, id: str, context):
+        super().__init__(id=id, parent=AssetsRef(context=context), context=context)
 
     @property
     def message_groups(self):
-        return MessageGroupsRef(parent=self)
+        return MessageGroupsRef(parent=self, context=self.context)
 
     @property
     def is_analysis_in_progress(self):
-        return AttributeRef[bool](object=self, name="is_analysis_in_progress")
+        return AttributeRef[bool](object=self, name="is_analysis_in_progress", context=self.context)
 
     @property
     def chat_options(self):
-        return AttributeRef[AICChatOptions](object=self, name="chat_options")
+        return AttributeRef[AICChatOptions](object=self, name="chat_options", context=self.context)
 
 
 class MessageGroupsRef(CollectionRef[AICMessageGroup]):
@@ -48,7 +53,7 @@ class MessageGroupsRef(CollectionRef[AICMessageGroup]):
     parent: ChatRef
 
     def __getitem__(self, id: str) -> "MessageGroupRef":
-        return MessageGroupRef(id=id, parent=self)
+        return MessageGroupRef(id=id, parent=self, context=self.context)
 
 
 class MessageGroupRef(ObjectRef[AICMessageGroup]):
@@ -56,23 +61,23 @@ class MessageGroupRef(ObjectRef[AICMessageGroup]):
 
     @property
     def messages(self):
-        return MessagesRef(parent=self)
+        return MessagesRef(parent=self, context=self.context)
 
     @property
     def actor_id(self):
-        return AttributeRef[ActorId](object=self, name="actor_id")
+        return AttributeRef[ActorId](object=self, name="actor_id", context=self.context)
 
     @property
     def materials_ids(self):
-        return AttributeRef[list[str]](object=self, name="materials_ids")
+        return AttributeRef[list[str]](object=self, name="materials_ids", context=self.context)
 
     @property
     def task(self):
-        return StringAttributeRef(object=self, name="task")
+        return StringAttributeRef(object=self, name="task", context=self.context)
 
     @property
     def analysis(self):
-        return StringAttributeRef(object=self, name="analysis")
+        return StringAttributeRef(object=self, name="analysis", context=self.context)
 
 
 class MessagesRef(CollectionRef[AICMessage]):
@@ -80,7 +85,7 @@ class MessagesRef(CollectionRef[AICMessage]):
     parent: MessageGroupRef
 
     def __getitem__(self, id: str) -> "MessageRef":
-        return MessageRef(id=id, parent=self)
+        return MessageRef(id=id, parent=self, context=self.context)
 
 
 class MessageRef(ObjectRef[AICMessage]):
@@ -88,15 +93,15 @@ class MessageRef(ObjectRef[AICMessage]):
 
     @property
     def tool_calls(self):
-        return ToolCallsRef(parent=self)
+        return ToolCallsRef(parent=self, context=self.context)
 
     @property
     def content(self):
-        return StringAttributeRef(object=self, name="content")
+        return StringAttributeRef(object=self, name="content", context=self.context)
 
     @property
     def is_streaming(self):
-        return AttributeRef[bool](object=self, name="is_streaming")
+        return AttributeRef[bool](object=self, name="is_streaming", context=self.context)
 
 
 class ToolCallsRef(CollectionRef[AICToolCall]):
@@ -104,7 +109,7 @@ class ToolCallsRef(CollectionRef[AICToolCall]):
     parent: MessageRef
 
     def __getitem__(self, id: str) -> "ToolCallRef":
-        return ToolCallRef(parent=self, id=id)
+        return ToolCallRef(parent=self, id=id, context=self.context)
 
     # HANDLE DELETE
 
@@ -131,31 +136,31 @@ class ToolCallRef(ObjectRef):
 
     @property
     def headline(self):
-        return StringAttributeRef(object=self, name="headline")
+        return StringAttributeRef(object=self, name="headline", context=self.context)
 
     @property
     def language(self):
-        return StringAttributeRef[LanguageStr | None](object=self, name="language")
+        return StringAttributeRef[LanguageStr | None](object=self, name="language", context=self.context)
 
     @property
     def is_executing(self):
-        return AttributeRef[bool](object=self, name="is_executing")
+        return AttributeRef[bool](object=self, name="is_executing", context=self.context)
 
     @property
     def is_successful(self):
-        return AttributeRef[bool](object=self, name="is_successful")
+        return AttributeRef[bool](object=self, name="is_successful", context=self.context)
 
     @property
     def is_streaming(self):
-        return AttributeRef[bool](object=self, name="is_streaming")
+        return AttributeRef[bool](object=self, name="is_streaming", context=self.context)
 
     @property
     def output(self):
-        return StringAttributeRef[str | None](object=self, name="output")
+        return StringAttributeRef[str | None](object=self, name="output", context=self.context)
 
     @property
     def code(self):
-        return StringAttributeRef(object=self, name="code")
+        return StringAttributeRef(object=self, name="code", context=self.context)
 
-    def get(self, executor: MutationExecutor) -> AICToolCall:
-        return cast(AICToolCall, executor.get(self))
+    def get(self) -> AICToolCall:
+        return cast(AICToolCall, super().get())

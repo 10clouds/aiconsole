@@ -4,7 +4,7 @@ if TYPE_CHECKING:
     from fastmutation.types import AnyRef, AssetMutation, BaseObject
 
 
-class MutationExecutor(Protocol):
+class MutationContext(Protocol):
     async def mutate(self, mutation: "AssetMutation") -> None:  # fmt: off
         ...
 
@@ -13,3 +13,14 @@ class MutationExecutor(Protocol):
 
     def exists(self, ref: "AnyRef") -> bool:  # fmt: off
         ...
+
+
+class EmptyMutationContext(MutationContext):
+    async def mutate(self, mutation: "AssetMutation") -> None:
+        pass
+
+    def get(self, ref: "AnyRef") -> "BaseObject | list[BaseObject]":
+        raise ValueError("No object found")
+
+    def exists(self, ref: "AnyRef") -> bool:
+        return False

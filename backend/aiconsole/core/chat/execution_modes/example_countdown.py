@@ -33,11 +33,9 @@ from aiconsole.core.code_running.run_code import (
     get_code_interpreter,
     run_in_code_interpreter,
 )
-from fastmutation.mutation_executor import MutationExecutor
 
 
 async def _execution_mode_process(
-    executor: MutationExecutor,
     chat_ref: ChatRef,
     agent: AICAgent,
     materials: list[AICMaterial],
@@ -46,9 +44,8 @@ async def _execution_mode_process(
     message_id = str(uuid4())
 
     # Assumes that a group already exists
-    msg_group_ref = chat_ref.message_groups[chat_ref.message_groups.get_item_id_by_index(executor=executor, index=-1)]
+    msg_group_ref = chat_ref.message_groups[chat_ref.message_groups.get_item_id_by_index(index=-1)]
     await msg_group_ref.messages.create(
-        executor,
         AICMessage(
             id=message_id,
             timestamp=datetime.now().isoformat(),
@@ -57,7 +54,7 @@ async def _execution_mode_process(
     )
 
     for i in range(10, 0, -1):
-        await msg_group_ref.messages[message_id].content.append(executor, f"{i}...")
+        await msg_group_ref.messages[message_id].content.append(f"{i}...")
 
         await asyncio.sleep(1)
 
@@ -65,7 +62,6 @@ async def _execution_mode_process(
 
     message_id = str(uuid4())
     await msg_group_ref.messages.create(
-        executor,
         AICMessage(
             id=message_id,
             timestamp=datetime.now().isoformat(),
@@ -79,7 +75,6 @@ async def _execution_mode_process(
     code = "print('Hello world!')"
 
     await message_mutator.tool_calls.create(
-        executor,
         AICToolCall(
             id=tool_call_id,
             code=code,
@@ -95,13 +90,13 @@ async def _execution_mode_process(
 
     try:
         try:
-            async for token in run_in_code_interpreter("python", chat_ref.get(executor).id, code, []):
-                await tool_call_mutator.output.append(executor, token)
-            await tool_call_mutator.is_successful.set(executor, True)
+            async for token in run_in_code_interpreter("python", chat_ref.get().id, code, []):
+                await tool_call_mutator.output.append(token)
+            await tool_call_mutator.is_successful.set(True)
         except CodeExecutionError:
             pass
         except asyncio.CancelledError:
-            (await get_code_interpreter("python", chat_ref.get(executor).id)).terminate()
+            (await get_code_interpreter("python", chat_ref.get().id)).terminate()
             raise
     except Exception as e:
         await connection_manager().send_to_ref(ErrorServerMessage(error=str(e)), chat_ref)

@@ -24,7 +24,6 @@ from aiconsole.core.chat.execution_modes.analysis.gpt_analysis_function_step imp
 )
 from aiconsole.core.chat.locations import ChatRef
 from aiconsole.core.gpt.consts import ANALYSIS_GPT_MODE
-from fastmutation.mutation_executor import MutationExecutor
 
 INITIAL_SYSTEM_PROMPT = """
 You are a director of a multiple AI Agents, doing everything to help the user.
@@ -101,21 +100,21 @@ Now analyse the chat.
 """.strip()
 
 
-async def director_analyse(executor: MutationExecutor, chat_ref: ChatRef, message_group_id: str):
+async def director_analyse(chat_ref: ChatRef, message_group_id: str):
 
-    ai_can_add_extra_materials = chat_ref.chat_options.get(executor).ai_can_add_extra_materials
+    ai_can_add_extra_materials = chat_ref.chat_options.get().ai_can_add_extra_materials
 
     if ai_can_add_extra_materials is None:
         ai_can_add_extra_materials = True
 
-    agents = create_agents_str(agent_id=chat_ref.chat_options.get(executor).agent_id)
+    agents = create_agents_str(agent_id=chat_ref.chat_options.get().agent_id)
     materials = create_materials_str(
-        materials_ids=chat_ref.chat_options.get(executor).materials_ids,
+        materials_ids=chat_ref.chat_options.get().materials_ids,
         ai_can_add_extra_materials=ai_can_add_extra_materials,
     )
 
     initial_system_prompt = INITIAL_SYSTEM_PROMPT.format(
-        agents=create_agents_str(agent_id=chat_ref.chat_options.get(executor).agent_id),
+        agents=create_agents_str(agent_id=chat_ref.chat_options.get().agent_id),
         materials=materials,
     )
 
@@ -125,7 +124,6 @@ async def director_analyse(executor: MutationExecutor, chat_ref: ChatRef, messag
     )
 
     return await gpt_analysis_function_step(
-        executor=executor,
         chat_ref=chat_ref,
         message_group_id=message_group_id,
         gpt_mode=ANALYSIS_GPT_MODE,

@@ -4,13 +4,11 @@ from aiconsole.core.assets.agents.agent import AICAgent
 from aiconsole.core.assets.materials.material import AICMaterial
 from aiconsole.core.assets.materials.rendered_material import RenderedMaterial
 from aiconsole.core.chat.locations import ChatRef, ToolCallRef
-from fastmutation.mutation_executor import MutationExecutor
 
 
 class ProcessChatDataProtocol(Protocol):
     async def __call__(
         self,
-        executor: MutationExecutor,
         chat_ref: ChatRef,
         agent: AICAgent,
         materials: list[AICMaterial],
@@ -23,7 +21,6 @@ class AcceptCodeDataProtocol(Protocol):
 
     async def __call__(
         self,
-        executor: MutationExecutor,
         tool_call_ref: ToolCallRef,
         agent: AICAgent,
         materials: list[AICMaterial],
@@ -38,7 +35,6 @@ class FetchDataProtocol(Protocol):
 
 
 def process_chat_not_supported(
-    executor: MutationExecutor,
     chat_ref: ChatRef,
     agent: AICAgent,
     materials: list[AICMaterial],
@@ -48,7 +44,6 @@ def process_chat_not_supported(
 
 
 def accept_code_not_supported(
-    executor: MutationExecutor,
     tool_call_ref: ToolCallRef,
     agent: AICAgent,
     materials: list[AICMaterial],

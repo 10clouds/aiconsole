@@ -6,7 +6,6 @@ from aiconsole.core.chat.types import AICToolCall
 from aiconsole.core.code_running.code_interpreters.language import LanguageStr
 from aiconsole.core.code_running.code_interpreters.language_map import language_map
 from aiconsole.core.gpt.partial import GPTPartialToolsCall
-from fastmutation.mutation_executor import MutationExecutor
 
 _log = logging.getLogger(__name__)
 
@@ -20,7 +19,6 @@ def tool_name_to_language(name: str) -> str:
 
 async def send_code(
     tool_calls: list[GPTPartialToolsCall],
-    executor: MutationExecutor,
     message_ref: MessageRef,
     tools_requiring_closing_parenthesis,
     language_classes: list[type],
@@ -35,22 +33,17 @@ async def send_code(
             prev_tool_mutator = message_ref.tool_calls[prev_tool.id]
 
             if prev_tool.id in tools_requiring_closing_parenthesis:
-                await prev_tool_mutator.code.append(executor, ")")
+                await prev_tool_mutator.code.append(")")
                 tools_requiring_closing_parenthesis.remove(prev_tool.id)
 
             tool_call_mutator = message_ref.tool_calls[prev_tool.id]
-            if tool_call_mutator.is_streaming.get(
-                executor,
-            ):
-                await prev_tool_mutator.is_streaming.set(executor, False)
+            if tool_call_mutator.is_streaming.get():
+                await prev_tool_mutator.is_streaming.set(False)
 
         tool_call_mutator = message_ref.tool_calls[tool_call.id]
 
-        if not tool_call_mutator.exists(
-            executor,
-        ):
+        if not tool_call_mutator.exists():
             await message_ref.tool_calls.create(
-                executor,
                 AICToolCall(
                     id=tool_call.id,
                     code="",
@@ -64,53 +57,30 @@ async def send_code(
             )
 
         async def send_language_if_needed(lang: LanguageStr):
-            if (
-                tool_call_mutator.language.get(
-                    executor,
-                )
-                is None
-            ):
-                await tool_call_mutator.language.set(executor, lang)
+            if tool_call_mutator.language.get() is None:
+                await tool_call_mutator.language.set(lang)
 
         async def send_headline_delta_for_headline(headline: str):
-            if not headline.startswith(
-                tool_call_mutator.headline.get(
-                    executor,
-                )
-            ):
+            if not headline.startswith(tool_call_mutator.headline.get()):
                 _log.warning(f"Reseting headline to: {headline}")
-                await tool_call_mutator.headline.set(executor, headline)
+                await tool_call_mutator.headline.set(headline)
             else:
-                start_index = len(
-                    tool_call_mutator.headline.get(
-                        executor,
-                    )
-                )
+                start_index = len(tool_call_mutator.headline.get())
                 headline_delta = headline[start_index:]
 
                 if headline_delta:
-                    await tool_call_mutator.headline.append(executor, headline_delta)
+                    await tool_call_mutator.headline.append(headline_delta)
 
         async def send_code_delta_for_code(code: str):
-            if not code.startswith(
-                tool_call_mutator.code.get(
-                    executor,
-                )
-            ):
-                _log.warning(
-                    f"Reseting code, code={repr(code)} original={repr(tool_call_mutator.code.get(executor, ))}"
-                )
-                await tool_call_mutator.code.set(executor, code)
+            if not code.startswith(tool_call_mutator.code.get()):
+                _log.warning(f"Reseting code, code={repr(code)} original={repr(tool_call_mutator.code.get())}")
+                await tool_call_mutator.code.set(code)
             else:
-                start_index = len(
-                    tool_call_mutator.code.get(
-                        executor,
-                    )
-                )
+                start_index = len(tool_call_mutator.code.get())
                 code_delta = code[start_index:]
 
                 if code_delta:
-                    await tool_call_mutator.code.append(executor, code_delta)
+                    await tool_call_mutator.code.append(code_delta)
 
         if tool_call.type == "function":
             function_call = tool_call.function
@@ -123,13 +93,7 @@ async def send_code(
 
                 languages = language_map.keys()
 
-                if (
-                    tool_call_mutator.language.get(
-                        executor,
-                    )
-                    is None
-                    and function_call.name in languages
-                ):
+                if tool_call_mutator.language.get() is None and function_call.name in languages:
                     await send_language_if_needed(cast(LanguageStr, function_call.name))
 
                 code = None

@@ -29,13 +29,11 @@ from aiconsole.core.chat.locations import ChatRef
 from aiconsole.core.gpt.create_full_prompt_with_materials import (
     create_full_prompt_with_materials,
 )
-from fastmutation.mutation_executor import MutationExecutor
 
 _log = logging.getLogger(__name__)
 
 
 async def _execution_mode_process(
-    executor: MutationExecutor,
     chat_ref: ChatRef,
     agent: AICAgent,
     materials: list[AICMaterial],
@@ -44,7 +42,6 @@ async def _execution_mode_process(
     _log.debug("execution_mode_normal")
 
     await generate_response_message_with_code(
-        executor,
         chat_ref,
         agent,
         system_message=create_full_prompt_with_materials(

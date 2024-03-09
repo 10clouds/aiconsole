@@ -42,7 +42,6 @@ from aiconsole.core.gpt.types import (
     GPTRequestTextMessage,
 )
 from aiconsole.core.project import project
-from fastmutation.mutation_executor import MutationExecutor
 
 _log = logging.getLogger(__name__)
 
@@ -85,7 +84,6 @@ class AnalysisResult:
 
 async def gpt_analysis_function_step(
     message_group_id: str,
-    executor: MutationExecutor,
     chat_ref: ChatRef,
     gpt_mode: GPTMode,
     initial_system_prompt: str,
@@ -99,8 +97,8 @@ async def gpt_analysis_function_step(
     # Pick from forced or enabled agents if no agent is forced
     possible_agent_choices: list[AICAgent]
 
-    if chat_ref.chat_options.get(executor).agent_id:
-        agent_id = chat_ref.chat_options.get(executor).agent_id
+    if chat_ref.chat_options.get().agent_id:
+        agent_id = chat_ref.chat_options.get().agent_id
         agent = project.get_project_assets().get_asset(agent_id, type=AssetType.AGENT, enabled=True)
         if not agent:
             raise ValueError(f"Agent {agent_id} not found")
@@ -113,12 +111,12 @@ async def gpt_analysis_function_step(
 
     available_materials = []
     forced_materials = []
-    if chat_ref.chat_options.get(executor).materials_ids:
+    if chat_ref.chat_options.get().materials_ids:
         for material in project.get_project_assets()._assets.values():
-            if material[0].id in (chat_ref.chat_options.get(executor).materials_ids or []):
+            if material[0].id in (chat_ref.chat_options.get().materials_ids or []):
                 forced_materials.append(material[0])
 
-    if chat_ref.chat_options.get(executor).ai_can_add_extra_materials:
+    if chat_ref.chat_options.get().ai_can_add_extra_materials:
         available_materials = [
             *forced_materials,
             *[
@@ -149,7 +147,7 @@ async def gpt_analysis_function_step(
         system_message=initial_system_prompt,
         gpt_mode=gpt_mode,
         messages=[
-            *convert_messages(chat_ref.get(executor)),
+            *convert_messages(chat_ref.get()),
             GPTRequestTextMessage(role="system", content=last_system_prompt),
         ],
         tools=[
@@ -169,9 +167,9 @@ async def gpt_analysis_function_step(
             function=EnforcedFunctionCallFuncSpec(name=plan_class.__name__),
         )
 
-    await chat_ref.is_analysis_in_progress.set(executor, True)
+    await chat_ref.is_analysis_in_progress.set(True)
 
-    await message_group_ref.analysis.set(executor, "")
+    await message_group_ref.analysis.set("")
 
     try:
         async for chunk in gpt_executor.execute(request):
@@ -184,25 +182,21 @@ async def gpt_analysis_function_step(
                     if arguments_dict:
                         # Current fix for https://github.com/10clouds/aiconsole/issues/785
                         if "agent_id" in arguments_dict and "relevant_material_ids" in arguments_dict:
-                            await message_group_ref.actor_id.set(
-                                executor, ActorId(type="agent", id=arguments_dict["agent_id"])
-                            )
+                            await message_group_ref.actor_id.set(ActorId(type="agent", id=arguments_dict["agent_id"]))
 
                         if "relevant_material_ids" in arguments_dict:
-                            await message_group_ref.materials_ids.set(
-                                executor, arguments_dict["relevant_material_ids"]
-                            )
+                            await message_group_ref.materials_ids.set(arguments_dict["relevant_material_ids"])
 
                         if "next_step" in arguments_dict:
-                            await message_group_ref.task.set(executor, arguments_dict["next_step"])
+                            await message_group_ref.task.set(arguments_dict["next_step"])
 
                         if "thinking_process" in arguments_dict:
-                            await message_group_ref.analysis.set(executor, arguments_dict["thinking_process"])
+                            await message_group_ref.analysis.set(arguments_dict["thinking_process"])
                 if not tool_calls:
                     analysis = gpt_executor.partial_response.choices[0].message.content
 
                     if analysis:
-                        await message_group_ref.analysis.set(executor, analysis)
+                        await message_group_ref.analysis.set(analysis)
             else:
                 _log.warning("No choices in partial response")
                 _log.warning(chunk)
@@ -210,7 +204,7 @@ async def gpt_analysis_function_step(
         result = gpt_executor.response.choices[0].message
 
         if len(result.tool_calls) == 0:
-            await message_group_ref.analysis.set(executor, result.content or "")
+            await message_group_ref.analysis.set(result.content or "")
 
         if len(result.tool_calls) > 1:
             raise ValueError(f"Expected one tool call, got {len(result.tool_calls)}")
@@ -222,13 +216,13 @@ async def gpt_analysis_function_step(
 
         plan = plan_class(**arguments_dict)
 
-        picked_agent = pick_agent(plan, chat_ref.get(executor), possible_agent_choices)
-        await message_group_ref.actor_id.set(executor, ActorId(type="agent", id=picked_agent.id))
+        picked_agent = pick_agent(plan, chat_ref.get(), possible_agent_choices)
+        await message_group_ref.actor_id.set(ActorId(type="agent", id=picked_agent.id))
 
         relevant_materials = _get_relevant_materials(plan.relevant_material_ids)
-        await message_group_ref.materials_ids.set(executor, plan.relevant_material_ids)
-        await message_group_ref.task.set(executor, plan.next_step)
-        await message_group_ref.analysis.set(executor, plan.thinking_process)
+        await message_group_ref.materials_ids.set(plan.relevant_material_ids)
+        await message_group_ref.task.set(plan.next_step)
+        await message_group_ref.analysis.set(plan.thinking_process)
 
         return AnalysisResult(
             agent=picked_agent,
@@ -236,4 +230,4 @@ async def gpt_analysis_function_step(
             next_step=plan.next_step,
         )
     finally:
-        await chat_ref.is_analysis_in_progress.set(executor, False)
+        await chat_ref.is_analysis_in_progress.set(False)

@@ -8,6 +8,7 @@ from aiconsole.core.chat.types import AICChat, AICMessage, AICMessageGroup, AICT
 from fastmutation.types import (
     AppendToStringMutation,
     AssetMutation,
+    BaseObject,
     CollectionRef,
     CreateMutation,
     DeleteMutation,
@@ -21,7 +22,7 @@ _log = logging.getLogger(__name__)
 # Handlers
 
 
-def find_object(root: BaseModel, obj: ObjectRef) -> None:
+def find_object(root: BaseModel, obj: ObjectRef) -> BaseObject | None:
     base_collection = find_collection(root, obj.parent)
 
     if not base_collection:

@@ -17,7 +17,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, field_serializer
+from pydantic import field_serializer
 
 from fastmutation.types import BaseObject
 

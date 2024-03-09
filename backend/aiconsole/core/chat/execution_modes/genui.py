@@ -34,7 +34,6 @@ from aiconsole.core.gpt.create_full_prompt_with_materials import (
     create_full_prompt_with_materials,
 )
 from aiconsole.core.gpt.function_calls import OpenAISchema
-from fastmutation.mutation_executor import MutationExecutor
 
 
 class react_ui_tool(OpenAISchema):
@@ -55,14 +54,13 @@ class react_ui_tool(OpenAISchema):
     )
 
 
-async def show_prototype_warning(executor: MutationExecutor, chat_ref: ChatRef):
+async def show_prototype_warning(chat_ref: ChatRef):
     # TODO: remove after GenUI is fully implemented
-    last_message_group = chat_ref.message_groups.get(executor)[-1]
+    last_message_group = chat_ref.message_groups.get()[-1]
 
     GENUI_WARNING_MESSAGE = "**WARNING!** The GenUI execution mode is currently in an early prototype phase. "
 
     await chat_ref.message_groups[last_message_group.id].messages.create(
-        executor,
         AICMessage(
             id=str(uuid4()),
             timestamp=datetime.now().isoformat(),
@@ -72,7 +70,6 @@ async def show_prototype_warning(executor: MutationExecutor, chat_ref: ChatRef):
 
 
 async def _execution_mode_process(
-    executor: MutationExecutor,
     chat_ref: ChatRef,
     agent: AICAgent,
     materials: list[AICMaterial],
@@ -83,10 +80,10 @@ async def _execution_mode_process(
         materials=rendered_materials,
     )
 
-    await show_prototype_warning(executor, chat_ref)
+    await show_prototype_warning(chat_ref)
 
     await generate_response_message_with_code(
-        executor, chat_ref, agent, system_message, language_classes=[react_ui_tool], enforced_language=react_ui_tool
+        chat_ref, agent, system_message, language_classes=[react_ui_tool], enforced_language=react_ui_tool
     )
 
 

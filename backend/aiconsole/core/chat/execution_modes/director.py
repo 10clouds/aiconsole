@@ -30,13 +30,11 @@ from aiconsole.core.chat.execution_modes.utils.import_and_validate_execution_mod
     import_and_validate_execution_mode,
 )
 from aiconsole.core.chat.locations import ChatRef
-from fastmutation.mutation_executor import MutationExecutor
 
 _log = logging.getLogger(__name__)
 
 
 async def _execution_mode_process(
-    executor: MutationExecutor,
     chat_ref: ChatRef,
     agent: AICAgent,
     materials: list[AICMaterial],
@@ -45,10 +43,10 @@ async def _execution_mode_process(
     _log.debug("execution_mode_director")
 
     # Assumes an existing message group that was created for us
-    last_message_group = chat_ref.message_groups[chat_ref.message_groups.get_item_id_by_index(executor, -1)]
+    last_message_group = chat_ref.message_groups[chat_ref.message_groups.get_item_id_by_index(-1)]
 
     # if there are no messages in message groups, stop processing
-    if not any(group.messages for group in chat_ref.message_groups.get(executor)):
+    if not any(group.messages for group in chat_ref.message_groups.get()):
         # Send an error notification and delete the current message group
         _log.error("No messages in message groups")
 
@@ -57,23 +55,21 @@ async def _execution_mode_process(
             ref=chat_ref,
         )
 
-        await chat_ref.message_groups[last_message_group.id].delete(executor)
+        await chat_ref.message_groups[last_message_group.id].delete()
 
         return
 
-    last_messages = chat_ref.message_groups[chat_ref.message_groups.get_item_id_by_index(executor, -2)].messages.get(
-        executor
-    )
+    last_messages = chat_ref.message_groups[chat_ref.message_groups.get_item_id_by_index(-2)].messages.get()
     for message in last_messages:
         if message.tool_calls and not all(call.output for call in message.tool_calls):
-            await chat_ref.message_groups[last_message_group.id].delete(executor)
+            await chat_ref.message_groups[last_message_group.id].delete()
             return
 
-    analysis = await director_analyse(executor, chat_ref, last_message_group.id)
+    analysis = await director_analyse(chat_ref, last_message_group.id)
 
     if analysis.agent.id != "user" and analysis.next_step:
         content_context = ContentEvaluationContext(
-            chat=chat_ref.get(executor),
+            chat=chat_ref.get(),
             agent=analysis.agent,
             gpt_mode=analysis.agent.gpt_mode,
             relevant_materials=analysis.relevant_materials,
@@ -86,7 +82,6 @@ async def _execution_mode_process(
         execution_mode = await import_and_validate_execution_mode(analysis.agent, chat_ref)
 
         await execution_mode.process_chat(
-            executor=executor,
             chat_ref=chat_ref,
             agent=analysis.agent,
             materials=analysis.relevant_materials,
@@ -94,7 +89,7 @@ async def _execution_mode_process(
         )
     else:
         # Delete the current message group
-        await chat_ref.message_groups[last_message_group.id].delete(executor)
+        await chat_ref.message_groups[last_message_group.id].delete()
 
 
 execution_mode = ExecutionMode(

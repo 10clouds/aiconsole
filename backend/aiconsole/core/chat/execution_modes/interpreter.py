@@ -34,7 +34,6 @@ from aiconsole.core.gpt.create_full_prompt_with_materials import (
 )
 from aiconsole.core.gpt.function_calls import OpenAISchema
 from aiconsole.core.settings.settings import settings
-from fastmutation.mutation_executor import MutationExecutor
 
 _log = logging.getLogger(__name__)
 
@@ -63,21 +62,20 @@ class python_tool(CodeTask):
 
 
 async def _execution_mode_process(
-    executor: MutationExecutor,
     chat_ref: ChatRef,
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
 ):
     # Assumes an existing message group that was created for us
-    last_message_group = chat_ref.get(executor).message_groups[-1]
+    last_message_group = chat_ref.get().message_groups[-1]
 
     system_message = create_full_prompt_with_materials(
         intro=get_agent_system_message(agent),
         materials=rendered_materials,
     )
 
-    await generate_response_message_with_code(executor, chat_ref, agent, system_message, [python_tool])
+    await generate_response_message_with_code(chat_ref, agent, system_message, [python_tool])
 
     last_message = last_message_group.messages[-1]
 
@@ -86,7 +84,6 @@ async def _execution_mode_process(
         for tool_call in last_message.tool_calls:
             if settings().unified_settings.code_autorun:
                 await _execution_mode_accept_code(
-                    executor=executor,
                     tool_call_ref=chat_ref.message_groups[last_message_group.id]
                     .messages[last_message.id]
                     .tool_calls[tool_call.id],
@@ -97,18 +94,17 @@ async def _execution_mode_process(
 
 
 async def _check_for_all_code_executed(
-    executor: MutationExecutor,
     tool_call_ref: ToolCallRef,
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
 ):
     tool_call_message_mutator = tool_call_ref.parent.parent
-    tool_call_message = tool_call_message_mutator.get(executor)
+    tool_call_message = tool_call_message_mutator.get()
     tool_call_message_group_mutator = tool_call_message_mutator.parent.parent
-    tool_call_message_group = tool_call_message_group_mutator.get(executor)
+    tool_call_message_group = tool_call_message_group_mutator.get()
     tool_call_chat_ref = tool_call_message_group_mutator.parent.parent
-    tool_call_chat = tool_call_chat_ref.get(executor)
+    tool_call_chat = tool_call_chat_ref.get()
 
     # if is in last message and all tools have finished running, resume operation with the same agent
     if (
@@ -122,7 +118,6 @@ async def _check_for_all_code_executed(
 
         if finished_running_code:
             await _execution_mode_process(
-                executor=executor,
                 chat_ref=tool_call_chat_ref,
                 agent=agent,
                 materials=materials,
@@ -131,20 +126,17 @@ async def _check_for_all_code_executed(
 
 
 async def _execution_mode_accept_code(
-    executor: MutationExecutor,
     tool_call_ref: ToolCallRef,
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
 ):
     await run_code(
-        executor=executor,
         tool_call_ref=tool_call_ref,
         materials=materials,
     )
 
     await _check_for_all_code_executed(
-        executor=executor,
         tool_call_ref=tool_call_ref,
         agent=agent,
         materials=materials,
