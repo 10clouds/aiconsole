@@ -47,8 +47,11 @@ class AICConnection:
         if ref in self._open_refs:
             return True
 
-        if ref.parent:
+        if isinstance(ref, CollectionRef) and ref.parent:
             return self.is_ref_open(ref.parent)
+
+        if isinstance(ref, ObjectRef) and ref.parent_collection:
+            return self.is_ref_open(ref.parent_collection)
 
         return False
 
@@ -78,8 +81,11 @@ class AICConnection:
         if any(lock.ref == ref for lock in self._acquired_locks):
             return True
 
-        if ref.parent:
+        if isinstance(ref, CollectionRef) and ref.parent:
             return self.is_lock_acquired(ref.parent)
+
+        if isinstance(ref, ObjectRef) and ref.parent_collection:
+            return self.is_lock_acquired(ref.parent_collection)
 
         return False
 

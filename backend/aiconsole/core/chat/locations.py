@@ -17,23 +17,23 @@ from fastmutation.types import (
 )
 
 
-class AssetsRef(CollectionRef):
+class AssetCollectionRef(CollectionRef):
     id: str = "assets"
     parent: None = None
 
 
 class AssetRef(ObjectRef):
-    parent: AssetsRef
+    parent: AssetCollectionRef
 
     def __init__(self, id: str, context):
-        super().__init__(id=id, parent=AssetsRef(context=context), context=context)
+        super().__init__(id=id, parent_collection=AssetCollectionRef(context=context), context=context)
 
 
 class ChatRef(ObjectRef[AICChat]):
-    parent: AssetsRef
+    parent: AssetCollectionRef
 
     def __init__(self, id: str, context):
-        super().__init__(id=id, parent=AssetsRef(context=context), context=context)
+        super().__init__(id=id, parent_collection=AssetCollectionRef(context=context), context=context)
 
     @property
     def message_groups(self):
@@ -53,11 +53,11 @@ class MessageGroupsRef(CollectionRef[AICMessageGroup]):
     parent: ChatRef
 
     def __getitem__(self, id: str) -> "MessageGroupRef":
-        return MessageGroupRef(id=id, parent=self, context=self.context)
+        return MessageGroupRef(id=id, parent_collection=self, context=self.context)
 
 
 class MessageGroupRef(ObjectRef[AICMessageGroup]):
-    parent: MessageGroupsRef
+    parent_collection: MessageGroupsRef
 
     @property
     def messages(self):
@@ -85,11 +85,11 @@ class MessagesRef(CollectionRef[AICMessage]):
     parent: MessageGroupRef
 
     def __getitem__(self, id: str) -> "MessageRef":
-        return MessageRef(id=id, parent=self, context=self.context)
+        return MessageRef(id=id, parent_collection=self, context=self.context)
 
 
 class MessageRef(ObjectRef[AICMessage]):
-    parent: MessagesRef
+    parent_collection: MessagesRef
 
     @property
     def tool_calls(self):
@@ -109,7 +109,7 @@ class ToolCallsRef(CollectionRef[AICToolCall]):
     parent: MessageRef
 
     def __getitem__(self, id: str) -> "ToolCallRef":
-        return ToolCallRef(parent=self, id=id, context=self.context)
+        return ToolCallRef(parent_collection=self, id=id, context=self.context)
 
     # HANDLE DELETE
 
@@ -132,7 +132,7 @@ class ToolCallsRef(CollectionRef[AICToolCall]):
 
 
 class ToolCallRef(ObjectRef):
-    parent: ToolCallsRef
+    parent_collection: ToolCallsRef
 
     @property
     def headline(self):

@@ -63,7 +63,7 @@ AssetMutation = (
 
 class ObjectRef(BaseModel, Generic[TBaseObject]):
     id: str
-    parent: "CollectionRef"
+    parent_collection: "CollectionRef"
     context: (
         "MutationContext | None"  # Context must be set externally after deserialisation in order to use the object
     )
@@ -72,12 +72,12 @@ class ObjectRef(BaseModel, Generic[TBaseObject]):
         fields = {"context": {"exclude": True}}  # Context is not serialised or sent anywhere
 
     def __hash__(self):
-        return hash((self.id, self.parent))
+        return hash((self.id, self.parent_collection))
 
     def __eq__(self, other):
         if not isinstance(other, ObjectRef):
             return NotImplemented
-        return self.id == other.id and self.parent == other.parent
+        return self.id == other.id and self.parent_collection == other.parent_collection
 
     def collection(self, id: str) -> "CollectionRef":
         assert self.context is not None
@@ -125,13 +125,13 @@ class CollectionRef(BaseModel, Generic[TBaseObject]):
         return self.id == other.id and self.parent == other.parent
 
     def __getitem__(self, id: str) -> ObjectRef:
-        return ObjectRef(parent=self, id=id, context=self.context)
+        return ObjectRef(parent_collection=self, id=id, context=self.context)
 
     def create(self, object: TBaseObject):
         assert self.context is not None
         return self.context.mutate(
             CreateMutation(
-                ref=ObjectRef(parent=self, id=object.id, context=self.context),
+                ref=ObjectRef(parent_collection=self, id=object.id, context=self.context),
                 object_type=object.__class__.__name__,
                 object=object.model_dump(mode="json", exclude_unset=True, exclude=set(["id"])),
             )

@@ -99,11 +99,11 @@ async def _check_for_all_code_executed(
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
 ):
-    tool_call_message_mutator = tool_call_ref.parent.parent
+    tool_call_message_mutator = tool_call_ref.parent_collection.parent
     tool_call_message = tool_call_message_mutator.get()
-    tool_call_message_group_mutator = tool_call_message_mutator.parent.parent
+    tool_call_message_group_mutator = tool_call_message_mutator.parent_collection.parent
     tool_call_message_group = tool_call_message_group_mutator.get()
-    tool_call_chat_ref = tool_call_message_group_mutator.parent.parent
+    tool_call_chat_ref = tool_call_message_group_mutator.parent_collection.parent
     tool_call_chat = tool_call_chat_ref.get()
 
     # if is in last message and all tools have finished running, resume operation with the same agent

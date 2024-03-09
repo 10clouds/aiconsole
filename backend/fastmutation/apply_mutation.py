@@ -23,10 +23,10 @@ _log = logging.getLogger(__name__)
 
 
 def find_object(root: BaseModel, obj: ObjectRef) -> BaseObject | None:
-    base_collection = find_collection(root, obj.parent)
+    base_collection = find_collection(root, obj.parent_collection)
 
     if not base_collection:
-        raise ValueError(f"Collection {obj.parent} not found")
+        raise ValueError(f"Collection {obj.parent_collection} not found")
 
     if obj.id not in base_collection:
         raise ValueError(f"Object {obj.id} not found")
@@ -35,7 +35,7 @@ def find_object(root: BaseModel, obj: ObjectRef) -> BaseObject | None:
 
 
 def find_collection(root: BaseModel, collection: CollectionRef):
-    base_object = root
+    base_object: BaseObject | BaseModel | None = root
 
     if collection.parent:
         base_object = find_object(root, collection.parent)
@@ -44,7 +44,7 @@ def find_collection(root: BaseModel, collection: CollectionRef):
 
 
 def _handle_CreateMutation(root: Root, mutation: CreateMutation) -> None:
-    collection = find_collection(root, mutation.ref.parent)
+    collection = find_collection(root, mutation.ref.parent_collection)
 
     types = {
         "AICMessageGroup": AICMessageGroup,
@@ -57,7 +57,7 @@ def _handle_CreateMutation(root: Root, mutation: CreateMutation) -> None:
 
 
 def _handle_DeleteMutation(root: Root, mutation: DeleteMutation) -> None:
-    collection = find_collection(root, mutation.ref.parent)
+    collection = find_collection(root, mutation.ref.parent_collection)
     collection.remove(find_object(root, mutation.ref))
 
     # HANDLE DELETE

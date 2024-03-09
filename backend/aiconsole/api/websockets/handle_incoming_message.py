@@ -34,7 +34,6 @@ from aiconsole.api.websockets.connection_manager import (
     AICConnection,
     connection_manager,
 )
-from aiconsole.api.websockets.do_process_chat import do_process_chat
 from aiconsole.api.websockets.render_materials import render_materials
 from aiconsole.api.websockets.server_messages import (
     ChatOpenedServerMessage,
@@ -43,6 +42,7 @@ from aiconsole.api.websockets.server_messages import (
     ResponseServerMessage,
 )
 from aiconsole.core.assets.agents.agent import AICAgent
+from aiconsole.core.chat.do_process_chat import do_process_chat
 from aiconsole.core.chat.execution_modes.utils.import_and_validate_execution_mode import (
     import_and_validate_execution_mode,
 )
@@ -251,7 +251,9 @@ async def _handle_accept_code_ws_message(connection: AICConnection, json: dict):
 
     # This is fishy!
     await message.tool_call_ref.context.wait_for_all_mutations(ref=message.tool_call_ref)
-    chat_ref: ChatRef = message.tool_call_ref.parent.parent.parent.parent.parent.parent
+    chat_ref: ChatRef = (
+        message.tool_call_ref.parent_collection.parent.parent_collection.parent.parent_collection.parent
+    )
 
     async def cancelable_task_function():
         try:
@@ -263,15 +265,15 @@ async def _handle_accept_code_ws_message(connection: AICConnection, json: dict):
 
             await acquire_lock(ref=chat_ref, request_id=message.request_id)
 
-            message_ref = message.tool_call_ref.parent.parent
-            message_group_ref = message_ref.parent.parent if message_ref else None
+            message_ref = message.tool_call_ref.parent_collection.parent
+            message_group_ref = message_ref.parent_collection.parent if message_ref else None
 
             if message_group_ref is None:
                 raise Exception(f"Message group ref not found for {message.tool_call_ref}")
 
             message_group_ref = chat_ref.message_groups[message_group_ref.id]
             agent_id = message_group_ref.actor_id.get().id
-            message_id = message.tool_call_ref.parent.parent.id
+            message_id = message.tool_call_ref.parent_collection.parent.id
 
             agent = project.get_project_assets().get_asset(agent_id)
 

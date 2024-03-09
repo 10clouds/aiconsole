@@ -28,11 +28,11 @@ from aiconsole.api.websockets.server_messages import (
 )
 from aiconsole.app import app
 from aiconsole.core.chat.actor_id import ActorId
-from aiconsole.core.chat.apply_mutation import apply_mutation
 from aiconsole.core.chat.load_chat_history import load_chat_history
 from aiconsole.core.chat.locations import ChatRef
 from aiconsole.core.chat.root import Root
 from aiconsole.core.chat.types import AICMessage, AICMessageGroup
+from fastmutation.apply_mutation import apply_mutation
 from fastmutation.mutation_context import MutationContext
 from fastmutation.types import (
     AnyRef,

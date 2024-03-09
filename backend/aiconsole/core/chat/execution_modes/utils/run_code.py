@@ -25,10 +25,10 @@ async def run_code(
     tool_call_ref: ToolCallRef,
     materials: list[AICMaterial],
 ):
-    assert tool_call_ref.parent.parent is not None
+    assert tool_call_ref.parent_collection.parent is not None
 
     tool_call = tool_call_ref.get()
-    chat_id = tool_call_ref.parent.parent.parent.parent.parent.parent.id
+    chat_id = tool_call_ref.parent_collection.parent.parent_collection.parent.parent_collection.parent.id
 
     async with tool_call_executing(tool_call_ref):
         await tool_call_ref.output.set("")

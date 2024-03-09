@@ -37,7 +37,7 @@ class SettingsFileStorage(SettingsStorage):
         project_path: Path | None,
         disable_observer: bool = False,
     ):
-        self.observer = FileObserver()
+        self.observer: FileObserver | None = FileObserver()
         self.change_project(project_path, disable_observer)
 
     @property
