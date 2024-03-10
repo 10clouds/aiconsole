@@ -75,18 +75,19 @@ async def get_recent_project() -> list[RecentProject]:
     recent_projects_real = []
 
     for path in recent_projects:
-        chat_ids = list_possible_historic_chat_ids(path)
+        try:
+            chat_ids = list_possible_historic_chat_ids(path)
+            recent_chat_names: list[str] = []
+            for id in chat_ids[:_RECENT_PROJECTS_LAST_CHATS_COUNT]:
+                try:
+                    recent_chat_names.append((await load_chat_history(id, path)).name)
+                except Exception:
+                    _log.exception(f"Error loading chat {id}")
 
-        recent_chat_names: list[str] = []
-        for id in chat_ids[:_RECENT_PROJECTS_LAST_CHATS_COUNT]:
-            try:
-                recent_chat_names.append((await load_chat_history(id, path)).name)
-            except Exception:
-                _log.exception(f"Error loading chat {id}")
-
-        if path.exists():
-            incorrect_path = False
-        else:
+            incorrect_path = not path.exists()
+        except PermissionError:
+            _log.exception(f"PermissionError accessing {path}")
+            recent_chat_names = []
             incorrect_path = True
 
         recent_projects_real.append(

@@ -52,8 +52,8 @@ class SubscribeToClientMessage(BaseClientMessage):
     ref: AnyRef
 
 
-class DuplicateChatClientMessage(BaseClientMessage):
-    chat_id: str
+class DuplicateAssetClientMessage(BaseClientMessage):
+    asset_id: str
     request_id: str
 
 

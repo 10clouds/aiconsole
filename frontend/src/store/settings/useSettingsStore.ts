@@ -38,7 +38,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     code_autorun: false,
     openai_api_key: '',
     user_profile: {
-      user_id: '',
+      id: '',
       display_name: '',
       profile_picture: '',
     },

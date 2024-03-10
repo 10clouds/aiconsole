@@ -1,11 +1,14 @@
 import base64
 import hashlib
-from functools import lru_cache
 import logging
+from functools import lru_cache
 from mimetypes import guess_type
 from pathlib import Path
 from uuid import uuid4
+from aiconsole.core.assets.types import AssetType
 
+from aiconsole.core.assets.users.users import AICUserProfile
+from aiconsole.core.project import project
 from aiconsole.core.settings.settings import settings
 from aiconsole.core.users.types import PartialUserProfile, UserProfile
 from aiconsole.utils.resource_to_path import resource_to_path
@@ -15,6 +18,7 @@ _log = logging.getLogger(__name__)
 
 
 DEFAULT_AVATARS_PATH = "aiconsole.preinstalled.avatars"
+DEFAULT_USERNAME = "User"
 
 
 class MissingFileName(Exception):
@@ -29,20 +33,30 @@ class UserProfileService:
             settings().save(
                 PartialSettingsData(
                     user_profile=PartialUserProfile(
-                        user_id=user_id, display_name="User", profile_picture=self.get_default_avatar(user_id)
+                        id=user_id, display_name=DEFAULT_USERNAME, profile_picture=self.get_default_avatar(user_id)
                     )
                 ),
                 to_global=True,
             )
 
-    # TODO: change to use user_id
     def get_profile(self, user_id: str | None = None) -> UserProfile:
-        if not user_id:
-            user_profile = settings().unified_settings.user_profile
-            if user_profile is not None:
-                return user_profile
+        user_profile = settings().unified_settings.user_profile
+        if user_profile and user_profile.id == user_id:
+            return user_profile
 
-        raise NotImplementedError
+        aic_user_profile: AICUserProfile | None = project.get_project_assets().get_asset(id=user_id, type=AssetType.USER)  # type: ignore
+        if aic_user_profile:
+            return UserProfile(
+                id=aic_user_profile.id,
+                display_name=aic_user_profile.display_name,
+                profile_picture=aic_user_profile.profile_picture,
+            )
+
+        return UserProfile(
+            id="",
+            display_name=DEFAULT_USERNAME,
+            profile_picture=self.get_default_avatar(DEFAULT_USERNAME),
+        )
 
     def _encode_data_uri(self, binary_data: bytes, content_type: str | None = None) -> str:
         """

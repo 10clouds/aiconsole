@@ -16,13 +16,13 @@ export const LockReleasedMutationSchema = z.object({
 
 export type LockReleasedMutation = z.infer<typeof LockReleasedMutationSchema>;
 
-export const DuplicateChatClientMessageSchema = z.object({
-  type: z.literal('DuplicateChatClientMessage'),
-  chat_id: z.string(),
+export const DuplicateAssetClientMessageSchema = z.object({
+  type: z.literal('DuplicateAssetClientMessage'),
+  asset_id: z.string(),
   request_id: z.string(),
 });
 
-export type DuplicateChatClientMessage = z.infer<typeof DuplicateChatClientMessageSchema>;
+export type DuplicateAssetClientMessage = z.infer<typeof DuplicateAssetClientMessageSchema>;
 
 export const CreateMessageGroupMutationSchema = z.object({
   type: z.literal('CreateMessageGroupMutation'),

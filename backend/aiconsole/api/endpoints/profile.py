@@ -13,8 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
-
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
 from aiconsole.core.users.types import UserProfile
@@ -29,10 +27,10 @@ router = APIRouter()
 
 @router.get("/profile", response_model=UserProfile)
 def profile(
-    email: Optional[str] = None,
+    user_id: str,
     user_profile_service: UserProfileService = Depends(dependency=user_profile_service),
 ) -> UserProfile:
-    return user_profile_service.get_profile()
+    return user_profile_service.get_profile(user_id)
 
 
 @router.post("/profile_image", status_code=status.HTTP_201_CREATED)

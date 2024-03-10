@@ -38,7 +38,7 @@ async def test_should_be_able_to_add_new_project(
 
 
 async def _initialize_app():
-    settings().configure(storage=SettingsFileStorage(None))
+    settings().configure(SettingsFileStorage, project_path=None)
 
 
 async def _login(openai_api_key: str):

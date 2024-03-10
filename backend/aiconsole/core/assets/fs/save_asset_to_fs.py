@@ -13,17 +13,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import shutil
 
-import tomlkit
+import rtoml
 
 from aiconsole.core.assets.agents.agent import AICAgent
 from aiconsole.core.assets.fs.exceptions import UserIsAnInvalidAgentIdError
 from aiconsole.core.assets.fs.load_asset_from_fs import load_asset_from_fs
 from aiconsole.core.assets.materials.material import AICMaterial, MaterialContentType
 from aiconsole.core.assets.types import Asset
-from aiconsole.core.assets.users.users import User
+from aiconsole.core.assets.users.users import AICUserProfile
 from aiconsole.core.project.paths import (
     get_core_assets_directory,
     get_project_assets_directory,
@@ -41,6 +40,7 @@ async def save_asset_to_fs(asset: Asset, old_asset_id: str) -> Asset:
         raise ValueError("Cannot save asset with id 'new'")
 
     path = get_project_assets_directory(asset.type)
+    path.mkdir(parents=True, exist_ok=True)
 
     try:
         current_version = (await load_asset_from_fs(asset.type, asset.id)).version
@@ -56,64 +56,42 @@ async def save_asset_to_fs(asset: Asset, old_asset_id: str) -> Asset:
     # Join version number
     asset.version = ".".join(current_version_parts)
 
-    # Save to .toml file
-    with (path / f"{asset.id}.toml").open("w", encoding="utf8", errors="replace") as file:
-        # FIXME: preserve formatting and comments in the file using tomlkit
+    toml_data = {
+        "name": asset.name,
+        "version": asset.version,
+        "usage": asset.usage,
+        "usage_examples": asset.usage_examples,
+        "enabled_by_default": asset.enabled_by_default,
+    }
 
-        def make_sure_starts_and_ends_with_newline(s: str):
-            if not s.startswith("\n"):
-                s = "\n" + s
+    if isinstance(asset, AICMaterial):
+        material: AICMaterial = asset
+        toml_data["content_type"] = asset.content_type.value
+        content_key = {
+            MaterialContentType.STATIC_TEXT: "content_static_text",
+            MaterialContentType.DYNAMIC_TEXT: "content_dynamic_text",
+            MaterialContentType.API: "content_api",
+        }[asset.content_type]
+        toml_data[content_key] = make_sure_starts_and_ends_with_newline(material.content)
 
-            if not s.endswith("\n"):
-                s = s + "\n"
-
-            return s
-
-        doc = tomlkit.document()
-        doc.append("name", tomlkit.string(asset.name))
-        doc.append("version", tomlkit.string(asset.version))
-        doc.append("usage", tomlkit.string(asset.usage))
-        doc.append("usage_examples", tomlkit.item(asset.usage_examples))
-        doc.append("enabled_by_default", tomlkit.item(asset.enabled_by_default))
-
-        if isinstance(asset, AICMaterial):
-            material: AICMaterial = asset
-
-            doc.append("content_type", tomlkit.string(asset.content_type))
-
+    if isinstance(asset, AICAgent):
+        toml_data.update(
             {
-                MaterialContentType.STATIC_TEXT: lambda: doc.append(
-                    "content_static_text",
-                    tomlkit.string(
-                        make_sure_starts_and_ends_with_newline(material.content),
-                        multiline=True,
-                    ),
-                ),
-                MaterialContentType.DYNAMIC_TEXT: lambda: doc.append(
-                    "content_dynamic_text",
-                    tomlkit.string(
-                        make_sure_starts_and_ends_with_newline(material.content),
-                        multiline=True,
-                    ),
-                ),
-                MaterialContentType.API: lambda: doc.append(
-                    "content_api",
-                    tomlkit.string(
-                        make_sure_starts_and_ends_with_newline(material.content),
-                        multiline=True,
-                    ),
-                ),
-            }[asset.content_type]()
+                "system": asset.system,
+                "gpt_mode": str(asset.gpt_mode),
+                "execution_mode": asset.execution_mode,
+            }
+        )
 
-        if isinstance(asset, AICAgent):
-            doc.append("system", tomlkit.string(asset.system))
-            doc.append("gpt_mode", tomlkit.string(asset.gpt_mode))
-            doc.append("execution_mode", tomlkit.string(asset.execution_mode))
+    if isinstance(asset, AICUserProfile):
+        toml_data.update(
+            {
+                "display_name": asset.display_name,
+                "profile_picture": asset.profile_picture,
+            }
+        )
 
-        if isinstance(asset, User):
-            doc.append("profile_picture", tomlkit.string(asset.profile_picture.decode()))
-
-        file.write(doc.as_string())
+    rtoml.dump(toml_data, path / f"{asset.id}.toml")
 
     extensions = [".jpeg", ".jpg", ".png", ".gif", ".SVG"]
     for extension in extensions:
@@ -123,3 +101,13 @@ async def save_asset_to_fs(asset: Asset, old_asset_id: str) -> Asset:
             shutil.copy(old_file_path, new_file_path)
 
     return asset
+
+
+def make_sure_starts_and_ends_with_newline(s: str):
+    if not s.startswith("\n"):
+        s = "\n" + s
+
+    if not s.endswith("\n"):
+        s = s + "\n"
+
+    return s

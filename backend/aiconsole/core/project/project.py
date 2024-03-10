@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 import os
 import sys
 from pathlib import Path
@@ -31,6 +32,8 @@ from aiconsole.api.websockets.server_messages import (
     ProjectLoadingServerMessage,
     ProjectOpenedServerMessage,
 )
+from aiconsole.core.assets.types import AssetLocation
+from aiconsole.core.assets.users.users import AICUserProfile
 from aiconsole.core.code_running.run_code import reset_code_interpreters
 from aiconsole.core.code_running.virtual_env.create_dedicated_venv import (
     create_dedicated_venv,
@@ -85,7 +88,7 @@ async def close_project():
 
     await connection_manager().send_to_all(ProjectClosedServerMessage())
 
-    settings().configure(SettingsFileStorage(project_path=None))
+    settings().configure(SettingsFileStorage, project_path=None)
 
 
 async def reinitialize_project():
@@ -112,13 +115,32 @@ async def reinitialize_project():
 
     _assets = assets.Assets()
 
-    settings().configure(SettingsFileStorage(project_path=get_project_directory_safe()))
+    await _assets.reload(initial=True)
+
+    settings().configure(SettingsFileStorage, project_path=get_project_directory_safe())
+
+    # Save user info to users
+    user_profile = settings().unified_settings.user_profile
+    if user_profile:
+        await _assets.save_asset(
+            AICUserProfile(
+                id=user_profile.id,
+                name=user_profile.display_name or f"User-{user_profile.id}",
+                display_name=user_profile.display_name,
+                profile_picture=user_profile.profile_picture,
+                usage="",
+                usage_examples=[],
+                defined_in=AssetLocation.PROJECT_DIR,
+                override=False,
+                last_modified=datetime.now(),
+            ),
+            old_asset_id=user_profile.id or "",
+            create=True,
+        )
 
     await connection_manager().send_to_all(
         ProjectOpenedServerMessage(path=str(get_project_directory()), name=get_project_name())
     )
-
-    await _assets.reload(initial=True)
 
 
 async def choose_project(path: Path, background_tasks: BackgroundTasks):

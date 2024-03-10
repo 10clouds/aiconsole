@@ -16,6 +16,7 @@
 
 import { z } from 'zod';
 
+
 export type AssetDefinedIn = 'aiconsole' | 'project';
 export const assetDefinedInOptions: AssetDefinedIn[] = ['aiconsole', 'project'];
 export type MaterialContentType = 'static_text' | 'dynamic_text' | 'api';
@@ -27,6 +28,8 @@ export type Material = Asset & {
   content: string;
 };
 
+export type AICUserProfile = UserProfile & Asset;
+
 export type RenderedMaterial = {
   id: string;
   content: string;
@@ -36,7 +39,7 @@ export type RenderedMaterial = {
 export const MaterialDefinitionSourceSchema = z.enum(['aiconsole', 'project']);
 export type MaterialDefinitionSource = z.infer<typeof MaterialDefinitionSourceSchema>;
 
-export const AssetTypeSchema = z.enum(['material', 'agent', 'chat']);
+export const AssetTypeSchema = z.enum(['material', 'agent', 'chat', 'user']);
 
 export type AssetType = z.infer<typeof AssetTypeSchema>;
 
@@ -52,7 +55,7 @@ export const LanguageStrSchema = z.enum(['python', 'actionscript', 'react_ui']);
 
 export type LanguageStr = z.infer<typeof LanguageStrSchema>;
 
-export const AssetTypePluralSchema = z.enum(['materials', 'agents', 'chats']);
+export const AssetTypePluralSchema = z.enum(['materials', 'agents', 'chats', 'users']);
 
 export type AssetTypePlural = z.infer<typeof AssetTypePluralSchema>;
 
@@ -79,3 +82,11 @@ export const AgentSchema = AssetSchema.extend({
 });
 
 export type Agent = z.infer<typeof AgentSchema>;
+
+export const UserProfileSchema = z.object({
+  id: z.string().optional(),
+  display_name: z.string(),
+  profile_picture: z.string(), // Base64-encoded string
+});
+
+export type UserProfile = z.infer<typeof UserProfileSchema>;

@@ -13,11 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from pydantic import Base64Bytes
-
 from aiconsole.core.assets.types import Asset, AssetType
+from aiconsole.core.users.types import UserProfile
 
 
-class User(Asset):
+class AICUserProfile(UserProfile, Asset):
     type: AssetType = AssetType.USER
-    profile_picture: Base64Bytes

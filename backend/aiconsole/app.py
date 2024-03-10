@@ -40,7 +40,7 @@ logger = getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    settings().configure(SettingsFileStorage(project_path=get_project_directory_safe()))
+    settings().configure(SettingsFileStorage, project_path=None)
     yield
 
 

@@ -49,7 +49,6 @@ const InlineAssetName = ({ asset: asset, isEditing, setIsEditing, className, onR
       setInputText(asset.name); // Reset the input text to the current object name
       setIsEditing(false); // Exit editing mode
     } else if (event.key === 'Enter') {
-      console.log('Enter');
       handleRename(); // Commit the change
     }
   };

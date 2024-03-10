@@ -1,5 +1,4 @@
 import logging
-from functools import lru_cache
 from pathlib import Path
 from typing import Callable
 
@@ -23,6 +22,7 @@ class FileObserver:
 
         # Reinitialize the observer
         self._observer = Observer()
+        self._observer.daemon = False
 
         # Setup and start new observer
         for file_path in file_paths:
@@ -54,19 +54,20 @@ class FileObserver:
                 _log.error(f"[{self.__class__.__name__}] Error starting observer: {e}")
 
     def stop(self):
-        if self._observer and self._observer.is_alive():
-            try:
-                self._observer.stop()
-                self._observer.join()
-            except Exception as e:
-                _log.error(f"[{self.__class__.__name__}] Error stopping observer: {e}")
-            finally:
-                self.observing.clear()
-                _log.info(f"[{self.__class__.__name__}] Observer stopped.")
+        if self._observer:
+            if self._observer.is_alive():
+                try:
+                    self._observer.stop()
+                    self._observer.join(timeout=5)
+                except Exception as e:
+                    _log.error(f"[{self.__class__.__name__}] Error stopping observer: {e}")
+                else:
+                    _log.info(f"[{self.__class__.__name__}] Observer stopped.")
+            else:
+                _log.info(f"[{self.__class__.__name__}] Observer was not running.")
+
+            # Clear the observer reference
+            self._observer = None
+            self.observing.clear()
         else:
-            _log.info(f"[{self.__class__.__name__}] Observer was not running or not initialized.")
-
-
-@lru_cache
-def file_observer() -> FileObserver:
-    return FileObserver()
+            _log.info(f"[{self.__class__.__name__}] Observer was not initialized.")

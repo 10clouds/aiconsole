@@ -10,7 +10,7 @@ packages = [{ include = "aiconsole" }, { include = "aiconsole_toolkit" }]
 [tool.poetry.dependencies]
 python = "^3.10"
 tiktoken = "^0.5.1"
-watchdog = "^3.0.0"
+watchdog = "^4.0.0"
 litellm = "1.26.13"
 fastapi = "^0.103.2"
 uvicorn = "^0.25.0"

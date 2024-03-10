@@ -5,12 +5,19 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name":"CLI test",
-      "type":"debugpy",
-      "request":"launch",
-      "program":"${workspaceFolder}/backend/aiconsole_toolkit/cli.py",
-      "console":"integratedTerminal",
-      "justMyCode":true
+      "name": "Pytest",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["${workspaceFolder}/backend/aiconsole/tests"]
+    },
+    {
+      "name": "CLI test",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/backend/aiconsole_toolkit/cli.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
     },
 
     {

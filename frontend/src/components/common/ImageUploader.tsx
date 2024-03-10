@@ -29,7 +29,7 @@ const ImageUploader = ({ currentImage, onUpload }: ImageUploaderProps) => {
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === 'string') {
-          setPreviewImage(`${currentImage}`);
+          setPreviewImage(reader.result);
         }
       };
       reader.readAsDataURL(file);

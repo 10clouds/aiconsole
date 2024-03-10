@@ -32,7 +32,7 @@ interface GlobalSettingsUserSectionProps {
 const GlobalSettingsUserSection = ({ onImageSelected, avatarBase64, control }: GlobalSettingsUserSectionProps) => {
   const [isEditMode, setIsEditMode] = useState(false);
 
-  const watchName = useWatch({ control, name: 'user_profile.username' });
+  const watchName = useWatch({ control, name: 'user_profile.display_name' });
 
   const handleNameInputBlur = () => setIsEditMode(false);
 
@@ -40,14 +40,14 @@ const GlobalSettingsUserSection = ({ onImageSelected, avatarBase64, control }: G
     <div className="flex items-stretch w-full gap-[30px] bg-secondary-gradient p-5 rounded-xl mb-5 border-gray-600 border">
       <ImageUploader
         currentImage={avatarBase64}
-        onUpload={(avatar) => onImageSelected(new File([avatar], "avatar"))}
+        onUpload={(avatar) => onImageSelected(new File([avatar], 'avatar'))}
       />
       <div className="flex flex-col justify-between">
         <div className="flex gap-2.5 flex-col">
           <span className="text-white text-[15px]">User name</span>
           {isEditMode ? (
             <Controller
-              name="user_profile.username"
+              name="user_profile.display_name"
               control={control}
               render={({ field }) => (
                 <TextInput

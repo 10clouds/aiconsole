@@ -73,8 +73,6 @@ export const EmptyChat = () => {
       return false;
     }
 
-    console.log('asset', asset);
-    console.log('chatOptions', chatOptions);
 
     if (asset.type === 'agent') {
       if (chatOptions?.agentId !== asset.id) {

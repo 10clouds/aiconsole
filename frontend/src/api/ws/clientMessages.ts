@@ -54,13 +54,13 @@ export const OpenChatClientMessageSchema = BaseClientMessageSchema.extend({
 
 export type OpenChatClientMessage = z.infer<typeof OpenChatClientMessageSchema>;
 
-export const DuplicateChatClientMessageSchema = BaseClientMessageSchema.extend({
-  type: z.literal('DuplicateChatClientMessage'),
-  chat_id: z.string(),
+export const DuplicateAssetClientMessageSchema = BaseClientMessageSchema.extend({
+  type: z.literal('DuplicateAssetClientMessage'),
+  asset_id: z.string(),
   request_id: z.string(),
 });
 
-export type DuplicateChatClientMessage = z.infer<typeof DuplicateChatClientMessageSchema>;
+export type DuplicateAssetClientMessage = z.infer<typeof DuplicateAssetClientMessageSchema>;
 
 export const StopChatClientMessageSchema = BaseClientMessageSchema.extend({
   type: z.literal('StopChatClientMessage'),
@@ -98,7 +98,7 @@ export const ClientMessageSchema = z.union([
   InitChatMutationClientMessageSchema,
   AcquireLockClientMessageSchema,
   ReleaseLockClientMessageSchema,
-  DuplicateChatClientMessageSchema,
+  DuplicateAssetClientMessageSchema,
   OpenChatClientMessageSchema,
   StopChatClientMessageSchema,
   CloseChatClientMessageSchema,

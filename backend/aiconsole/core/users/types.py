@@ -2,12 +2,12 @@ from pydantic import BaseModel
 
 
 class PartialUserProfile(BaseModel):
-    user_id: str | None = None
+    id: str | None = None
     display_name: str | None = None
     profile_picture: str | None = None
 
 
 class UserProfile(BaseModel):
-    user_id: str | None = None
+    id: str
     display_name: str | None = None
     profile_picture: str | None = None

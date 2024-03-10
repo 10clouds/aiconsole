@@ -28,14 +28,14 @@ import GlobalSettingsCodeSection from './sections/GlobalSettingsCodeSection';
 import GlobalSettingsUserSection from './sections/GlobalSettingsUserSection';
 import { GlobalSettingsFormData, GlobalSettingsFormSchema } from '@/forms/globalSettingsForm';
 import { UnsavedSettingsDialog } from '@/components/common/UnsavedSettingsDialog';
-import { SettingsData } from '@/types/settings/settingsTypes';
+import { PartialSettingsData } from '@/types/settings/settingsTypes';
 
 // TODO: implement other features from figma like api for azure, user profile and tutorial
 export const GlobalSettingsModal = () => {
   const isSettingsModalVisible = useSettingsStore((state) => state.isSettingsModalVisible);
   const setSettingsModalVisibility = useSettingsStore((state) => state.setSettingsModalVisibility);
 
-  const username = useSettingsStore((state) => state.settings.user_profile.display_name);
+  const display_name = useSettingsStore((state) => state.settings.user_profile.display_name);
   const profilePicture = useSettingsStore((state) => state.settings.user_profile.profile_picture);
   const openAiApiKey = useSettingsStore((state) => state.settings.openai_api_key);
   const codeAutorun = useSettingsStore((state) => state.settings.code_autorun);
@@ -52,7 +52,7 @@ export const GlobalSettingsModal = () => {
     if (isSettingsModalVisible) {
       reset({
         user_profile: {
-          username: username,
+          display_name: display_name,
           avatarBase64: profilePicture,
         },
         openai_api_key: openAiApiKey,
@@ -84,9 +84,9 @@ export const GlobalSettingsModal = () => {
     }
 
     // Filter out ignored fields and create the data object
-    const profileData: SettingsData = dirtyFields
+    const profileData = dirtyFields
       .filter((field) => !ignoreFields.includes(field))
-      .reduce<SettingsData>((prev, next) => {
+      .reduce<PartialSettingsData>((prev, next) => {
         return { ...prev, [next]: data[next] };
       }, {});
 

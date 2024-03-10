@@ -88,4 +88,4 @@ class SettingsFileStorage(SettingsStorage):
     def destroy(self):
         if self.observer:
             self.observer.stop()
-            self.observer = None
+            del self.observer

@@ -16,6 +16,7 @@
 import asyncio
 import logging
 from collections import defaultdict
+from copy import deepcopy
 from typing import Any, Callable, cast
 from uuid import uuid4
 
@@ -23,7 +24,7 @@ from aiconsole.api.websockets.client_messages import (
     AcceptCodeClientMessage,
     AcquireLockClientMessage,
     DoMutationClientMessage,
-    DuplicateChatClientMessage,
+    DuplicateAssetClientMessage,
     ProcessChatClientMessage,
     ReleaseLockClientMessage,
     StopChatClientMessage,
@@ -37,7 +38,7 @@ from aiconsole.api.websockets.connection_manager import (
 from aiconsole.api.websockets.render_materials import render_materials
 from aiconsole.api.websockets.server_messages import (
     ChatOpenedServerMessage,
-    DuplicateChatServerMessage,
+    DuplicateAssetServerMessage,
     NotificationServerMessage,
     ResponseServerMessage,
 )
@@ -47,9 +48,7 @@ from aiconsole.core.chat.do_process_chat import do_process_chat
 from aiconsole.core.chat.execution_modes.utils.import_and_validate_execution_mode import (
     import_and_validate_execution_mode,
 )
-from aiconsole.core.chat.load_chat_history import load_chat_history
 from aiconsole.core.chat.locations import ChatRef
-from aiconsole.core.chat.save_chat_history import save_chat_history
 from aiconsole.core.chat.types import AICChat
 from aiconsole.core.code_running.run_code import reset_code_interpreters
 from aiconsole.core.code_running.virtual_env.create_dedicated_venv import (
@@ -67,8 +66,8 @@ async def handle_incoming_message(connection: AICConnection, json: dict):
     handlers = {
         AcquireLockClientMessage.__name__: _handle_acquire_lock_ws_message,
         ReleaseLockClientMessage.__name__: _handle_release_lock_ws_message,
-        DuplicateChatClientMessage.__name__: _handle_duplicate_chat_ws_message,  # Register the new handler here.
         SubscribeToClientMessage.__name__: _handle_open_chat_ws_message,
+        DuplicateAssetClientMessage.__name__: _handle_duplicate_chat_ws_message,
         StopChatClientMessage.__name__: _handle_stop_chat_ws_message,
         UnsubscribeClientMessage.__name__: _handle_close_chat_ws_message,
         DoMutationClientMessage.__name__: _handle_do_chat_mutation_ws_message,
@@ -150,23 +149,25 @@ async def _handle_open_chat_ws_message(connection: AICConnection, json: dict):
 
 
 async def _handle_duplicate_chat_ws_message(connection: AICConnection, json: dict):
-    message = DuplicateChatClientMessage(**json)
-    # Implement the logic for duplicating a chat here.
-    # This is a placeholder implementation.
-    new_chat_id = str(uuid4())
+    message = DuplicateAssetClientMessage(**json)
+    new_asset_id = str(uuid4())
     try:
-        chat = await load_chat_history(message.chat_id)
-        chat.id = new_chat_id
-        await save_chat_history(chat)
+        asset = project.get_project_assets().get_asset(message.asset_id)
+        if not asset:
+            raise Exception("Asset not found")
+
+        duplicated_asset = deepcopy(asset)
+        duplicated_asset.id = new_asset_id
+        await project.get_project_assets().save_asset(duplicated_asset, old_asset_id=new_asset_id, create=True)
         await project.get_project_assets().reload(initial=True)
 
-        await connection.send(DuplicateChatServerMessage(chat_id=new_chat_id))
+        await connection.send(DuplicateAssetServerMessage(asset_id=new_asset_id))
     except Exception as e:
-        _log.error(f"Error during duplicating chat {message.chat_id}: {e}")
+        _log.error(f"Error during duplicating asset {message.asset_id}: {e}")
         await connection.send(
             ResponseServerMessage(
                 request_id=message.request_id,
-                payload={"error": "Error during duplicating chat", "chat_id": message.chat_id},
+                payload={"error": "Error during duplicating asset", "asset_id": message.asset_id},
                 is_error=True,
             )
         )

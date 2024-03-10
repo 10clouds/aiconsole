@@ -99,3 +99,11 @@ class ChatOpenedServerMessage(BaseServerMessage):
 
 class DuplicateChatServerMessage(BaseServerMessage):
     chat_id: str
+
+
+class ChatClosedServerMessage(BaseServerMessage):
+    chat_id: str
+
+
+class DuplicateAssetServerMessage(BaseServerMessage):
+    asset_id: str

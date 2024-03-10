@@ -111,12 +111,12 @@ export const ChatClosedServerMessageSchema = BaseServerMessageSchema.extend({
 
 export type ChatClosedServerMessage = z.infer<typeof ChatClosedServerMessageSchema>;
 
-export const DuplicateChatServerMessageSchema = BaseServerMessageSchema.extend({
-  type: z.literal('DuplicateChatServerMessage'),
-  chat_id: z.string(),
+export const DuplicateAssetServerMessageSchema = BaseServerMessageSchema.extend({
+  type: z.literal('DuplicateAssetServerMessage'),
+  asset_id: z.string(),
 });
 
-export type DuplicateChatServerMessage = z.infer<typeof DuplicateChatServerMessageSchema>;
+export type DuplicateAssetServerMessage = z.infer<typeof DuplicateAssetServerMessageSchema>;
 
 export const ResponseServerMessageSchema = BaseServerMessageSchema.extend({
   request_id: z.string(),
@@ -144,7 +144,7 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
   NotifyAboutChatMutationServerMessageSchema,
   ChatOpenedServerMessageSchema,
   ChatClosedServerMessageSchema,
-  DuplicateChatServerMessageSchema,
+  DuplicateAssetServerMessageSchema,
   ResponseServerMessageSchema,
 ]);
 
