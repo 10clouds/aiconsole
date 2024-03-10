@@ -34,12 +34,12 @@ async def _handle_DeleteMutation(root: DataContext, mutation: DeleteMutation):
 
 
 async def _handle_SetValueMutation(data: DataContext, mutation: SetValueMutation) -> None:
-    object = data.get(mutation.ref)
+    object = await data.get(mutation.ref)
     setattr(object, mutation.key, mutation.value)
 
 
 async def _handle_AppendToStringMutation(data: DataContext, mutation: AppendToStringMutation) -> None:
-    object = data.get(mutation.ref)
+    object = await data.get(mutation.ref)
     setattr(object, mutation.key, getattr(object, mutation.key, "") + mutation.value)
 
 
