@@ -56,7 +56,7 @@ class react_ui_tool(OpenAISchema):
 
 async def show_prototype_warning(chat_ref: ChatRef):
     # TODO: remove after GenUI is fully implemented
-    last_message_group = chat_ref.message_groups.get()[-1]
+    last_message_group = (await chat_ref.message_groups.get())[-1]
 
     GENUI_WARNING_MESSAGE = "**WARNING!** The GenUI execution mode is currently in an early prototype phase. "
 

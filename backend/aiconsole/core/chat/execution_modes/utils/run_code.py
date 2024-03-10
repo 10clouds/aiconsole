@@ -27,7 +27,7 @@ async def run_code(
 ):
     assert tool_call_ref.parent_collection.parent is not None
 
-    tool_call = tool_call_ref.get()
+    tool_call = await tool_call_ref.get()
     chat_id = tool_call_ref.parent_collection.parent.parent_collection.parent.parent_collection.parent.id
 
     async with tool_call_executing(tool_call_ref):
@@ -39,7 +39,7 @@ async def run_code(
         TOOL_CALL_OUTPUT_LIMIT = settings().unified_settings.tool_call_output_limit
 
         if tool_call.language is None:
-            logging.error(f"Tool call {tool_call_ref.get().id} has no language specified.")
+            logging.error(f"Tool call {(await tool_call_ref.get()).id} has no language specified.")
             return
 
         try:

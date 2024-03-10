@@ -68,7 +68,7 @@ async def _execution_mode_process(
     rendered_materials: list[RenderedMaterial],
 ):
     # Assumes an existing message group that was created for us
-    last_message_group = chat_ref.get().message_groups[-1]
+    last_message_group = (await chat_ref.get()).message_groups[-1]
 
     system_message = create_full_prompt_with_materials(
         intro=get_agent_system_message(agent),
@@ -100,11 +100,11 @@ async def _check_for_all_code_executed(
     rendered_materials: list[RenderedMaterial],
 ):
     tool_call_message_mutator = tool_call_ref.parent_collection.parent
-    tool_call_message = tool_call_message_mutator.get()
+    tool_call_message = await tool_call_message_mutator.get()
     tool_call_message_group_mutator = tool_call_message_mutator.parent_collection.parent
-    tool_call_message_group = tool_call_message_group_mutator.get()
+    tool_call_message_group = await tool_call_message_group_mutator.get()
     tool_call_chat_ref = tool_call_message_group_mutator.parent_collection.parent
-    tool_call_chat = tool_call_chat_ref.get()
+    tool_call_chat = await tool_call_chat_ref.get()
 
     # if is in last message and all tools have finished running, resume operation with the same agent
     if (

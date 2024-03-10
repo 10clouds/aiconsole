@@ -97,8 +97,8 @@ async def gpt_analysis_function_step(
     # Pick from forced or enabled agents if no agent is forced
     possible_agent_choices: list[AICAgent]
 
-    if chat_ref.chat_options.get().agent_id:
-        agent_id = chat_ref.chat_options.get().agent_id
+    if (await chat_ref.chat_options.get()).agent_id:
+        agent_id = (await chat_ref.chat_options.get()).agent_id
         agent = project.get_project_assets().get_asset(agent_id, type=AssetType.AGENT, enabled=True)
         if not agent:
             raise ValueError(f"Agent {agent_id} not found")
@@ -111,12 +111,12 @@ async def gpt_analysis_function_step(
 
     available_materials = []
     forced_materials = []
-    if chat_ref.chat_options.get().materials_ids:
+    if (await chat_ref.chat_options.get()).materials_ids:
         for material in project.get_project_assets()._assets.values():
-            if material[0].id in (chat_ref.chat_options.get().materials_ids or []):
+            if material[0].id in ((await chat_ref.chat_options.get()).materials_ids or []):
                 forced_materials.append(material[0])
 
-    if chat_ref.chat_options.get().ai_can_add_extra_materials:
+    if (await chat_ref.chat_options.get()).ai_can_add_extra_materials:
         available_materials = [
             *forced_materials,
             *[
@@ -147,7 +147,7 @@ async def gpt_analysis_function_step(
         system_message=initial_system_prompt,
         gpt_mode=gpt_mode,
         messages=[
-            *convert_messages(chat_ref.get()),
+            *convert_messages(await chat_ref.get()),
             GPTRequestTextMessage(role="system", content=last_system_prompt),
         ],
         tools=[
@@ -216,7 +216,7 @@ async def gpt_analysis_function_step(
 
         plan = plan_class(**arguments_dict)
 
-        picked_agent = pick_agent(plan, chat_ref.get(), possible_agent_choices)
+        picked_agent = pick_agent(plan, await chat_ref.get(), possible_agent_choices)
         await message_group_ref.actor_id.set(ActorId(type="agent", id=picked_agent.id))
 
         relevant_materials = _get_relevant_materials(plan.relevant_material_ids)

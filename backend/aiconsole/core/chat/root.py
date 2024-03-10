@@ -1,9 +1,10 @@
 from pydantic import BaseModel
 
 from aiconsole.core.assets.types import Asset
+from fastmutation.types import BaseObject
 
 
-class Root(BaseModel):
+class Root(BaseObject):
     assets: list[Asset]
 
 

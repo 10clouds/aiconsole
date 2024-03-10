@@ -42,19 +42,13 @@ from aiconsole.api.websockets.server_messages import (
     ResponseServerMessage,
 )
 from aiconsole.core.assets.agents.agent import AICAgent
+from aiconsole.core.assets.aic_data_context import AICFileDataContext
 from aiconsole.core.chat.do_process_chat import do_process_chat
 from aiconsole.core.chat.execution_modes.utils.import_and_validate_execution_mode import (
     import_and_validate_execution_mode,
 )
 from aiconsole.core.chat.load_chat_history import load_chat_history
 from aiconsole.core.chat.locations import ChatRef
-from aiconsole.core.chat.locking import (
-    DefaultRootMutationContext,
-    SequentialRootMutationContext,
-    acquire_lock,
-    release_lock,
-)
-from aiconsole.core.chat.root import Root
 from aiconsole.core.chat.save_chat_history import save_chat_history
 from aiconsole.core.chat.types import AICChat
 from aiconsole.core.code_running.run_code import reset_code_interpreters
@@ -77,7 +71,7 @@ async def handle_incoming_message(connection: AICConnection, json: dict):
         SubscribeToClientMessage.__name__: _handle_open_chat_ws_message,
         StopChatClientMessage.__name__: _handle_stop_chat_ws_message,
         UnsubscribeClientMessage.__name__: _handle_close_chat_ws_message,
-        DoMutationClientMessage.__name__: _handle_init_chat_mutation_ws_message,
+        DoMutationClientMessage.__name__: _handle_do_chat_mutation_ws_message,
         AcceptCodeClientMessage.__name__: _handle_accept_code_ws_message,
         ProcessChatClientMessage.__name__: _handle_process_chat_ws_message,
     }
@@ -93,10 +87,11 @@ async def _handle_acquire_lock_ws_message(connection: AICConnection, json: dict)
     message: AcquireLockClientMessage | None = None
     try:
         message = AcquireLockClientMessage(**json)
-        await acquire_lock(ref=message.ref, request_id=message.request_id)
-
-        connection.acquire_lock(ref=message.ref, request_id=message.request_id)
-
+        context = AICFileDataContext(
+            lock_id=message.request_id,
+            origin=connection,
+        )
+        await context.acquire_write_lock(ref=message.ref, originating_from_server=False)
         await connection.send(
             ResponseServerMessage(request_id=message.request_id, payload={"ref": message.ref}, is_error=False)
         )
@@ -114,21 +109,11 @@ async def _handle_acquire_lock_ws_message(connection: AICConnection, json: dict)
 
 async def _handle_release_lock_ws_message(connection: AICConnection, json: dict):
     message = ReleaseLockClientMessage(**json)
-
-    root_mutator = SequentialRootMutationContext(
-        DefaultRootMutationContext(
-            root=Root(assets=project.get_project_assets().all_assets()),
-            request_id=message.request_id,
-            connection=None,  # Source connection is None because the originating mutations come from server
-        )
+    context = AICFileDataContext(
+        lock_id=message.request_id,
+        origin=connection,
     )
-
-    async def f():
-        await release_lock(message.ref, request_id=message.request_id)
-
-        connection.release_lock(ref=message.ref, request_id=message.request_id)
-
-    await root_mutator.in_sequence(message.ref, f)
+    await context.release_write_lock(ref=message.ref, originating_from_server=False)
 
 
 async def _handle_open_chat_ws_message(connection: AICConnection, json: dict):
@@ -215,17 +200,14 @@ async def _handle_close_chat_ws_message(connection: AICConnection, json: dict):
     connection.unsubscribe_ref(message.ref)
 
 
-async def _handle_init_chat_mutation_ws_message(connection: AICConnection | None, json: dict):
+async def _handle_do_chat_mutation_ws_message(connection: AICConnection | None, json: dict):
     message = DoMutationClientMessage(**json)
-    message.mutation.ref.context = SequentialRootMutationContext(
-        DefaultRootMutationContext(
-            root=Root(assets=project.get_project_assets().all_assets()),
-            request_id=message.request_id,
-            connection=connection,
-        )
+    message.mutation.ref.context = AICFileDataContext(
+        lock_id=message.request_id,
+        origin=connection,
     )
 
-    await message.mutation.ref.context.mutate(message.mutation)
+    await message.mutation.ref.context.mutate(message.mutation, originating_from_server=False)
 
 
 async def _handle_accept_code_ws_message(connection: AICConnection, json: dict):
@@ -234,13 +216,11 @@ async def _handle_accept_code_ws_message(connection: AICConnection, json: dict):
     ]
 
     message = AcceptCodeClientMessage(**json)
-    message.tool_call_ref.context = SequentialRootMutationContext(
-        DefaultRootMutationContext(
-            root=Root(assets=project.get_project_assets().all_assets()),
-            request_id=message.request_id,
-            connection=connection,
-        )
+    context = AICFileDataContext(
+        lock_id=message.request_id,
+        origin=connection,
     )
+    message.tool_call_ref.context = context
 
     async def _notify(event):
         if isinstance(event, WaitForEnvEvent):
@@ -250,20 +230,20 @@ async def _handle_accept_code_ws_message(connection: AICConnection, json: dict):
             )
 
     # This is fishy!
-    await message.tool_call_ref.context.wait_for_all_mutations(ref=message.tool_call_ref)
+    await message.tool_call_ref.context.__wait_for_all_mutations(ref=message.tool_call_ref)
     chat_ref: ChatRef = (
         message.tool_call_ref.parent_collection.parent.parent_collection.parent.parent_collection.parent
     )
 
     async def cancelable_task_function():
-        try:
-            for event in events_to_sub:
-                internal_events().subscribe(
-                    event,
-                    _notify,
-                )
+        for event in events_to_sub:
+            internal_events().subscribe(
+                event,
+                _notify,
+            )
 
-            await acquire_lock(ref=chat_ref, request_id=message.request_id)
+        try:
+            await context.acquire_write_lock(ref=chat_ref, originating_from_server=True)
 
             message_ref = message.tool_call_ref.parent_collection.parent
             message_group_ref = message_ref.parent_collection.parent if message_ref else None
@@ -272,7 +252,7 @@ async def _handle_accept_code_ws_message(connection: AICConnection, json: dict):
                 raise Exception(f"Message group ref not found for {message.tool_call_ref}")
 
             message_group_ref = chat_ref.message_groups[message_group_ref.id]
-            agent_id = message_group_ref.actor_id.get().id
+            agent_id = (await message_group_ref.actor_id.get()).id
             message_id = message.tool_call_ref.parent_collection.parent.id
 
             agent = project.get_project_assets().get_asset(agent_id)
@@ -285,7 +265,7 @@ async def _handle_accept_code_ws_message(connection: AICConnection, json: dict):
             execution_mode = await import_and_validate_execution_mode(agent, chat_ref)
 
             mats = await render_materials(
-                chat_ref.message_groups[message_group_ref.id].materials_ids.get(), chat_ref.get(), agent
+                (await chat_ref.message_groups[message_group_ref.id].materials_ids.get()), await chat_ref.get(), agent
             )
 
             await execution_mode.accept_code(
@@ -300,7 +280,7 @@ async def _handle_accept_code_ws_message(connection: AICConnection, json: dict):
                     event,
                     _notify,
                 )
-            await release_lock(ref=chat_ref, request_id=message.request_id)
+            await context.release_write_lock(ref=chat_ref, originating_from_server=True)
 
     task = asyncio.create_task(cancelable_task_function())
     _stoppable_tasks_for_chat[chat_ref.id][task.get_name()] = task
@@ -309,28 +289,15 @@ async def _handle_accept_code_ws_message(connection: AICConnection, json: dict):
 
 async def _handle_process_chat_ws_message(connection: AICConnection, json: dict):
     message = ProcessChatClientMessage(**json)
-    context = SequentialRootMutationContext(
-        DefaultRootMutationContext(
-            root=Root(assets=project.get_project_assets().all_assets()),
-            request_id=message.request_id,
-            connection=None,  # Source connection is None because the originating mutations come from server
-        )
+    context = AICFileDataContext(
+        lock_id=message.request_id,
+        origin=connection,
     )
     message.chat_ref.context = context
 
     async def cancelable_task_function():
-        try:
-
-            async def f():
-                await acquire_lock(ref=message.chat_ref, request_id=message.request_id)
-
-            # Potential deadlock in original code - What if one connection wants to acquire a lock and another is processing and wants to do another mutation in sequence?
-            await context.in_sequence(message.chat_ref, f)
-            await context.wait_for_all_mutations(message.chat_ref)
-
+        async with context.write_lock(ref=message.chat_ref, originating_from_server=True):
             await do_process_chat(message.chat_ref)
-        finally:
-            await release_lock(ref=message.chat_ref, request_id=message.request_id)
 
     task = asyncio.create_task(cancelable_task_function())
     _stoppable_tasks_for_chat[message.chat_ref.id][task.get_name()] = task

@@ -11,7 +11,6 @@ from aiconsole.core.chat.list_possible_historic_chat_ids import (
     list_possible_historic_chat_ids,
 )
 from aiconsole.core.chat.load_chat_history import load_chat_history
-from aiconsole.core.chat.types import AICChatHeadline
 from aiconsole.core.project.paths import (
     get_core_assets_directory,
     get_project_assets_directory,
@@ -30,20 +29,7 @@ async def load_all_assets(asset_type: AssetType) -> dict[str, list[Asset]]:
                 chat = await load_chat_history(chat_id)
 
                 if chat:
-                    _assets[chat_id].append(
-                        AICChatHeadline(
-                            id=chat_id,
-                            name=chat.name,
-                            last_modified=chat.last_modified,
-                            usage=chat.usage,
-                            usage_examples=chat.usage_examples,
-                            enabled=chat.enabled,
-                            override=chat.override,
-                            defined_in=chat.defined_in,
-                            version=chat.version,
-                            type=chat.type,
-                        )
-                    )
+                    _assets[chat_id].append(chat)
 
             except Exception as e:
                 _log.exception(e)

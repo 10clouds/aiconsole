@@ -18,7 +18,8 @@ from pydantic import BaseModel
 from starlette.testclient import WebSocketTestSession
 
 from aiconsole.core.chat.locations import AssetRef, ChatRef, ToolCallRef
-from fastmutation.types import AnyRef, AssetMutation, ObjectRef
+from fastmutation.mutations import AssetMutation
+from fastmutation.types import AnyRef, ObjectRef
 
 
 class BaseClientMessage(BaseModel):

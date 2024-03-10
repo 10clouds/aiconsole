@@ -162,5 +162,5 @@ class ToolCallRef(ObjectRef):
     def code(self):
         return StringAttributeRef(object=self, name="code", context=self.context)
 
-    def get(self) -> AICToolCall:
-        return cast(AICToolCall, super().get())
+    async def get(self) -> AICToolCall:
+        return cast(AICToolCall, await super().get())

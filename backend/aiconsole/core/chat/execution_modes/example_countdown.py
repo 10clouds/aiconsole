@@ -44,7 +44,7 @@ async def _execution_mode_process(
     message_id = str(uuid4())
 
     # Assumes that a group already exists
-    msg_group_ref = chat_ref.message_groups[chat_ref.message_groups.get_item_id_by_index(index=-1)]
+    msg_group_ref = chat_ref.message_groups[await chat_ref.message_groups.get_item_id_by_index(index=-1)]
     await msg_group_ref.messages.create(
         AICMessage(
             id=message_id,
@@ -90,13 +90,13 @@ async def _execution_mode_process(
 
     try:
         try:
-            async for token in run_in_code_interpreter("python", chat_ref.get().id, code, []):
+            async for token in run_in_code_interpreter("python", (await chat_ref.get()).id, code, []):
                 await tool_call_mutator.output.append(token)
             await tool_call_mutator.is_successful.set(True)
         except CodeExecutionError:
             pass
         except asyncio.CancelledError:
-            (await get_code_interpreter("python", chat_ref.get().id)).terminate()
+            (await get_code_interpreter("python", (await chat_ref.get()).id)).terminate()
             raise
     except Exception as e:
         await connection_manager().send_to_ref(ErrorServerMessage(error=str(e)), chat_ref)

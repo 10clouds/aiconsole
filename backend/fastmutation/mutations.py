@@ -3,11 +3,11 @@ from typing import TYPE_CHECKING, Any, Literal
 from pydantic import BaseModel
 
 if TYPE_CHECKING:
-    from fastmutation.types import CollectionRef, ObjectRef
+    from fastmutation.types import ObjectRef
 
 
 class BaseMutation(BaseModel):
-    pass
+    ref: "ObjectRef"
 
 
 class LockAcquiredMutation(BaseMutation):
@@ -22,25 +22,22 @@ class LockReleasedMutation(BaseMutation):
 
 class CreateMutation(BaseMutation):
     type: Literal["CreateMutation"] = "CreateMutation"
-    collection: "CollectionRef"
+    object_type: str
     object: dict
 
 
 class DeleteMutation(BaseMutation):
     type: Literal["DeleteMutation"] = "DeleteMutation"
-    path: "ObjectRef"
 
 
 class SetValueMutation(BaseMutation):
     type: Literal["SetValueMutation"] = "SetValueMutation"
-    path: "ObjectRef"
     key: str
     value: Any = None
 
 
 class AppendToStringMutation(BaseMutation):
     type: Literal["AppendToStringMutation"] = "AppendToStringMutation"
-    path: "ObjectRef"
     key: str
     value: str
 

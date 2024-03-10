@@ -61,7 +61,7 @@ class AICConnection:
     def unsubscribe_ref(self, ref: AnyRef):
         self._open_refs.remove(ref)
 
-    def acquire_lock(self, ref: AnyRef, request_id: str):
+    def lock_acquired(self, ref: AnyRef, request_id: str):
         if self.is_lock_acquired(ref):
             raise ValueError(f"{ref} is already locked")
 
@@ -69,7 +69,7 @@ class AICConnection:
 
         _log.info(f"Acquired lock {request_id} {ref}")
 
-    def release_lock(self, ref: AnyRef, request_id: str):
+    def lock_released(self, ref: AnyRef, request_id: str):
         lock_data = AcquiredLock(ref=ref, request_id=request_id)
 
         if lock_data in self._acquired_locks:

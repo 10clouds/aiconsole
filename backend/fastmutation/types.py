@@ -1,8 +1,14 @@
-from typing import Any, Generic, Literal, TypeVar, cast
+from typing import Any, Generic, TypeVar, cast
 
 from pydantic import BaseModel
 
-from fastmutation.mutation_context import MutationContext
+from fastmutation.data_context import DataContext
+from fastmutation.mutations import (
+    AppendToStringMutation,
+    CreateMutation,
+    DeleteMutation,
+    SetValueMutation,
+)
 
 T = TypeVar("T")
 
@@ -15,58 +21,10 @@ class BaseObject(BaseModel):
 TBaseObject = TypeVar("TBaseObject", bound=BaseObject)
 
 
-class BaseMutation(BaseModel):
-    ref: "ObjectRef"
-
-
-class LockAcquiredMutation(BaseMutation):
-    type: Literal["LockAcquiredMutation"] = "LockAcquiredMutation"
-    lock_id: str
-
-
-class LockReleasedMutation(BaseMutation):
-    type: Literal["LockReleasedMutation"] = "LockReleasedMutation"
-    lock_id: str
-
-
-class CreateMutation(BaseMutation):
-    type: Literal["CreateMutation"] = "CreateMutation"
-    object_type: str
-    object: dict
-
-
-class DeleteMutation(BaseMutation):
-    type: Literal["DeleteMutation"] = "DeleteMutation"
-
-
-class SetValueMutation(BaseMutation):
-    type: Literal["SetValueMutation"] = "SetValueMutation"
-    key: str
-    value: Any = None
-
-
-class AppendToStringMutation(BaseMutation):
-    type: Literal["AppendToStringMutation"] = "AppendToStringMutation"
-    key: str
-    value: str
-
-
-AssetMutation = (
-    LockAcquiredMutation
-    | LockReleasedMutation
-    | CreateMutation
-    | DeleteMutation
-    | SetValueMutation
-    | AppendToStringMutation
-)
-
-
 class ObjectRef(BaseModel, Generic[TBaseObject]):
     id: str
     parent_collection: "CollectionRef"
-    context: (
-        "MutationContext | None"  # Context must be set externally after deserialisation in order to use the object
-    )
+    context: "DataContext | None"  # Context must be set externally after deserialisation in order to use the object
 
     class Config:
         fields = {"context": {"exclude": True}}  # Context is not serialised or sent anywhere
@@ -79,39 +37,49 @@ class ObjectRef(BaseModel, Generic[TBaseObject]):
             return NotImplemented
         return self.id == other.id and self.parent_collection == other.parent_collection
 
+    @property
+    def ref_segments(self):
+        ref = self
+        segments = []
+        while ref is not None:
+            segments.append(ref.id)
+            segments.append(ref.parent_collection.id)
+            ref = ref.parent_collection.parent
+        return list(reversed(segments))
+
     def collection(self, id: str) -> "CollectionRef":
         assert self.context is not None
         return CollectionRef(id=id, parent=self, context=self.context)
 
-    def set(self, key: str, value: Any):
+    async def set(self, key: str, value: Any):
         assert self.context is not None
-        return self.context.mutate(SetValueMutation(ref=self, key=key, value=value))
+        return await self.context.mutate(
+            SetValueMutation(ref=self, key=key, value=value), originating_from_server=True
+        )
 
-    def delete(
+    async def delete(
         self,
     ):
         assert self.context is not None
-        return self.context.mutate(DeleteMutation(ref=self))
+        return await self.context.mutate(DeleteMutation(ref=self), originating_from_server=True)
 
-    def get(
+    async def get(
         self,
     ) -> TBaseObject:
         assert self.context is not None
-        return cast(TBaseObject, self.context.get(self))
+        return cast(TBaseObject, await self.context.get(self))
 
-    def exists(
+    async def exists(
         self,
     ) -> bool:
         assert self.context is not None
-        return self.context.exists(self)
+        return await self.context.exists(self)
 
 
 class CollectionRef(BaseModel, Generic[TBaseObject]):
     id: str
     parent: "ObjectRef | None"
-    context: (
-        "MutationContext | None"  # Context must be set externally after deserialisation in order to use the object
-    )
+    context: "DataContext | None"  # Context must be set externally after deserialisation in order to use the object
 
     class Config:
         fields = {"context": {"exclude": True}}  # Context is not serialised or sent anywhere
@@ -124,29 +92,43 @@ class CollectionRef(BaseModel, Generic[TBaseObject]):
             return NotImplemented
         return self.id == other.id and self.parent == other.parent
 
+    @property
+    def ref_segments(self):
+        ref = self
+        segments = []
+        while ref is not None:
+            segments.append(ref.id)
+            if ref.parent is not None:
+                segments.append(ref.parent.id)
+                ref = ref.parent.parent_collection
+            else:
+                ref = None
+        return list(reversed(segments))
+
     def __getitem__(self, id: str) -> ObjectRef:
         return ObjectRef(parent_collection=self, id=id, context=self.context)
 
-    def create(self, object: TBaseObject):
+    async def create(self, object: TBaseObject):
         assert self.context is not None
-        return self.context.mutate(
+        return await self.context.mutate(
             CreateMutation(
                 ref=ObjectRef(parent_collection=self, id=object.id, context=self.context),
                 object_type=object.__class__.__name__,
                 object=object.model_dump(mode="json", exclude_unset=True, exclude=set(["id"])),
-            )
+            ),
+            originating_from_server=True,
         )
 
-    def get_item_id_by_index(self, index: int) -> str:
-        objects_list = self.get()
+    async def get_item_id_by_index(self, index: int) -> str:
+        objects_list = await self.get()
         if index < 0 or index >= len(objects_list):
             raise IndexError("Index out of range.")
         obj_id = objects_list[index].id
         return obj_id
 
-    def get(self) -> list[TBaseObject]:
+    async def get(self) -> list[TBaseObject]:
         assert self.context is not None
-        return cast(list[TBaseObject], self.context.get(self))
+        return cast(list[TBaseObject], await self.context.get(self))
 
 
 AnyRef = ObjectRef | CollectionRef
@@ -155,28 +137,27 @@ AnyRef = ObjectRef | CollectionRef
 class AttributeRef(BaseModel, Generic[T]):
     name: str
     object: ObjectRef
-    context: (
-        "MutationContext | None"  # Context must be set externally after deserialisation in order to use the object
-    )
+    context: "DataContext | None"  # Context must be set externally after deserialisation in order to use the object
 
     class Config:
         fields = {"context": {"exclude": True}}  # Context is not serialised or sent anywhere
 
-    def set(self, value: T):
+    async def set(self, value: T):
         assert self.context is not None
-        return self.context.mutate(
+        return await self.context.mutate(
             SetValueMutation(
                 ref=self.object,
                 key=self.name,
                 value=value,
-            )
+            ),
+            originating_from_server=True,
         )
 
-    def get(
+    async def get(
         self,
     ) -> T:
         assert self.context is not None
-        return getattr(self.context.get(self.object), self.name)
+        return getattr(await self.context.get(self.object), self.name)
 
 
 class StringAttributeRef(AttributeRef[T]):
@@ -190,8 +171,9 @@ class StringAttributeRef(AttributeRef[T]):
                 ref=self.object,
                 key=self.name,
                 value=value,
-            )
+            ),
+            originating_from_server=True,
         )
 
-    def get(self) -> T:
-        return super().get()
+    async def get(self) -> T:
+        return await super().get()

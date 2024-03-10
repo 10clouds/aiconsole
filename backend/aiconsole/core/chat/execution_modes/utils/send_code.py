@@ -61,22 +61,22 @@ async def send_code(
                 await tool_call_mutator.language.set(lang)
 
         async def send_headline_delta_for_headline(headline: str):
-            if not headline.startswith(tool_call_mutator.headline.get()):
+            if not headline.startswith(await tool_call_mutator.headline.get()):
                 _log.warning(f"Reseting headline to: {headline}")
                 await tool_call_mutator.headline.set(headline)
             else:
-                start_index = len(tool_call_mutator.headline.get())
+                start_index = len(await tool_call_mutator.headline.get())
                 headline_delta = headline[start_index:]
 
                 if headline_delta:
                     await tool_call_mutator.headline.append(headline_delta)
 
         async def send_code_delta_for_code(code: str):
-            if not code.startswith(tool_call_mutator.code.get()):
+            if not code.startswith(await tool_call_mutator.code.get()):
                 _log.warning(f"Reseting code, code={repr(code)} original={repr(tool_call_mutator.code.get())}")
                 await tool_call_mutator.code.set(code)
             else:
-                start_index = len(tool_call_mutator.code.get())
+                start_index = len(await tool_call_mutator.code.get())
                 code_delta = code[start_index:]
 
                 if code_delta:

@@ -33,10 +33,10 @@ async def do_process_chat(chat_ref: ChatRef):
     agent: AICAgent | None = None
     visible_agent_id = None
 
-    if chat_ref.chat_options.get().agent_id:
+    if (await chat_ref.chat_options.get()).agent_id:
         # The user selected an agent for the chat
         for _agent in agents_to_choose_from():
-            if _agent.id == chat_ref.chat_options.get().agent_id:
+            if _agent.id == (await chat_ref.chat_options.get()).agent_id:
                 agent = _agent
 
         if not agent:
@@ -47,7 +47,7 @@ async def do_process_chat(chat_ref: ChatRef):
             )
             return
 
-    if not agent or chat_ref.chat_options.get().ai_can_add_extra_materials:
+    if not agent or (await chat_ref.chat_options.get()).ai_can_add_extra_materials:
         # We need to run the director agent
 
         director_agent = cast(
@@ -92,11 +92,11 @@ async def do_process_chat(chat_ref: ChatRef):
         )
         return
 
-    materials_ids = chat_ref.chat_options.get().materials_ids or []
+    materials_ids = (await chat_ref.chat_options.get()).materials_ids or []
 
     if materials_ids:
         try:
-            materials_and_rmats = await render_materials(materials_ids, chat_ref.get(), agent, init=True)
+            materials_and_rmats = await render_materials(materials_ids, await chat_ref.get(), agent, init=True)
         except ValueError:
             _log.debug(f"Failed to render materials {materials_ids} for chat {chat_ref.id}")
             return

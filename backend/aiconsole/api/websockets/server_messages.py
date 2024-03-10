@@ -17,7 +17,7 @@ import os
 
 from aiconsole.api.websockets.base_server_message import BaseServerMessage
 from aiconsole.core.chat.types import AICChat
-from fastmutation.types import AssetMutation
+from fastmutation.mutations import AssetMutation
 
 
 class NotificationServerMessage(BaseServerMessage):

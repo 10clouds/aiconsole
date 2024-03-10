@@ -16,7 +16,6 @@ from aiconsole.core.chat.locations import AssetRef
 from aiconsole.core.chat.types import AICChat
 from aiconsole.core.project import project
 from aiconsole.utils.events import InternalEvent, internal_events
-from fastmutation.mutation_context import EmptyMutationContext
 
 
 @dataclass
@@ -36,7 +35,7 @@ async def render_materials(
         if isinstance(event, MaterialRenderErrorEvent):
             await connection_manager().send_to_ref(
                 ErrorServerMessage(error=f"Incorrect material. {kwargs.get('details')}"),
-                AssetRef(id=chat.id, context=EmptyMutationContext()),
+                AssetRef(id=chat.id, context=None),
             )
 
     try:

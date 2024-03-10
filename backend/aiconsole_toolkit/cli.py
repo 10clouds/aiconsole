@@ -10,7 +10,6 @@ from aiconsole.api.websockets.client_messages import (
 )
 from aiconsole.app import app
 from aiconsole.core.chat.locations import ChatRef
-from fastmutation.mutation_context import EmptyMutationContext
 
 #
 # This is a playground for building a CLI for the backend.
@@ -45,12 +44,12 @@ async def main():
             print(chat_info["name"])
             request_id = "test"
 
-            await SubscribeToClientMessage(
-                request_id=request_id, ref=ChatRef(id=chat_info["id"], context=EmptyMutationContext())
-            ).send(websocket)
+            await SubscribeToClientMessage(request_id=request_id, ref=ChatRef(id=chat_info["id"], context=None)).send(
+                websocket
+            )
 
             await ProcessChatClientMessage(
-                chat_ref=ChatRef(id=chat_info["id"], context=EmptyMutationContext()), request_id=request_id
+                chat_ref=ChatRef(id=chat_info["id"], context=None), request_id=request_id
             ).send(websocket)
 
             while True:

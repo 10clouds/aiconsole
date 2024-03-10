@@ -33,22 +33,16 @@ from aiconsole.core.chat.locations import ChatRef
 from aiconsole.core.chat.root import Root
 from aiconsole.core.chat.types import AICMessage, AICMessageGroup
 from fastmutation.apply_mutation import apply_mutation
-from fastmutation.mutation_context import MutationContext
-from fastmutation.types import (
-    AnyRef,
-    AssetMutation,
-    BaseObject,
-    CollectionRef,
-    LockReleasedMutation,
-    ObjectRef,
-)
+from fastmutation.data_context import DataContext
+from fastmutation.mutations import AssetMutation, LockReleasedMutation
+from fastmutation.types import AnyRef, BaseObject, CollectionRef, ObjectRef
 
 TServerMessage = TypeVar("TServerMessage", bound=BaseServerMessage)
 
 TMutation = TypeVar("TMutation", bound=AssetMutation)
 
 
-class ClientSideMutationContext(MutationContext):
+class ClientSideDataContext(DataContext):
 
     def __init__(self, root: Root, websocket: WebSocketTestSession, request_id: str):
         self._root = root
@@ -57,7 +51,7 @@ class ClientSideMutationContext(MutationContext):
 
     async def mutate(self, mutation: AssetMutation) -> None:
         # apply mutation to chat
-        apply_mutation(self._root, mutation)
+        apply_mutation(self, mutation)
 
         await DoMutationClientMessage(
             request_id=self._request_id,
@@ -69,6 +63,19 @@ class ClientSideMutationContext(MutationContext):
 
     def exists(self, ref: AnyRef) -> bool:
         raise NotImplementedError("This method is not implemented")
+
+    async def acquire_write_lock(self, ref: "AnyRef", lock_id: str) -> None:
+        # Implement logic to acquire a write lock
+        pass
+
+    async def release_write_lock(self, ref: "AnyRef", lock_id: str) -> None:
+        # Implement logic to release a write lock
+        pass
+
+    @property
+    def type_to_cls_mapping(self) -> dict[str, Type["BaseObject"]]:
+        # Return the type to class mapping
+        return {}
 
 
 class ChatTestFramework:
@@ -84,7 +91,7 @@ class ChatTestFramework:
 
         self._websocket: WebSocketTestSession | None = None
         self._project_path: Path | None = None
-        self._context: ClientSideMutationContext | None = None
+        self._context: ClientSideDataContext | None = None
 
     def repeat(self, times: int) -> pytest.MarkDecorator:
         return pytest.mark.repeat(times)
@@ -103,12 +110,13 @@ class ChatTestFramework:
                 chat = self._wait_for_websocket_response(websocket, ChatOpenedServerMessage).chat
 
                 root = Root(
+                    id="root",
                     assets=[
                         chat,
-                    ]
+                    ],
                 )
 
-                self._context = ClientSideMutationContext(
+                self._context = ClientSideDataContext(
                     root=root,
                     websocket=websocket,
                     request_id=self._request_id,

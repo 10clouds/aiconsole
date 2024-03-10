@@ -33,7 +33,7 @@ async def generate_response_message_with_code(
     executor = GPTExecutor()
 
     # Assumes an existing message group that was created for us
-    chat = chat_ref.get()
+    chat = await chat_ref.get()
     last_message_group = chat.message_groups[-1]
     last_message_group_ref = chat_ref.message_groups[last_message_group.id]
 
@@ -115,7 +115,7 @@ async def generate_response_message_with_code(
                 )
 
     finally:
-        message_location = chat_ref.get().get_message_location(message_id)
+        message_location = (await chat_ref.get()).get_message_location(message_id)
 
         if message_location and message_location.message.is_streaming:
             await message_ref.is_streaming.set(False)
@@ -125,7 +125,7 @@ async def generate_response_message_with_code(
 
         # Finish streaming for all tool calls
         for tool_call in executor.partial_response.choices[0].message.tool_calls:
-            tool_call_location = chat_ref.get().get_tool_call_location(tool_call.id)
+            tool_call_location = (await chat_ref.get()).get_tool_call_location(tool_call.id)
             if tool_call_location and tool_call_location.tool_call.is_streaming:
                 await message_ref.tool_calls[tool_call.id].is_streaming.set(False)
 

@@ -43,10 +43,10 @@ async def _execution_mode_process(
     _log.debug("execution_mode_director")
 
     # Assumes an existing message group that was created for us
-    last_message_group = chat_ref.message_groups[chat_ref.message_groups.get_item_id_by_index(-1)]
+    last_message_group = chat_ref.message_groups[await chat_ref.message_groups.get_item_id_by_index(-1)]
 
     # if there are no messages in message groups, stop processing
-    if not any(group.messages for group in chat_ref.message_groups.get()):
+    if not any(group.messages for group in await chat_ref.message_groups.get()):
         # Send an error notification and delete the current message group
         _log.error("No messages in message groups")
 
@@ -59,7 +59,9 @@ async def _execution_mode_process(
 
         return
 
-    last_messages = chat_ref.message_groups[chat_ref.message_groups.get_item_id_by_index(-2)].messages.get()
+    last_messages = await chat_ref.message_groups[
+        await chat_ref.message_groups.get_item_id_by_index(-2)
+    ].messages.get()
     for message in last_messages:
         if message.tool_calls and not all(call.output for call in message.tool_calls):
             await chat_ref.message_groups[last_message_group.id].delete()
@@ -69,7 +71,7 @@ async def _execution_mode_process(
 
     if analysis.agent.id != "user" and analysis.next_step:
         content_context = ContentEvaluationContext(
-            chat=chat_ref.get(),
+            chat=await chat_ref.get(),
             agent=analysis.agent,
             gpt_mode=analysis.agent.gpt_mode,
             relevant_materials=analysis.relevant_materials,

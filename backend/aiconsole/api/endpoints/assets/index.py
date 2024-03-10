@@ -14,14 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from aiconsole.core.project import project
-
-_log = logging.getLogger(__name__)
 
 router = APIRouter()
 
