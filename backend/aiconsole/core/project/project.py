@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime
 import os
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
