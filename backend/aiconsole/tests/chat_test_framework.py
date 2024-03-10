@@ -26,7 +26,7 @@ from aiconsole.api.websockets.server_messages import (
     ChatOpenedServerMessage,
     NotifyAboutAssetMutationServerMessage,
 )
-from aiconsole.app import app
+from aiconsole.app import app, lifespan
 from aiconsole.core.chat.actor_id import ActorId
 from aiconsole.core.chat.load_chat_history import load_chat_history
 from aiconsole.core.chat.locations import ChatRef
@@ -87,11 +87,17 @@ class ChatTestFramework:
 
         self._project_directory = ProjectDirectory()
         self._background_tasks = BackgroundTasks()
-        self._client = TestClient(app())
+        self._app = app()
+        self._client = TestClient(self._app)
+        self._lifespan_context = None
+        self._lifespan = lifespan
 
         self._websocket: WebSocketTestSession | None = None
         self._project_path: Path | None = None
         self._context: ClientSideDataContext | None = None
+
+    async def setup(self):
+        self._lifespan_context = await self._lifespan(self._app).__aenter__()
 
     def repeat(self, times: int) -> pytest.MarkDecorator:
         return pytest.mark.repeat(times)
@@ -102,6 +108,7 @@ class ChatTestFramework:
         self._message_group_id = str(uuid4())
         self._project_path = Path(project_path).absolute()
 
+        await self.setup()
         self._client.post("/api/projects/switch", json={"directory": project_path})
         self._client.patch("/api/settings", json={"to_global": True, "code_autorun": True})
 
