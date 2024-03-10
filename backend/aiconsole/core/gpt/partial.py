@@ -173,9 +173,9 @@ class GPTPartialResponse(BaseModel):
 
                                     if chunk_tool_function:
                                         if chunk_tool_function.name is not None:
-                                            message.tool_calls[
-                                                chunk_tool_index
-                                            ].function.name = chunk_tool_function.name
+                                            message.tool_calls[chunk_tool_index].function.name = (
+                                                chunk_tool_function.name
+                                            )
 
                                         if chunk_tool_function.arguments is not None:
                                             message.tool_calls[chunk_tool_index].function.arguments_builder.append(

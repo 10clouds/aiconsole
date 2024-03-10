@@ -7,6 +7,7 @@ Available settings are:
 Tell user what setting are available if user will want to set something.
 
 """
+
 from aiconsole_toolkit import settings
 from aiconsole_toolkit.settings.settings_data import SettingsData
 

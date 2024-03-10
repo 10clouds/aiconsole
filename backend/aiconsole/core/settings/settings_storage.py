@@ -20,5 +20,5 @@ class SettingsStorage(Protocol):
     def save(self, settings_data: PartialSettingsData, to_global: bool):  # fmt: off
         ...
 
-    def destroy(self):
+    def destroy(self):  # fmt: off
         ...
