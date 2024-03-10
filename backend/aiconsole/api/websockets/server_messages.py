@@ -76,7 +76,7 @@ class NotifyAboutAssetMutationServerMessage(BaseServerMessage):
         }
 
 
-NotifyAboutAssetMutationServerMessage.model_rebuild()
+# NotifyAboutAssetMutationServerMessage.model_rebuild()
 
 
 class ResponseServerMessage(BaseServerMessage):

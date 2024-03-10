@@ -9,6 +9,7 @@ from aiconsole.core.chat.types import (
     AICToolCall,
 )
 from aiconsole.core.code_running.code_interpreters.language import LanguageStr
+from fastmutation.data_context import DataContext
 from fastmutation.types import (
     AttributeRef,
     CollectionRef,
@@ -25,14 +26,14 @@ class AssetCollectionRef(CollectionRef):
 class AssetRef(ObjectRef):
     parent: AssetCollectionRef
 
-    def __init__(self, id: str, context):
+    def __init__(self, id: str, context: DataContext):
         super().__init__(id=id, parent_collection=AssetCollectionRef(context=context), context=context)
 
 
 class ChatRef(ObjectRef[AICChat]):
     parent: AssetCollectionRef
 
-    def __init__(self, id: str, context):
+    def __init__(self, id: str, context: DataContext):
         super().__init__(id=id, parent_collection=AssetCollectionRef(context=context), context=context)
 
     @property

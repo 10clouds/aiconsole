@@ -1,6 +1,6 @@
 from typing import Any, Generic, TypeVar, cast
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from fastmutation.data_context import DataContext
 from fastmutation.mutations import (
@@ -24,10 +24,12 @@ TBaseObject = TypeVar("TBaseObject", bound=BaseObject)
 class ObjectRef(BaseModel, Generic[TBaseObject]):
     id: str
     parent_collection: "CollectionRef"
-    context: "DataContext | None"  # Context must be set externally after deserialisation in order to use the object
+    context: "DataContext | None" = Field(
+        exclude=True
+    )  # Context must be set externally after deserialisation in order to use the object
 
     class Config:
-        fields = {"context": {"exclude": True}}  # Context is not serialised or sent anywhere
+        arbitrary_types_allowed = True
 
     def __hash__(self):
         return hash((self.id, self.parent_collection))
@@ -79,10 +81,12 @@ class ObjectRef(BaseModel, Generic[TBaseObject]):
 class CollectionRef(BaseModel, Generic[TBaseObject]):
     id: str
     parent: "ObjectRef | None"
-    context: "DataContext | None"  # Context must be set externally after deserialisation in order to use the object
+    context: "DataContext | None" = Field(
+        exclude=True
+    )  # Context must be set externally after deserialisation in order to use the object
 
     class Config:
-        fields = {"context": {"exclude": True}}  # Context is not serialised or sent anywhere
+        arbitrary_types_allowed = True
 
     def __hash__(self):
         return hash((self.id, self.parent))
@@ -137,10 +141,12 @@ AnyRef = ObjectRef | CollectionRef
 class AttributeRef(BaseModel, Generic[T]):
     name: str
     object: ObjectRef
-    context: "DataContext | None"  # Context must be set externally after deserialisation in order to use the object
+    context: "DataContext | None" = Field(
+        exclude=True
+    )  # Context must be set externally after deserialisation in order to use the object
 
     class Config:
-        fields = {"context": {"exclude": True}}  # Context is not serialised or sent anywhere
+        arbitrary_types_allowed = True
 
     async def set(self, value: T):
         assert self.context is not None
