@@ -15,7 +15,6 @@
 # limitations under the License.
 import importlib
 
-from fastapi import APIRouter
 from pydantic import BaseModel
 
 from aiconsole.api.websockets.connection_manager import connection_manager
@@ -23,8 +22,6 @@ from aiconsole.api.websockets.server_messages import (
     ErrorServerMessage,
     NotificationServerMessage,
 )
-
-router = APIRouter()
 
 
 async def check_execution_mode_and_get_params(execution_mode_path: str, notify: bool = True):
