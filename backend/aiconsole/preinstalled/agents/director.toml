@@ -5,4 +5,4 @@ usage_examples = []
 default_status = "enabled"
 system = ""
 gpt_mode = "analysis"
-execution_mode = { module_path = "aiconsole.core.chat.execution_modes.director:execution_mode" }
+execution_mode = "aiconsole.core.chat.execution_modes.director:execution_mode"

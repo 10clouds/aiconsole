@@ -16,7 +16,7 @@
 
 import asyncio
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -55,7 +55,7 @@ async def _execution_mode_process(
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
-    params_values: Dict[str, Any] = {},
+    params_values: dict[str, Any] = {},
 ):
     params = ExecutionModeParams(**params_values)
     start = params.start

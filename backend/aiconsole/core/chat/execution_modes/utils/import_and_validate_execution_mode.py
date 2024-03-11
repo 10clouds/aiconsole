@@ -35,7 +35,7 @@ async def import_and_validate_execution_mode(agent: AICAgent, chat_id: str):
                 _notify,
             )
 
-        execution_mode_path = agent.execution_mode.module_path
+        execution_mode_path = agent.execution_mode
 
         split = execution_mode_path.split(":")
 

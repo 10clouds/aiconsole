@@ -2,7 +2,7 @@ name = "GenUI"
 usage = "When you need to display an UI component, like a clock"
 usage_examples = ["Show me a clock"]
 gpt_mode = "quality"
-execution_mode = { module_path = "aiconsole.core.chat.execution_modes.genui:execution_mode" }
+execution_mode = "aiconsole.core.chat.execution_modes.genui:execution_mode"
 default_status = "disabled"
 system = """
 The user can ask you to perform a command, it's an admin user.

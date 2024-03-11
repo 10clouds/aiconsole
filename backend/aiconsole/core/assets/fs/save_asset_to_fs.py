@@ -97,7 +97,8 @@ async def save_asset_to_fs(asset: Asset, old_asset_id: str) -> Asset:
             {
                 "system": asset.system,
                 "gpt_mode": str(asset.gpt_mode),
-                "execution_mode": asset.execution_mode.model_dump(),
+                "execution_mode": asset.execution_mode,
+                "execution_mode_params_values": asset.execution_mode_params_values,
             }
         )
 

@@ -1,7 +1,7 @@
 name = "Coach"
 usage = "Useful when you want to coach someone, that includes task prioritisation, goal setting and breaking down goals into steps as well as life advice"
 gpt_mode = "speed"
-execution_mode = { module_path = "aiconsole.core.chat.execution_modes.normal:execution_mode" }
+execution_mode = "aiconsole.core.chat.execution_modes.normal:execution_mode"
 default_status = "disabled"
 system = """
 You are the best analytical, logical personal coach in the world.\n

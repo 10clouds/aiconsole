@@ -119,16 +119,15 @@ async def load_asset_from_fs(asset_type: AssetType, asset_id: str, location: Ass
         params["gpt_mode"] = GPTMode(tomldoc.get("gpt_mode", "").strip())
 
         execution_mode = tomldoc.get("execution_mode", "")
-        execution_mode_module_path = execution_mode["module_path"]
-        params["execution_mode"] = execution_mode
-        params["execution_mode"]["module_path"] = execution_mode_path_mapping.get(
-            execution_mode_module_path, execution_mode_module_path
-        )
+
+        params["execution_mode"] = execution_mode_path_mapping.get(execution_mode, execution_mode)
+
+        params["execution_mode_params_values"] = tomldoc.get("execution_mode_params_values", {})
 
         return AICAgent(**params)
 
     if asset_type == AssetType.USER:
-        userProfile = UserProfile(id=params['id'], **tomldoc)
+        userProfile = UserProfile(id=params["id"], **tomldoc)
         params.update(userProfile.model_dump())
         user = AICUserProfile(**params)
 

@@ -48,7 +48,7 @@ export const AgentForm = ({
     let params = await getExecutionModeParamsSchema(module_path, notify);
 
     const currentAgent = agentRef.current;
-    const paramsValues = currentAgent.execution_mode.params_values;
+    const paramsValues = currentAgent.execution_mode_params_values;
 
     params = params.map(([key, data]) => [
       key,
@@ -64,10 +64,10 @@ export const AgentForm = ({
 
   useEffect(() => {
     if (!hasFirstLoadedParamsSchema) {
-      getAndSetExecutionModeParamsSchema(agent.execution_mode.module_path, false);
+      getAndSetExecutionModeParamsSchema(agent.execution_mode, false);
       setHasFirstLoadedParamsSchema(true);
     }
-  }, [agent.execution_mode.module_path, hasFirstLoadedParamsSchema]);
+  }, [agent.execution_mode, hasFirstLoadedParamsSchema]);
 
   const hasAnyParams = paramsFields.length > 0;
 
@@ -76,33 +76,25 @@ export const AgentForm = ({
 
     setSelectedAsset({
       ...agent,
-      execution_mode: {
-        ...agent.execution_mode,
-        module_path: value,
-      },
+      execution_mode: value,
     } as Asset);
   };
 
   const setExecutionModeParamValue = (key: string, value: any) => {
     setSelectedAsset({
       ...agent,
-      execution_mode: {
-        ...agent.execution_mode,
-        params_values: {
-          ...agent.execution_mode.params_values,
-          [key]: value,
-        },
+      execution_mode_params_values: {
+        ...agent.execution_mode_params_values,
+        [key]: value,
       },
     } as Asset);
   };
 
   const getBaseURL = useAPIStore((state) => state.getBaseURL);
 
-  const executionModeModulePath = useMemo(
-    () => getExecutionMode(agent.execution_mode.module_path),
-    [agent.execution_mode.module_path],
-  );
-  const isCustomMode = executionModeModulePath === 'custom';
+  const executionMode = useMemo(() => getExecutionMode(agent.execution_mode), [agent.execution_mode]);
+
+  const isCustomMode = executionMode === 'custom';
 
   const handleSetExecutionMode = (value: string) => {
     setErrors?.((prev) => ({ ...prev, executionMode: '' }));
@@ -160,18 +152,18 @@ export const AgentForm = ({
               placeholder="Write text here"
               setErrors={setErrors}
               errors={errors}
-              value={agent.execution_mode.module_path}
+              value={agent.execution_mode}
               onChange={setExecutionModeModulePathState}
               className="mb-[20px] leading-relaxed"
               helperText="a Python module governing how the agent behaves."
               hidden={!isCustomMode}
               labelChildren={
                 <Select
-                  key={executionModeModulePath}
+                  key={executionMode}
                   options={EXECUTION_MODES}
                   placeholder="Choose execution mode"
                   onChange={handleSetExecutionMode}
-                  initialValue={executionModeModulePath}
+                  initialValue={executionMode}
                 />
               }
             />

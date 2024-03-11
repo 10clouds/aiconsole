@@ -2,7 +2,7 @@ name = "Countdown"
 usage = "Countdown from start number to end number."
 usage_examples = ["Countdown from 10 to 0", "Countdown from 5 to 0"]
 gpt_mode = "speed"
-execution_mode = { module_path = "aiconsole.core.chat.execution_modes.example_countdown" }
+execution_mode = "aiconsole.core.chat.execution_modes.example_countdown"
 default_status = "enabled"
 system = """
 """
