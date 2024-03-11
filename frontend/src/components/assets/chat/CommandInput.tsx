@@ -32,12 +32,12 @@ interface MessageInputProps {
   className?: string;
   actionLabel: string;
   onSubmit?: (command: string) => void;
+  textAreaRef: React.RefObject<HTMLTextAreaElement>;
 }
 
-export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel }: MessageInputProps) => {
+export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel, textAreaRef }: MessageInputProps) => {
   const ActionIcon = actionIcon;
   const [showChatOptions, setShowChatOptions] = useState(false);
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const chatOptionsInputRef = useRef<HTMLInputElement>(null);
 
   const setSelectedAgentId = useChatStore((state) => state.setSelectedAgentId);
