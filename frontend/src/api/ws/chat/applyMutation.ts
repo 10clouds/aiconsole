@@ -2,12 +2,10 @@ import { AICChat, getMessageGroup, getMessageLocation, getToolCallLocation } fro
 import { ChatMutation } from '@/api/ws/chat/chatMutations';
 import { MessageBuffer } from '@/utils/common/MessageBuffer';
 
-let messageBuffer = new MessageBuffer();
-
 /**
  * KEEEP THIS IN SYNC WITH BACKEND apply_mutation!
  */
-export function applyMutation(chat: AICChat, mutation: ChatMutation) {
+export function applyMutation(chat: AICChat, mutation: ChatMutation, messageBuffer?: MessageBuffer) {
   switch (mutation.type) {
     case 'LockAcquiredMutation':
       chat.lock_id = mutation.lock_id;
@@ -74,7 +72,7 @@ export function applyMutation(chat: AICChat, mutation: ChatMutation) {
         tool_calls: [],
         is_streaming: false,
       });
-      messageBuffer = new MessageBuffer(mutation.content);
+      messageBuffer?.reinitialize(mutation.content);
       break;
     }
     case 'DeleteMessageMutation': {
@@ -93,8 +91,12 @@ export function applyMutation(chat: AICChat, mutation: ChatMutation) {
       getMessageLocation(chat, mutation.message_id).message.content = mutation.content;
       break;
     case 'AppendToContentMessageMutation': {
-      messageBuffer.processDelta(mutation.content_delta);
-      getMessageLocation(chat, mutation.message_id).message.content = messageBuffer.message;
+      if (messageBuffer !== undefined) {
+        messageBuffer.processDelta(mutation.content_delta);
+        getMessageLocation(chat, mutation.message_id).message.content = messageBuffer.message;
+      } else {
+        getMessageLocation(chat, mutation.message_id).message.content += mutation.content_delta;
+      }
       break;
     }
     case 'SetIsStreamingMessageMutation':
@@ -102,9 +104,9 @@ export function applyMutation(chat: AICChat, mutation: ChatMutation) {
       message.message.is_streaming = mutation.is_streaming;
       const hasFinishedStreaming = !mutation.is_streaming;
 
-      if (hasFinishedStreaming) {
+      if (hasFinishedStreaming && messageBuffer !== undefined) {
         message.message.content = messageBuffer.message + messageBuffer.buffer;
-        messageBuffer = new MessageBuffer();
+        messageBuffer.reinitialize();
       }
 
       break;

@@ -18,6 +18,12 @@ export class MessageBuffer {
     this.message = initialMessage;
   }
 
+  reinitialize(initialMessage: string = '') {
+    this.state = State.Bypass;
+    this.message = initialMessage;
+    this.buffer = '';
+  }
+
   public processDelta(delta: string) {
     for (const char of delta) {
       this.buffer += char;
