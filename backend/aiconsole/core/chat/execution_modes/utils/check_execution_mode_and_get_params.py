@@ -38,7 +38,7 @@ async def check_execution_mode_and_get_params(execution_mode_path: str, notify: 
         )
         return None
 
-    module_name, _ = split
+    module_name, object_name = split
 
     try:
         module = importlib.import_module(module_name)
@@ -50,13 +50,23 @@ async def check_execution_mode_and_get_params(execution_mode_path: str, notify: 
         )
         return None
 
+    obj = getattr(module, object_name, None)
+
+    if obj is None:
+        await connection_manager().send_to_all(
+            ErrorServerMessage(
+                error=f"Could not find {object_name} in {module_name} module",
+            )
+        )
+        return None
+
     ExecutionModeParams = getattr(module, "ExecutionModeParams", None)
 
     if ExecutionModeParams is None:
         if notify:
             await connection_manager().send_to_all(
                 NotificationServerMessage(
-                    title="Execution mode file exists",
+                    title="Execution mode exists",
                     message="Execution mode does not have any parameters",
                 )
             )
@@ -76,7 +86,7 @@ async def check_execution_mode_and_get_params(execution_mode_path: str, notify: 
     if notify:
         await connection_manager().send_to_all(
             NotificationServerMessage(
-                title="Execution mode file exists",
+                title="Execution mode exists",
                 message=f"Execution mode has parameters: {', '.join(param_names)}",
             )
         )

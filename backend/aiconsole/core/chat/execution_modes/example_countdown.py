@@ -141,7 +141,3 @@ async def _execution_mode_process(
 execution_mode = ExecutionMode(
     process_chat=_execution_mode_process,
 )
-
-
-def init_execution_mode_with_params(params_values: Dict[str, Any]):
-    return ExecutionMode(process_chat=_execution_mode_process, params_values=params_values)

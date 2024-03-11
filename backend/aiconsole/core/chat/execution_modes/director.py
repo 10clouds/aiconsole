@@ -89,6 +89,7 @@ async def _execution_mode_process(
             agent=analysis.agent,
             materials=analysis.relevant_materials,
             rendered_materials=rendered_materials,
+            params_values=analysis.agent.execution_mode.params_values,
         )
     else:
         # Delete the current message group

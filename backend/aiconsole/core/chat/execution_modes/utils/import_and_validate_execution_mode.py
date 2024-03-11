@@ -46,11 +46,7 @@ async def import_and_validate_execution_mode(agent: AICAgent, chat_id: str):
 
         module_name, object_name = split
         module = importlib.import_module(module_name)
-        initializer = getattr(module, "init_execution_mode_with_params", None)
         obj = getattr(module, object_name, None)
-
-        if initializer and callable(initializer):
-            obj = initializer(agent.execution_mode.params_values)
 
         emit_warning_event = getattr(module, "emit_warning_event", None)
         if emit_warning_event:
