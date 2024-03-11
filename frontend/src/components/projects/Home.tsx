@@ -16,13 +16,15 @@
 
 import { TopBar } from '@/components/common/TopBar';
 import { HomeTopBarElements } from '@/components/projects/HomeTopBarElements';
+import { useUtilsStore } from '@/store/common/useUtilsStore';
 import { ProjectModalMode, useProjectFileManagerStore } from '@/store/projects/useProjectFileManagerStore';
 import { useRecentProjectsStore } from '@/store/projects/useRecentProjectsStore';
 import { useSettingsStore } from '@/store/settings/useSettingsStore';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useProjectStore } from '../../store/projects/useProjectStore';
 import AlertDialog from '../common/AlertDialog';
 import BackgroundGradient from '../common/BackgroundGradient';
+import Offline from './Offline';
 import { ProjectCard } from './ProjectCard';
 import { RecentProjectsEmpty } from './RecentProjectsEmpty';
 
@@ -39,6 +41,24 @@ export function Home() {
   const openProjectConfirmation = useProjectFileManagerStore((state) => state.openProjectConfirmation);
   const initProject = useProjectFileManagerStore((state) => state.initProject);
   const projectName = useProjectFileManagerStore((state) => state.projectName);
+
+  const isOnline = useUtilsStore((state) => state.isOnline);
+  const checkNetworkStatus = useUtilsStore((state) => state.checkNetworkStatus);
+  const [onlineStatus, setOnlineStatus] = useState(isOnline);
+
+  useEffect(() => {
+    window.addEventListener('online', checkNetworkStatus);
+    window.addEventListener('offline', checkNetworkStatus);
+
+    return () => {
+      window.removeEventListener('online', checkNetworkStatus);
+      window.removeEventListener('offline', checkNetworkStatus);
+    };
+  }, [checkNetworkStatus]);
+
+  useEffect(() => {
+    setOnlineStatus(isOnline);
+  }, [isOnline]);
 
   const deleteProject = useCallback(
     (path: string) => async () => {
@@ -116,6 +136,15 @@ export function Home() {
       openProjectConfirmation();
     }
   }, [openProjectConfirmation, projectModalMode, isProjectDirectory]);
+
+  if (!onlineStatus) {
+    return (
+      <div className="min-h-[100vh] relative overflow-x-hidden">
+        <BackgroundGradient />
+        <Offline />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[100vh] relative overflow-x-hidden">

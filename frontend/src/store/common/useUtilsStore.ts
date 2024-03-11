@@ -14,16 +14,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useWebSocketStore } from '../api/ws/useWebSocketStore';
-import { useUtilsStore } from './common/useUtilsStore';
-import { useRecentProjectsStore } from './projects/useRecentProjectsStore';
-import { useSettingsStore } from './settings/useSettingsStore';
-import { useAPIStore } from './useAPIStore';
+import { UtilsAPI } from '@/api/api/UtilsAPI';
+import { create } from 'zustand';
 
-export const initStore = async () => {
-  await useAPIStore.getState().initAPIStore();
-  useSettingsStore.getState().initSettings();
-  await useUtilsStore.getState().checkNetworkStatus();
-  useWebSocketStore.getState().initWebSocket();
-  useRecentProjectsStore.getState().initRecentProjects();
+export type UtilsSlice = {
+  isOnline: boolean;
+  isNetworkChecking: boolean;
+  checkNetworkStatus: () => Promise<void>;
 };
+
+export const useUtilsStore = create<UtilsSlice>((set) => ({
+  isOnline: true,
+  isNetworkChecking: false,
+  checkNetworkStatus: async () => {
+    set({
+      isNetworkChecking: true,
+    });
+    const isOnline = await UtilsAPI.getNetworkStatus();
+    set({
+      isOnline,
+      isNetworkChecking: false,
+    });
+  },
+}));
