@@ -13,42 +13,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import importlib
-import logging
-
 from fastapi import APIRouter
-from pydantic import BaseModel
+
+from aiconsole.core.chat.execution_modes.utils.check_execution_mode_and_get_params import (
+    check_execution_mode_and_get_params,
+)
 
 router = APIRouter()
 
-_log = logging.getLogger(__name__)
-
-
-def read_execution_mode_params_schema(module_path: str):
-    if len(module_path.split(":")) != 2:
-        _log.error("Invalid module path format. Expected: 'module_name:object_name'")
-
-    module_name = module_path.split(":")[0]
-
-    try:
-        module = importlib.import_module(module_name)
-    except ModuleNotFoundError:
-        _log.error(f"Module {module_name} not found")
-        return None
-
-    ExecutionModeParams = getattr(module, "ExecutionModeParams", None)
-
-    if ExecutionModeParams is None:
-        _log.info(f"Module {module_name} does not have a ExecutionModeParams structure")
-        return None
-
-    if not issubclass(ExecutionModeParams, BaseModel):
-        _log.error(f"ExecutionModeParams in module {module_name} is not a subclass of BaseModel")
-        return None
-
-    return ExecutionModeParams.model_json_schema()["properties"]
-
 
 @router.get("/params_schema")
-async def get_execution_mode_params_schema(module_path: str):
-    return read_execution_mode_params_schema(module_path)
+async def get_execution_mode_params_schema(module_path: str, notify: bool = True):
+    return await check_execution_mode_and_get_params(module_path, notify)

@@ -8,7 +8,7 @@ import { useAPIStore } from '@/store/useAPIStore';
 import { Agent, Asset } from '@/types/assets/assetTypes';
 import { EXECUTION_MODES, getExecutionMode } from '@/utils/assets/getExecutionMode';
 import { useDebouncedFunction } from '@/utils/common/useDebouncedFunction';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CodeInput } from '../CodeInput';
 import { HelperLabel } from '../HelperLabel';
 import { MarkdownSupported } from '../MarkdownSupported';
@@ -37,28 +37,37 @@ export const AgentForm = ({
   setIsAvatarOverwritten,
   onRevert: _onRevert,
 }: AgentFormProps) => {
+  const agentRef = useRef(agent);
+  const [hasFirstLoadedParamsSchema, setHasFirstLoadedParamsSchema] = useState<boolean>(false);
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [paramsFields, setParamsFields] = useState<[string, ExecutionModeParamField][]>([]);
   const setSelectedAsset = useAssetStore((state) => state.setSelectedAsset);
   const handleUsageChange = (value: string) => setSelectedAsset({ ...agent, usage: value });
-  const getAndSetExecutionModeParamsSchema = useCallback(
-    async (module_path: string) => {
-      let params = await getExecutionModeParamsSchema(module_path);
 
-      if (module_path === agent.execution_mode.module_path) {
-        const paramsValues = agent.execution_mode.params_values;
-        params = params.map(([key, data]) => [key, { ...data, value: paramsValues[key] }]);
-      }
+  const getAndSetExecutionModeParamsSchema = useCallback(async (module_path: string, notify = true) => {
+    let params = await getExecutionModeParamsSchema(module_path, notify);
 
-      setParamsFields(params);
-    },
-    [agent.execution_mode.module_path, agent.execution_mode.params_values],
-  );
-  const debouncedGetExecutionModeParamsSchema = useDebouncedFunction(getAndSetExecutionModeParamsSchema, 500);
+    const currentAgent = agentRef.current;
+    const paramsValues = currentAgent.execution_mode.params_values;
+
+    params = params.map(([key, data]) => [
+      key,
+      {
+        ...data,
+        value: paramsValues[key] ?? data.value,
+      },
+    ]);
+
+    setParamsFields(params);
+  }, []);
+  const debouncedGetExecutionModeParamsSchema = useDebouncedFunction(getAndSetExecutionModeParamsSchema, 1000);
 
   useEffect(() => {
-    getAndSetExecutionModeParamsSchema(agent.execution_mode.module_path);
-  }, [agent.execution_mode.module_path]);
+    if (!hasFirstLoadedParamsSchema) {
+      getAndSetExecutionModeParamsSchema(agent.execution_mode.module_path, false);
+      setHasFirstLoadedParamsSchema(true);
+    }
+  }, [agent.execution_mode.module_path, hasFirstLoadedParamsSchema]);
 
   const hasAnyParams = paramsFields.length > 0;
 

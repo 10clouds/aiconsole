@@ -14,11 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aiconsole.core.assets.agents.agent_execution_modes.agent_execution_mode import (
-    AgentExecutionMode,
-)
+from typing import Any, Dict
+
+from pydantic import BaseModel, Field
+
 from aiconsole.core.assets.types import Asset, AssetType
 from aiconsole.core.gpt.consts import QUALITY_GPT_MODE, GPTMode
+
+
+class AgentExecutionMode(BaseModel):
+    module_path: str = "aiconsole.core.chat.execution_modes.normal:execution_mode"
+    params_values: Dict[str, Any] = Field(default_factory=dict)
 
 
 class AICAgent(Asset):
@@ -26,4 +32,5 @@ class AICAgent(Asset):
     system: str
 
     gpt_mode: GPTMode = QUALITY_GPT_MODE
-    execution_mode: AgentExecutionMode = AgentExecutionMode()
+
+    execution_mode: AgentExecutionMode = Field(default_factory=AgentExecutionMode)

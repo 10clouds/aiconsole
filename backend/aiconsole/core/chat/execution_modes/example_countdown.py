@@ -45,10 +45,9 @@ from aiconsole.core.code_running.run_code import (
 
 
 class ExecutionModeParams(BaseModel):
-    from_: int = Field(default=10, alias="from")
-    to: int = Field(default=1)
+    start: int = Field(default=10)
+    end: int = Field(default=1)
     message: str = Field(default="Hello world!")
-    should_notify: bool = Field(default=False)
 
 
 async def _execution_mode_process(
@@ -56,13 +55,12 @@ async def _execution_mode_process(
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
-    **kwargs,
+    params_values: Dict[str, Any] = {},
 ):
-    params = ExecutionModeParams(**kwargs)
-    start = params.from_
-    end = params.to
+    params = ExecutionModeParams(**params_values)
+    start = params.start
+    end = params.end
     message = params.message
-    should_notify = params.should_notify
 
     message_id = str(uuid4())
 
@@ -72,17 +70,9 @@ async def _execution_mode_process(
             message_group_id=chat_mutator.chat.message_groups[-1].id,
             message_id=message_id,
             timestamp=datetime.now().isoformat(),
-            content="",
+            content=f'This is a demo of execution mode. I will count down from {start} to {end} and then run code that prints "{message}".\n\n',
         )
     )
-
-    if should_notify:
-        await chat_mutator.mutate(
-            AppendToContentMessageMutation(
-                message_id=message_id,
-                content_delta=f"This is a demo of execution mode. I will count down from {start} to {end} and then run code that prints {message}.\n\n",
-            )
-        )
 
     for i in range(start, end - 1, -1):
         await chat_mutator.mutate(
@@ -154,4 +144,4 @@ execution_mode = ExecutionMode(
 
 
 def init_execution_mode_with_params(params_values: Dict[str, Any]):
-    return ExecutionMode(process_chat=_execution_mode_process, params=params_values)
+    return ExecutionMode(process_chat=_execution_mode_process, params_values=params_values)

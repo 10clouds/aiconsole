@@ -41,10 +41,10 @@ async def import_and_validate_execution_mode(agent: AICAgent, chat_id: str):
 
         if len(split) != 2:
             raise ValueError(
-                f"Invalid execution_mode in agent {agent.name}: {execution_mode_path} - should be module_name:object_name"
+                f"Invalid execution_mode in agent: {execution_mode_path} - should be module_name:object_name"
             )
 
-        module_name, object_name = execution_mode_path.split(":")
+        module_name, object_name = split
         module = importlib.import_module(module_name)
         initializer = getattr(module, "init_execution_mode_with_params", None)
         obj = getattr(module, object_name, None)

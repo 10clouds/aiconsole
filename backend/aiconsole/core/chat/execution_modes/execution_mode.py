@@ -13,7 +13,7 @@ class ProcessChatDataProtocol(Protocol):
         agent: AICAgent,
         materials: list[AICMaterial],
         rendered_materials: list[RenderedMaterial],
-        **kwargs,
+        params_values: Dict[str, Any] = {},
     ) -> None:  # fmt: off
         ...
 
@@ -40,7 +40,7 @@ def process_chat_not_supported(
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
-    **kwargs,
+    params_values: Dict[str, Any] = {},
 ):
     raise NotImplementedError("process chat is not supported")
 
@@ -60,13 +60,13 @@ class ExecutionMode:
         self,
         process_chat: ProcessChatDataProtocol = process_chat_not_supported,
         accept_code: AcceptCodeDataProtocol = accept_code_not_supported,
-        params: Dict[str, Any] = {},
+        params_values: Dict[str, Any] = {},
     ):
         self.accept_code = accept_code
-        self.params = params
+        self.params_values = params_values
         self.process_chat = self._wrap_process_chat_with_params(process_chat)
 
-    def _wrap_process_chat_with_params(self, process_chat):
+    def _wrap_process_chat_with_params(self, process_chat: ProcessChatDataProtocol):
         async def wrapper(
             chat_mutator: ChatMutator,
             agent: AICAgent,
@@ -78,7 +78,7 @@ class ExecutionMode:
                 agent=agent,
                 materials=materials,
                 rendered_materials=rendered_materials,
-                **self.params,
+                params_values=self.params_values,
             )
 
         return wrapper

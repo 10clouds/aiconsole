@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import logging
+from typing import Any, Dict
 
 from aiconsole.api.websockets.connection_manager import connection_manager
 from aiconsole.api.websockets.server_messages import NotificationServerMessage
@@ -40,7 +41,7 @@ async def _execution_mode_process(
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
-    **kwargs,
+    params_values: Dict[str, Any] = {},
 ):
     _log.debug("execution_mode_director")
 

@@ -34,13 +34,15 @@ interface ExecutionModeParamsSchema {
   [key: string]: ExecutionModeParamSchema;
 }
 
-export const getExecutionModeParamsSchema = async (module_path: string) => {
+export const getExecutionModeParamsSchema = async (module_path: string, notify: boolean = true) => {
   let params: [string, ExecutionModeParamField][] = [];
 
   try {
-    const paramsJson = await ky
-      .get(`${getBaseURL()}/api/execution_modes/params_schema?module_path=${module_path}`)
-      .json<ExecutionModeParamsSchema>();
+    const url = new URL(`${getBaseURL()}/api/execution_modes/params_schema`);
+    url.searchParams.append('module_path', module_path);
+    url.searchParams.append('notify', notify.toString());
+
+    const paramsJson = await ky.get(url.toString()).json<ExecutionModeParamsSchema>();
 
     params = Object.entries(paramsJson).map(([key, data]) => [
       key,
