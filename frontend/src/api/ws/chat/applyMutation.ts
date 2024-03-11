@@ -1,6 +1,8 @@
 import { AICChat, getMessageGroup, getMessageLocation, getToolCallLocation } from '@/types/assets/chatTypes';
 import { ChatMutation } from '@/api/ws/chat/chatMutations';
-import { bufferMessage } from '../messageBuffer';
+import { MessageBuffer } from '@/utils/common/MessageBuffer';
+
+let messageBuffer = new MessageBuffer();
 
 /**
  * KEEEP THIS IN SYNC WITH BACKEND apply_mutation!
@@ -72,6 +74,7 @@ export function applyMutation(chat: AICChat, mutation: ChatMutation) {
         tool_calls: [],
         is_streaming: false,
       });
+      messageBuffer = new MessageBuffer(mutation.content);
       break;
     }
     case 'DeleteMessageMutation': {
@@ -90,12 +93,20 @@ export function applyMutation(chat: AICChat, mutation: ChatMutation) {
       getMessageLocation(chat, mutation.message_id).message.content = mutation.content;
       break;
     case 'AppendToContentMessageMutation': {
-      const buffer = bufferMessage(getMessageLocation(chat, mutation.message_id).message.content);
-      getMessageLocation(chat, mutation.message_id).message.content = buffer(mutation.content_delta);
+      messageBuffer.processDelta(mutation.content_delta);
+      getMessageLocation(chat, mutation.message_id).message.content = messageBuffer.message;
       break;
     }
     case 'SetIsStreamingMessageMutation':
-      getMessageLocation(chat, mutation.message_id).message.is_streaming = mutation.is_streaming;
+      const message = getMessageLocation(chat, mutation.message_id);
+      message.message.is_streaming = mutation.is_streaming;
+      const hasFinishedStreaming = !mutation.is_streaming;
+
+      if (hasFinishedStreaming) {
+        message.message.content = messageBuffer.message + messageBuffer.buffer;
+        messageBuffer = new MessageBuffer();
+      }
+
       break;
     case 'CreateToolCallMutation': {
       const message = getMessageLocation(chat, mutation.message_id);
