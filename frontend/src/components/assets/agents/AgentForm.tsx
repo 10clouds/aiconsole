@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { ExecutionModeParamField, getExecutionModeParamsSchema } from '@/api/api/ExecutionModeAPI';
 import { FormGroup } from '@/components/common/FormGroup';
 import ImageUploader from '@/components/common/ImageUploader';
 import { Select } from '@/components/common/Select';
@@ -6,11 +7,13 @@ import { useAssetStore } from '@/store/assets/useAssetStore';
 import { useAPIStore } from '@/store/useAPIStore';
 import { Agent, Asset } from '@/types/assets/assetTypes';
 import { EXECUTION_MODES, getExecutionMode } from '@/utils/assets/getExecutionMode';
-import { useEffect, useMemo, useState } from 'react';
+import { useDebouncedFunction } from '@/utils/common/useDebouncedFunction';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CodeInput } from '../CodeInput';
 import { HelperLabel } from '../HelperLabel';
 import { MarkdownSupported } from '../MarkdownSupported';
 import { ErrorObject, TextInput } from '../TextInput';
+import Checkbox from '@/components/common/Checkbox';
 
 interface AgentFormProps {
   agent: Agent;
@@ -34,18 +37,68 @@ export const AgentForm = ({
   setIsAvatarOverwritten,
   onRevert: _onRevert,
 }: AgentFormProps) => {
+  const agentRef = useRef(agent);
+  const [hasFirstLoadedParamsSchema, setHasFirstLoadedParamsSchema] = useState<boolean>(false);
   const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [paramsFields, setParamsFields] = useState<[string, ExecutionModeParamField][]>([]);
   const setSelectedAsset = useAssetStore((state) => state.setSelectedAsset);
   const handleUsageChange = (value: string) => setSelectedAsset({ ...agent, usage: value });
-  const setExecutionModeState = (value: string) => setSelectedAsset({ ...agent, execution_mode: value } as Asset);
+
+  const getAndSetExecutionModeParamsSchema = useCallback(async (module_path: string, notify = true) => {
+    let params = await getExecutionModeParamsSchema(module_path, notify);
+
+    const currentAgent = agentRef.current;
+    const paramsValues = currentAgent.execution_mode_params_values;
+
+    params = params.map(([key, data]) => [
+      key,
+      {
+        ...data,
+        value: paramsValues[key] ?? data.value,
+      },
+    ]);
+
+    setParamsFields(params);
+  }, []);
+  const debouncedGetExecutionModeParamsSchema = useDebouncedFunction(getAndSetExecutionModeParamsSchema, 1000);
+
+  useEffect(() => {
+    if (!hasFirstLoadedParamsSchema) {
+      getAndSetExecutionModeParamsSchema(agent.execution_mode, false);
+      setHasFirstLoadedParamsSchema(true);
+    }
+  }, [agent.execution_mode, hasFirstLoadedParamsSchema]);
+
+  const hasAnyParams = paramsFields.length > 0;
+
+  const setExecutionModeModulePathState = (value: string) => {
+    debouncedGetExecutionModeParamsSchema(value);
+
+    setSelectedAsset({
+      ...agent,
+      execution_mode: value,
+    } as Asset);
+  };
+
+  const setExecutionModeParamValue = (key: string, value: any) => {
+    setSelectedAsset({
+      ...agent,
+      execution_mode_params_values: {
+        ...agent.execution_mode_params_values,
+        [key]: value,
+      },
+    } as Asset);
+  };
+
   const getBaseURL = useAPIStore((state) => state.getBaseURL);
 
   const executionMode = useMemo(() => getExecutionMode(agent.execution_mode), [agent.execution_mode]);
+
   const isCustomMode = executionMode === 'custom';
 
   const handleSetExecutionMode = (value: string) => {
     setErrors?.((prev) => ({ ...prev, executionMode: '' }));
-    setExecutionModeState(value === 'custom' ? '' : value);
+    setExecutionModeModulePathState(value === 'custom' ? '' : value);
   };
 
   const setAsset = (value: string) =>
@@ -100,7 +153,7 @@ export const AgentForm = ({
               setErrors={setErrors}
               errors={errors}
               value={agent.execution_mode}
-              onChange={setExecutionModeState}
+              onChange={setExecutionModeModulePathState}
               className="mb-[20px] leading-relaxed"
               helperText="a Python module governing how the agent behaves."
               hidden={!isCustomMode}
@@ -114,6 +167,52 @@ export const AgentForm = ({
                 />
               }
             />
+            {hasAnyParams && <div className="text-md font-semibold mb-4">Execution Mode Parameters</div>}
+            {paramsFields.map(([key, data]) =>
+              data.type === 'checkbox' ? (
+                <Checkbox
+                  key={key}
+                  id={key}
+                  label={data.title}
+                  checked={data.value}
+                  onChange={(newValue) => {
+                    setParamsFields((prev) =>
+                      prev.map(([k, v]) => {
+                        if (k === key) {
+                          return [k, { ...v, value: newValue }];
+                        }
+                        return [k, v];
+                      }),
+                    );
+                    setExecutionModeParamValue(key, newValue);
+                  }}
+                />
+              ) : (
+                <TextInput
+                  key={key}
+                  label={data.title}
+                  name={key}
+                  required
+                  type={data.type}
+                  placeholder="Write text here"
+                  setErrors={setErrors}
+                  errors={errors}
+                  value={data.value}
+                  onChange={(newValue) => {
+                    setParamsFields((prev) =>
+                      prev.map(([k, v]) => {
+                        if (k === key) {
+                          return [k, { ...v, value: newValue }];
+                        }
+                        return [k, v];
+                      }),
+                    );
+                    setExecutionModeParamValue(key, newValue);
+                  }}
+                  className="mb-[20px] leading-relaxed"
+                />
+              ),
+            )}
             <CodeInput
               label="System prompt"
               labelContent={

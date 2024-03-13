@@ -9,6 +9,9 @@ import { deepCopyChat } from '@/utils/assets/chatUtils';
 import { AssetsAPI } from '../api/AssetsAPI';
 import { AICChat } from '@/types/assets/chatTypes';
 import { v4 as uuidv4 } from 'uuid';
+import { MessageBuffer } from '@/utils/common/MessageBuffer';
+
+let messageBuffer = new MessageBuffer();
 
 export async function handleServerMessage(message: ServerMessage) {
   const showToast = useToastsStore.getState().showToast;
@@ -81,13 +84,25 @@ export async function handleServerMessage(message: ServerMessage) {
       if (!chat) {
         throw new Error('Chat is not initialized');
       }
-      applyMutation(chat, message.mutation);
+      applyMutation(chat, message.mutation, messageBuffer);
       useChatStore.setState({ chat });
       break;
     }
     case 'ChatOpenedServerMessage':
+      const chat = message.chat;
+
+      const currentlySreamingMessage = chat.message_groups
+        .flatMap((group) => group.messages)
+        .find((message) => message.is_streaming);
+
+      if (currentlySreamingMessage) {
+        messageBuffer.reinitialize();
+        messageBuffer.processDelta(currentlySreamingMessage.content);
+        currentlySreamingMessage.content = messageBuffer.message;
+      }
+
       useChatStore.setState({
-        chat: message.chat,
+        chat,
       });
       break;
     case 'ResponseServerMessage': {

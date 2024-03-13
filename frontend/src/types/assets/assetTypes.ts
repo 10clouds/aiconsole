@@ -16,7 +16,6 @@
 
 import { z } from 'zod';
 
-
 export type AssetDefinedIn = 'aiconsole' | 'project';
 export const assetDefinedInOptions: AssetDefinedIn[] = ['aiconsole', 'project'];
 export type MaterialContentType = 'static_text' | 'dynamic_text' | 'api';
@@ -79,14 +78,15 @@ export const AgentSchema = AssetSchema.extend({
   system: z.string(),
   gpt_mode: GPTModeSchema,
   execution_mode: z.string(),
+  execution_mode_params_values: z.record(z.string()),
 });
 
 export type Agent = z.infer<typeof AgentSchema>;
 
 export const UserProfileSchema = z.object({
   id: z.string().optional(),
-  display_name: z.string(),
-  profile_picture: z.string(), // Base64-encoded string
+  display_name: z.string().optional(),
+  profile_picture: z.string().optional(), // Base64-encoded string
 });
 
 export type UserProfile = z.infer<typeof UserProfileSchema>;

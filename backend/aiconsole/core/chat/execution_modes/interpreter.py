@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+from typing import Any
 
 from pydantic import Field
 
@@ -66,6 +67,7 @@ async def _execution_mode_process(
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
+    params_values: dict[str, Any] = {},
 ):
     # Assumes an existing message group that was created for us
     last_message_group = (await chat_ref.get()).message_groups[-1]

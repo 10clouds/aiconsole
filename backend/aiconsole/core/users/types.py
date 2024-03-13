@@ -8,6 +8,6 @@ class PartialUserProfile(BaseModel):
 
 
 class UserProfile(BaseModel):
-    id: str
+    id: str | None = None
     display_name: str | None = None
     profile_picture: str | None = None

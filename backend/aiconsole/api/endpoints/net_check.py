@@ -14,19 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any
+import requests
+from fastapi import APIRouter
 
-from pydantic import Field
-
-from aiconsole.core.assets.types import Asset, AssetType
-from aiconsole.core.gpt.consts import QUALITY_GPT_MODE, GPTMode
+router = APIRouter()
 
 
-class AICAgent(Asset):
-    type: AssetType = AssetType.AGENT
-    system: str
-
-    gpt_mode: GPTMode = QUALITY_GPT_MODE
-
-    execution_mode: str = "aiconsole.core.chat.execution_modes.normal:execution_mode"
-    execution_mode_params_values: dict[str, Any] = Field(default_factory=dict)
+# The idea -> check if google.com is reachable (as it is one of the most reliable websites)
+# If so -> the connection is working
+@router.get("/net_check")
+def get_net_check():
+    url = "https://www.google.com"
+    timeout = 5
+    try:
+        requests.get(url, timeout=timeout)
+        return True
+    except (requests.ConnectionError, requests.Timeout):
+        return False

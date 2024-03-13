@@ -43,15 +43,15 @@ async def save_chat_history(chat: AICChat, scope: str = "default"):
             if scope == "chat_options" and (
                 "chat_options" not in old_content or old_content["chat_options"] != new_content["chat_options"]
             ):
-                if old_content["chat_options"]["draft_command"] != new_content["chat_options"][
-                    "draft_command"
-                ] and "@" not in set(old_content["chat_options"]["draft_command"]) ^ set(
-                    new_content["chat_options"]["draft_command"]
+                old_draft_command = old_content.get("chat_options", {}).get("draft_command") or ""
+                new_draft_command = new_content.get("chat_options", {}).get("draft_command") or ""
+
+                if old_draft_command != new_draft_command and (
+                    "@" not in set(old_draft_command) ^ set(new_draft_command)
                 ):
                     update_last_modified = True
                 else:
                     update_last_modified = False
-
                 old_content["chat_options"] = new_content["chat_options"]
                 new_content = old_content
             elif scope == "message_groups" and old_content["message_groups"] != new_content["message_groups"]:

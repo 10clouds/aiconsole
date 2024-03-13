@@ -28,7 +28,7 @@ import { useAssetContextMenu } from '@/utils/assets/useContextMenuForEditable';
 import { cn } from '@/utils/common/cn';
 import { COMMANDS } from '@/utils/constants';
 import { ArrowDown, ReplyIcon, Square } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import ScrollToBottom, { useAnimating, useScrollToBottom, useSticky } from 'react-scroll-to-bottom';
 import { v4 as uuidv4 } from 'uuid';
@@ -78,6 +78,7 @@ export function ChatPage() {
   const assetType = 'chat';
   const searchParams = useSearchParams()[0];
   const copyId = searchParams.get('copy');
+  const dt = searchParams.get('dt') || '';
   const forceRefresh = searchParams.get('forceRefresh'); // used to force a refresh
   const command = useChatStore((state) => state.commandHistory[state.commandIndex]);
 
@@ -98,6 +99,8 @@ export function ChatPage() {
   const hasAnyCommandInput = command.trim() !== '';
 
   const [showSpinner, setShowSpinner] = useState(false);
+
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setShowSpinner(false);
@@ -163,7 +166,7 @@ export function ChatPage() {
       AssetsAPI.closeChat(id);
       useChatStore.setState({ chat: undefined });
     };
-  }, [copyId, id, assetType, forceRefresh, setChat]);
+  }, [copyId, id, dt, assetType, forceRefresh, setChat]);
 
   const isLastMessageFromUser =
     chat?.message_groups.length && chat.message_groups[chat.message_groups.length - 1].actor_id.type === 'user';
@@ -254,7 +257,7 @@ export function ChatPage() {
             >
               <ChatWindowScrollToBottomSave />
               {chat.message_groups.length === 0 ? (
-                <EmptyChat />
+                <EmptyChat textAreaRef={textAreaRef} />
               ) : (
                 chat.message_groups.map((group) => <MessageGroup group={group} key={group.id} />)
               )}
@@ -269,6 +272,7 @@ export function ChatPage() {
           actionIcon={ActionButtonIcon}
           actionLabel={actionButtonLabel}
           onSubmit={actionButtonAction}
+          textAreaRef={textAreaRef}
         />
       </div>
     </div>

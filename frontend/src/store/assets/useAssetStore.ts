@@ -107,6 +107,7 @@ export const useAssetStore = create<AssetsState>((set) => ({
         enabled: true,
         gpt_mode: 'quality',
         execution_mode: 'aiconsole.core.chat.execution_modes.normal:execution_mode',
+        execution_mode_params_values: {},
         enabled_by_default: true,
         override: false,
         last_modified: new Date().toISOString(),
@@ -161,6 +162,28 @@ export const useAssetStore = create<AssetsState>((set) => ({
     }
   },
   getAsset: (id: string): Asset | undefined => {
+    if (id === 'user') {
+      const agent: Agent = {
+        version: '0.0.1',
+        type: 'agent',
+        id: 'user',
+        name: 'You',
+        usage: '',
+        usage_examples: [],
+        system: '',
+        defined_in: 'aiconsole',
+        enabled: true,
+        gpt_mode: 'quality',
+        execution_mode: 'aiconsole.core.chat.execution_modes.normal:execution_mode',
+        execution_mode_params_values: {},
+        enabled_by_default: true,
+        override: false,
+        last_modified: new Date().toISOString(),
+      };
+
+      return agent;
+    }
+
     const asset = useAssetStore.getState().assets?.find((asset) => asset.id === id);
 
     if (asset) {

@@ -5,8 +5,8 @@ from functools import lru_cache
 from mimetypes import guess_type
 from pathlib import Path
 from uuid import uuid4
-from aiconsole.core.assets.types import AssetType
 
+from aiconsole.core.assets.types import AssetType
 from aiconsole.core.assets.users.users import AICUserProfile
 from aiconsole.core.project import project
 from aiconsole.core.settings.settings import settings
@@ -28,7 +28,9 @@ class MissingFileName(Exception):
 class UserProfileService:
     def configure_user(self):
         user_profile = settings().unified_settings.user_profile
-        if user_profile is None:
+        if user_profile and (
+            user_profile.id is None or user_profile.profile_picture is None or user_profile.display_name is None
+        ):
             user_id = str(uuid4())
             settings().save(
                 PartialSettingsData(

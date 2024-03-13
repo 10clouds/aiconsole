@@ -16,7 +16,10 @@
 
 import asyncio
 from datetime import datetime
+from typing import Any
 from uuid import uuid4
+
+from pydantic import BaseModel, Field
 
 from aiconsole.api.websockets.connection_manager import connection_manager
 from aiconsole.api.websockets.server_messages import ErrorServerMessage
@@ -35,12 +38,24 @@ from aiconsole.core.code_running.run_code import (
 )
 
 
+class ExecutionModeParams(BaseModel):
+    start: int = Field(default=10)
+    end: int = Field(default=1)
+    message: str = Field(default="Hello world!")
+
+
 async def _execution_mode_process(
     chat_ref: ChatRef,
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
+    params_values: dict[str, Any] = {},
 ):
+    params = ExecutionModeParams(**params_values)
+    start = params.start
+    end = params.end
+    message = params.message
+
     message_id = str(uuid4())
 
     # Assumes that a group already exists
@@ -49,13 +64,12 @@ async def _execution_mode_process(
         AICMessage(
             id=message_id,
             timestamp=datetime.now().isoformat(),
-            content="This is a demo of execution mode. I will count down from 10 to 1 and then hello world code.\n\n",
-        ),
+            content=f'This is a demo of execution mode. I will count down from {start} to {end} and then run code that prints "{message}".\n\n',
+        )
     )
 
-    for i in range(10, 0, -1):
+    for i in range(start, end - 1, -1):
         await msg_group_ref.messages[message_id].content.append(f"{i}...")
-
         await asyncio.sleep(1)
 
     await asyncio.sleep(1)
@@ -72,7 +86,7 @@ async def _execution_mode_process(
 
     tool_call_id = str(uuid4())
 
-    code = "print('Hello world!')"
+    code = f"print('{message}')"
 
     await message_mutator.tool_calls.create(
         AICToolCall(

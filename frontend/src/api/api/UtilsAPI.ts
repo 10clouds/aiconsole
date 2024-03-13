@@ -14,16 +14,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useWebSocketStore } from '../api/ws/useWebSocketStore';
-import { useUtilsStore } from './common/useUtilsStore';
-import { useRecentProjectsStore } from './projects/useRecentProjectsStore';
-import { useSettingsStore } from './settings/useSettingsStore';
-import { useAPIStore } from './useAPIStore';
+import ky from 'ky';
+import { getBaseURL } from '../../store/useAPIStore';
 
-export const initStore = async () => {
-  await useAPIStore.getState().initAPIStore();
-  useSettingsStore.getState().initSettings();
-  await useUtilsStore.getState().checkNetworkStatus();
-  useWebSocketStore.getState().initWebSocket();
-  useRecentProjectsStore.getState().initRecentProjects();
+const getNetworkStatus = (): Promise<boolean> => {
+  return ky
+    .get(`${getBaseURL()}/net_check`, {
+      timeout: false,
+    })
+    .json();
+};
+
+export const UtilsAPI = {
+  getNetworkStatus,
 };

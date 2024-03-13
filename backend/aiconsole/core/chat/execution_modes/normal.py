@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+from typing import Any
 
 from aiconsole.core.assets.agents.agent import AICAgent
 from aiconsole.core.assets.materials.material import AICMaterial
@@ -38,6 +39,7 @@ async def _execution_mode_process(
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
+    params_values: dict[str, Any] = {},
 ):
     _log.debug("execution_mode_normal")
 

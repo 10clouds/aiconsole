@@ -55,7 +55,7 @@ function AgentInfoMaterialLink({
           )}
           title={materialId}
         >
-          {materialId}
+          {material?.name || materialId}
         </div>
       </Link>
     </ContextMenu>

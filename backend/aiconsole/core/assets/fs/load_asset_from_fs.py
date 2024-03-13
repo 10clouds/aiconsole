@@ -40,7 +40,7 @@ _log = logging.getLogger(__name__)
 _USER_AGENT_ID = "user"
 
 # LEGACY: Port 2.9 agent to 2.11
-execution_mode_mapping = {
+execution_mode_path_mapping = {
     "aiconsole.core.execution_modes.normal:execution_mode_normal": "aiconsole.core.chat.execution_modes.normal:execution_mode",
     "aiconsole.core.execution_modes.interpreter:execution_mode_interpreter": "aiconsole.core.chat.execution_modes.interpreter:execution_mode",
     "aiconsole.core.execution_modes.example_countdown:execution_mode_example_countdown": "aiconsole.core.chat.execution_modes.example_countdown:execution_mode",
@@ -118,13 +118,16 @@ async def load_asset_from_fs(asset_type: AssetType, asset_id: str, location: Ass
 
         params["gpt_mode"] = GPTMode(tomldoc.get("gpt_mode", "").strip())
 
-        execution_mode = tomldoc.get("execution_mode", "").strip()
-        params["execution_mode"] = execution_mode_mapping.get(execution_mode, execution_mode)
+        execution_mode = tomldoc.get("execution_mode", "")
+
+        params["execution_mode"] = execution_mode_path_mapping.get(execution_mode, execution_mode)
+
+        params["execution_mode_params_values"] = tomldoc.get("execution_mode_params_values", {})
 
         return AICAgent(**params)
 
     if asset_type == AssetType.USER:
-        userProfile = UserProfile(id=params['id'], **tomldoc)
+        userProfile = UserProfile(id=params["id"], **tomldoc)
         params.update(userProfile.model_dump())
         user = AICUserProfile(**params)
 

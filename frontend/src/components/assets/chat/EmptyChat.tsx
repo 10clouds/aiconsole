@@ -64,7 +64,11 @@ const ExamplePrompt: React.FC<ExamplePromptProps> = ({ asset, example, onSelecte
   );
 };
 
-export const EmptyChat = () => {
+interface EmptyChatProps {
+  textAreaRef: React.RefObject<HTMLTextAreaElement>;
+}
+
+export const EmptyChat = ({ textAreaRef }: EmptyChatProps) => {
   const command = useChatStore((state) => state.commandHistory[useChatStore.getState().commandIndex]);
   const chatOptions = useChatStore((state) => state.chatOptions);
 
@@ -72,7 +76,6 @@ export const EmptyChat = () => {
     if (command !== example) {
       return false;
     }
-
 
     if (asset.type === 'agent') {
       if (chatOptions?.agentId !== asset.id) {
@@ -133,6 +136,8 @@ export const EmptyChat = () => {
   };
 
   const onSelected = (asset: Asset, example: string) => () => {
+    textAreaRef.current?.focus();
+
     //if is already selected, deselect
     if (isExampleCurrentlyActive(asset, example)) {
       //deselect

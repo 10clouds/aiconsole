@@ -20,8 +20,10 @@ from aiconsole.api.endpoints import (
     assets,
     check_key,
     commands_history,
+    execution_modes,
     genui,
     image,
+    net_check,
     ping,
     profile,
     projects,
@@ -35,9 +37,11 @@ app_router.include_router(ping.router)
 app_router.include_router(genui.router)
 app_router.include_router(image.router)
 app_router.include_router(check_key.router)
+app_router.include_router(net_check.router)
 app_router.include_router(profile.router, tags=["Profile"])
 app_router.include_router(assets.router, prefix="/api/assets", tags=["Agents"])
 app_router.include_router(projects.router, prefix="/api/projects", tags=["Projects"])
 app_router.include_router(settings.router, prefix="/api/settings", tags=["Project Settings"])
+app_router.include_router(execution_modes.router, prefix="/api/execution_modes", tags=["Execution Mode"])
 app_router.include_router(commands_history.router)
 app_router.include_router(ws.router)

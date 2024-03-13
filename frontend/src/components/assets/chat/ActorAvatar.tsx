@@ -32,7 +32,7 @@ export function ActorAvatar({ actorId, title, type, className, actorType }: Acto
     });
   } else if (actorType === 'user') {
     if (actorId && (actorId === userID || actorId === 'user')) {
-      src = userProfile.profile_picture;
+      src = userProfile?.profile_picture;
     } else {
       const user = actor as AICUserProfile | undefined;
       if (user) {

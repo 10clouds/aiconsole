@@ -28,7 +28,7 @@ export const AddAssetDropdown = () => {
       key: 'chat',
       icon: <Icon icon={ChatIcon} className="w-6 h-6 !text-chat" />,
       title: 'Chat',
-      path: `/assets/new?type=chat`,
+      path: `/assets/new?type=chat&dt=${new Date().toISOString()}`,
     },
     {
       key: 'agent',

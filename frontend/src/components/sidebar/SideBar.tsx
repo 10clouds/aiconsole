@@ -32,10 +32,10 @@ const SideBar = () => {
   const chat = useChatStore((state) => state.chat);
   const assets = useAssetStore((state) => state.assets);
 
-  const filteredAssets = useMemo(
-    () => assets.filter((asset) => assetMatchesSearchText(asset, searchText)),
-    [assets, searchText],
-  );
+  const filteredAssets = useMemo(() => {
+    // TODO: filtering by user is temporary
+    return assets.filter((asset) => asset.type !== 'user' && assetMatchesSearchText(asset, searchText));
+  }, [assets, searchText]);
 
   const sections = useGroupByDate(filteredAssets);
   const setIsChatLoading = useChatStore((state) => state.setIsChatLoading);

@@ -13,6 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 import shutil
 
 import rtoml
@@ -31,6 +32,15 @@ from aiconsole.core.project.paths import (
 _USER_AGENT_ID = "user"
 
 
+def only_name_changed(old_asset: Asset | None, asset: Asset):
+    if not old_asset:
+        return False
+
+    old_asset_dict = old_asset.model_dump()
+    asset_dict = asset.model_dump()
+    return any(key != "name" and asset_dict.get(key) != old_asset_dict.get(key) for key in asset_dict)
+
+
 async def save_asset_to_fs(asset: Asset, old_asset_id: str) -> Asset:
     if isinstance(asset, AICAgent):
         if asset.id == _USER_AGENT_ID:
@@ -39,15 +49,23 @@ async def save_asset_to_fs(asset: Asset, old_asset_id: str) -> Asset:
     if asset.id == "new":
         raise ValueError("Cannot save asset with id 'new'")
 
-    path = get_project_assets_directory(asset.type)
-    path.mkdir(parents=True, exist_ok=True)
+    project_assets_directory_path = get_project_assets_directory(asset.type)
+    project_assets_directory_path.mkdir(parents=True, exist_ok=True)
+    file_path = project_assets_directory_path / f"{asset.id}.toml"
+
+    original_st_mtime = None
+    if file_path.exists():
+        original_st_mtime = os.stat(file_path).st_mtime
 
     try:
-        current_version = (await load_asset_from_fs(asset.type, asset.id)).version
+        old_asset = await load_asset_from_fs(asset.type, asset.id)
+        current_version = old_asset.version
     except KeyError:
+        old_asset = None
         current_version = "0.0.1"
 
-    # Parse version number
+    update_last_modified = not only_name_changed(old_asset, asset)
+
     current_version_parts = current_version.split(".")
 
     # Increment version number
@@ -80,6 +98,7 @@ async def save_asset_to_fs(asset: Asset, old_asset_id: str) -> Asset:
                 "system": asset.system,
                 "gpt_mode": str(asset.gpt_mode),
                 "execution_mode": asset.execution_mode,
+                "execution_mode_params_values": asset.execution_mode_params_values,
             }
         )
 
@@ -91,12 +110,15 @@ async def save_asset_to_fs(asset: Asset, old_asset_id: str) -> Asset:
             }
         )
 
-    rtoml.dump(toml_data, path / f"{asset.id}.toml")
+    rtoml.dump(toml_data, file_path)
+
+    if original_st_mtime and not update_last_modified:
+        os.utime(file_path, (original_st_mtime, original_st_mtime))
 
     extensions = [".jpeg", ".jpg", ".png", ".gif", ".SVG"]
     for extension in extensions:
         old_file_path = get_core_assets_directory(asset.type) / f"{old_asset_id}{extension}"
-        new_file_path = path / f"{asset.id}{extension}"
+        new_file_path = project_assets_directory_path / f"{asset.id}{extension}"
         if old_file_path.exists():
             shutil.copy(old_file_path, new_file_path)
 

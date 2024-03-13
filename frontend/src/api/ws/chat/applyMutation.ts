@@ -1,10 +1,11 @@
 import { AICChat, getMessageGroup, getMessageLocation, getToolCallLocation } from '@/types/assets/chatTypes';
 import { ChatMutation } from '@/api/ws/chat/chatMutations';
+import { MessageBuffer } from '@/utils/common/MessageBuffer';
 
 /**
  * KEEEP THIS IN SYNC WITH BACKEND apply_mutation!
  */
-export function applyMutation(chat: AICChat, mutation: ChatMutation) {
+export function applyMutation(chat: AICChat, mutation: ChatMutation, messageBuffer?: MessageBuffer) {
   switch (mutation.type) {
     case 'LockAcquiredMutation':
       chat.lock_id = mutation.lock_id;
@@ -71,6 +72,7 @@ export function applyMutation(chat: AICChat, mutation: ChatMutation) {
         tool_calls: [],
         is_streaming: false,
       });
+      messageBuffer?.reinitialize(mutation.content);
       break;
     }
     case 'DeleteMessageMutation': {
@@ -88,11 +90,25 @@ export function applyMutation(chat: AICChat, mutation: ChatMutation) {
     case 'SetContentMessageMutation':
       getMessageLocation(chat, mutation.message_id).message.content = mutation.content;
       break;
-    case 'AppendToContentMessageMutation':
-      getMessageLocation(chat, mutation.message_id).message.content += mutation.content_delta;
+    case 'AppendToContentMessageMutation': {
+      if (messageBuffer !== undefined) {
+        messageBuffer.processDelta(mutation.content_delta);
+        getMessageLocation(chat, mutation.message_id).message.content = messageBuffer.message;
+      } else {
+        getMessageLocation(chat, mutation.message_id).message.content += mutation.content_delta;
+      }
       break;
+    }
     case 'SetIsStreamingMessageMutation':
-      getMessageLocation(chat, mutation.message_id).message.is_streaming = mutation.is_streaming;
+      const message = getMessageLocation(chat, mutation.message_id);
+      message.message.is_streaming = mutation.is_streaming;
+      const hasFinishedStreaming = !mutation.is_streaming;
+
+      if (hasFinishedStreaming && messageBuffer !== undefined) {
+        message.message.content = messageBuffer.message + messageBuffer.buffer;
+        messageBuffer.reinitialize();
+      }
+
       break;
     case 'CreateToolCallMutation': {
       const message = getMessageLocation(chat, mutation.message_id);

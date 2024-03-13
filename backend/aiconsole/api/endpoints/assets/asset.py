@@ -17,15 +17,7 @@
 from datetime import datetime
 from uuid import uuid4
 
-from fastapi import (
-    APIRouter,
-    Depends,
-    File,
-    HTTPException,
-    Request,
-    UploadFile,
-    status,
-)
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
@@ -146,6 +138,7 @@ async def partially_update_asset(
             if asset.name:
                 chat.name = str(asset.name)
                 await save_chat_history(chat, scope="name")
+                await project.get_project_assets().reload(initial=True)
         else:
             await agents_service.partially_update_asset(asset_id=asset_id, asset=asset)
 

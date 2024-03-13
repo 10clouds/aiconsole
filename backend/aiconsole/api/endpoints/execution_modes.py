@@ -13,20 +13,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from fastapi import APIRouter
 
-from typing import Any
+from aiconsole.core.chat.execution_modes.utils.check_execution_mode_and_get_params import (
+    check_execution_mode_and_get_params,
+)
 
-from pydantic import Field
-
-from aiconsole.core.assets.types import Asset, AssetType
-from aiconsole.core.gpt.consts import QUALITY_GPT_MODE, GPTMode
+router = APIRouter()
 
 
-class AICAgent(Asset):
-    type: AssetType = AssetType.AGENT
-    system: str
-
-    gpt_mode: GPTMode = QUALITY_GPT_MODE
-
-    execution_mode: str = "aiconsole.core.chat.execution_modes.normal:execution_mode"
-    execution_mode_params_values: dict[str, Any] = Field(default_factory=dict)
+@router.get("/params_schema")
+async def get_execution_mode_params_schema(module_path: str, notify: bool = True):
+    return await check_execution_mode_and_get_params(module_path, notify)

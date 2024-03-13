@@ -64,15 +64,6 @@ module.exports = {
       },
     },
     {
-      name: '@electron-forge/maker-flatpak',
-      config: {
-        options: {
-          icon: './assets/installer-icon.png',
-          name: 'AIConsole',
-        },
-      },
-    },
-    {
       name: '@electron-forge/maker-zip',
       config: {
         icon: './assets/icon.png',

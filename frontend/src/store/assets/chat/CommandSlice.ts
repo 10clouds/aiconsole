@@ -35,6 +35,7 @@ export type CommandSlice = {
   saveCommandAndMessagesToHistory: (command: string, isUserCommand: boolean) => Promise<void>;
   submitCommand: (prompt: string) => Promise<void>;
   initCommandHistory: () => Promise<void>;
+  commandPending: boolean;
 };
 
 export const createCommandSlice: StateCreator<ChatStore, [], [], CommandSlice> = (set, get) => ({
@@ -89,6 +90,11 @@ export const createCommandSlice: StateCreator<ChatStore, [], [], CommandSlice> =
     }
   },
   submitCommand: async (command: string) => {
+    if (get().commandPending) {
+      return;
+    }
+    set(() => ({ commandPending: true }));
+
     await get().stopWork();
 
     while (get().chatOptionsSaveDebounceTimer) {
@@ -136,5 +142,7 @@ export const createCommandSlice: StateCreator<ChatStore, [], [], CommandSlice> =
     }
 
     await get().doProcess();
+    set(() => ({ commandPending: false }));
   },
+  commandPending: false,
 });

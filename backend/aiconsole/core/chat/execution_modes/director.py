@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import logging
+from typing import Any
 
 from aiconsole.api.websockets.connection_manager import connection_manager
 from aiconsole.api.websockets.server_messages import NotificationServerMessage
@@ -39,6 +40,7 @@ async def _execution_mode_process(
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
+    params_values: dict[str, Any] = {},
 ):
     _log.debug("execution_mode_director")
 
@@ -88,6 +90,7 @@ async def _execution_mode_process(
             agent=analysis.agent,
             materials=analysis.relevant_materials,
             rendered_materials=rendered_materials,
+            params_values=analysis.agent.execution_mode_params_values,
         )
     else:
         # Delete the current message group

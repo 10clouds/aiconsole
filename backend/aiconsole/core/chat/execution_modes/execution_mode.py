@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import Any, Protocol
 
 from aiconsole.core.assets.agents.agent import AICAgent
 from aiconsole.core.assets.materials.material import AICMaterial
@@ -13,6 +13,7 @@ class ProcessChatDataProtocol(Protocol):
         agent: AICAgent,
         materials: list[AICMaterial],
         rendered_materials: list[RenderedMaterial],
+        params_values: dict[str, Any] = {},
     ) -> None:  # fmt: off
         ...
 
@@ -39,6 +40,7 @@ def process_chat_not_supported(
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
+    params_values: dict[str, Any] = {},
 ):
     raise NotImplementedError("process chat is not supported")
 
@@ -58,5 +60,5 @@ class ExecutionMode:
         process_chat: ProcessChatDataProtocol = process_chat_not_supported,
         accept_code: AcceptCodeDataProtocol = accept_code_not_supported,
     ):
-        self.process_chat = process_chat
         self.accept_code = accept_code
+        self.process_chat = process_chat

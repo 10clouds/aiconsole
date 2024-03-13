@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from datetime import datetime
+from typing import Any
 from uuid import uuid4
 
 from pydantic import Field
@@ -74,6 +75,7 @@ async def _execution_mode_process(
     agent: AICAgent,
     materials: list[AICMaterial],
     rendered_materials: list[RenderedMaterial],
+    params_values: dict[str, Any] = {},
 ):
     system_message = create_full_prompt_with_materials(
         intro=get_agent_system_message(agent),
