@@ -1,30 +1,14 @@
+"""
+Use the function read_pdf_as_markdown to read the content of a PDF file.
+"""
+
 import base64
-import io
 import re
 
 import fitz
-import html2text
 import openai
-from pdfminer.high_level import extract_text_to_fp
 
 from aiconsole_toolkit.settings import get_settings
-
-
-def pdf_to_html(pdf_path):
-    output = io.BytesIO()
-    with open(pdf_path, "rb") as f:
-        extract_text_to_fp(f, output, output_type="html", laparams=None)
-    html_content = output.getvalue().decode("utf-8")
-    return html_content
-
-
-def html_to_markdown(html_content):
-    text_maker = html2text.HTML2Text()
-
-    text_maker.ignore_links = False
-    text_maker.bypass_tables = False
-    markdown_content = text_maker.handle(html_content)
-    return markdown_content
 
 
 def pdf_pages_to_pixmaps(pdf_path):
@@ -66,10 +50,10 @@ def extract_urls_and_labels_from_pdf(pdf_path):
     return links_info
 
 
-system_prompt = 'You are a PDF-to-Markdown converter. When user sends you screenshots of pages of a PDF document you should return a markdown text representation of the PDF. You don\'t return markdown code in ```markdown...``` code block. Instead before the beginning of markdown code you write "BEGIN_MARKDOWN" and after the end of markdown code you write "END_MARKDOWN". When PDF page contains besides hypertext also images, you should paste the text description of the image in the alt text and leave url empty like ![Image that shows ...](). When you that some text looks like a link (e.g. blue underlined text), you should paste it as a link leaving the url empty like [text]().'
+system_prompt = 'You are a PDF-to-Markdown converter. When user sends you screenshots of pages of a PDF document you should return a markdown text representation of the PDF. You don\'t return markdown code in ```markdown...``` code block. Instead before the beginning of markdown code you write "BEGIN_MARKDOWN" and after the end of markdown code you write "END_MARKDOWN". When PDF page contains besides hypertext also images, you should paste long and detailed text description of the image in the alt text and leave url empty like ![Image that shows ...](). When you that some text looks like a link (e.g. blue underlined text), you should paste it as a link leaving the url empty like [text]().'
 
 
-def pdf_to_markdown_openai(pdf_path):
+def read_pdf_as_markdown(pdf_path):
     pixmaps: list[fitz.Pixmap] = pdf_pages_to_pixmaps(pdf_path)
     base64_images = [pixmap_to_base64(pixmap) for pixmap in pixmaps]
     links_info = extract_urls_and_labels_from_pdf(pdf_path)
