@@ -14,6 +14,7 @@ import { HelperLabel } from '../HelperLabel';
 import { MarkdownSupported } from '../MarkdownSupported';
 import { ErrorObject, TextInput } from '../TextInput';
 import Checkbox from '@/components/common/Checkbox';
+import { CodeEditor } from '../CodeEditor';
 
 interface AgentFormProps {
   agent: Agent;
@@ -213,7 +214,7 @@ export const AgentForm = ({
                 />
               ),
             )}
-            <CodeInput
+            <CodeEditor
               label="System prompt"
               labelContent={
                 <HelperLabel
@@ -223,8 +224,8 @@ export const AgentForm = ({
               }
               value={agent.system}
               withFullscreen
-              codeLanguage="markdown"
-              maxHeight={'calc(100vh - 200px)'}
+              language="markdown"
+              maxHeight={window.innerHeight - 200}
               onChange={setAsset}
             />
           </div>
