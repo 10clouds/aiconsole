@@ -1,7 +1,27 @@
 name = "How to read PDF"
 version = "0.0.2"
 usage = "Use this when user asks to read PDF"
-usage_examples = ["Read this PDF", "Can you give me Markdown of this PDF?"]
+usage_examples = []
 default_status = "enabled"
-content_type = "api"
-content = "file://./read_pdf_as_markdown.py"
+content_type = "static_text"
+content_static_text = """
+# This is an example of how to read PDF using python. 
+
+import PyPDF2
+
+# Define the path to the PDF file
+pdf_path = '/Some/path'
+
+# Open the PDF file
+with open(pdf_path, 'rb') as file:
+    pdf_reader = PyPDF2.PdfReader(file)
+    
+    # Read the text from each page
+    pdf_text = ''
+    for page_num in range(len(pdf_reader.pages)):
+        page = pdf_reader.pages[page_num]
+        pdf_text += page.extract_text()
+
+# Output the text
+pdf_text
+"""

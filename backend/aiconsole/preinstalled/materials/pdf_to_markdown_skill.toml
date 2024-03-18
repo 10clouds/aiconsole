@@ -1,0 +1,7 @@
+name = "How to convert PDF to Markdown"
+version = "0.0.2"
+usage = "Use this when user asks to convert PDF to Markdown"
+usage_examples = ["Can you give me Markdown of this PDF?"]
+default_status = "enabled"
+content_type = "api"
+content = "file://./pdf_to_markdown.py"
