@@ -16,7 +16,6 @@
 
 import { useCallback, useState } from 'react';
 import { MessageControls } from './MessageControls';
-import { CodeInput } from '../../CodeInput';
 import { cn } from '@/utils/common/cn';
 import { useChatStore } from '@/store/assets/chat/useChatStore';
 import { CodeEditor } from '../../CodeEditor';
@@ -63,7 +62,6 @@ export function EditableContentMessage({
   const handleOnChange = (value: string) => setContent(value);
 
   const handleSaveClick = useCallback(async () => {
-    console.log('hey');
     await handleAcceptedContent(content);
     setIsEditing(false);
   }, [content, handleAcceptedContent, setIsEditing]);
@@ -73,15 +71,13 @@ export function EditableContentMessage({
       {isEditing ? (
         <div className="rounded-md flex-grow ">
           <CodeEditor
-            // className="resize-none border-0 bg-transparent w-full outline-none"
             value={content}
             onChange={handleOnChange}
-            language={language ? language : 'text'}
+            codeLanguage={language ? language : 'text'}
             onBlur={handleSaveClick}
-            // transparent
+            transparent
             isFocused
             maxHeight={400}
-            minHeight={400}
           />
         </div>
       ) : (

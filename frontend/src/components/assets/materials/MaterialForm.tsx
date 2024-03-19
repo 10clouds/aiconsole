@@ -5,7 +5,6 @@ import { FormGroup } from '@/components/common/FormGroup';
 import { Material, RenderedMaterial } from '@/types/assets/assetTypes';
 import { MarkdownSupported } from '../MarkdownSupported';
 import { CodeEditorLabelContent } from '../CodeEditorLabelContent';
-import { CodeInput } from '../CodeInput';
 import { TextInput } from '../TextInput';
 import { useMaterialEditorContent } from './useMaterialEditorContent';
 import { useAssetStore } from '@/store/assets/useAssetStore';
@@ -64,28 +63,15 @@ export const MaterialForm = ({ material }: MaterialFormProps) => {
       </FormGroup>
       <FormGroup className="w-full flex flex-col">
         <div className="flex-1">
-          {/* {codeEditorSectionContent ? (
-            <CodeInput
-              label={codeEditorSectionContent.label}
-              labelContent={
-                <CodeEditorLabelContent showPreview={showPreview} onClick={() => setShowPreview((prev) => !prev)} />
-              }
-              labelSize="md"
-              value={codeEditorSectionContent.value}
-              codeLanguage={codeEditorSectionContent.codeLanguage}
-              onChange={codeEditorSectionContent.onChange}
-              readOnly={showPreview}
-            />
-          ) : null} */}
-
           <CodeEditor
             label={codeEditorSectionContent?.label}
             labelContent={<CodeEditorLabelContent showPreview={showPreview} onClick={toggleShowPreview} />}
             labelSize="md"
             value={codeEditorSectionContent?.value}
             onChange={codeEditorSectionContent?.onChange}
-            language={codeEditorSectionContent?.codeLanguage}
+            codeLanguage={codeEditorSectionContent?.codeLanguage}
             readOnly={showPreview}
+            debounceDelay={500}
           />
           <MarkdownSupported />
         </div>

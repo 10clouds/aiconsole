@@ -1,11 +1,11 @@
 import { createSandbox } from '@/utils/transpilation/createSandbox';
 import { transpileCode } from '@/utils/transpilation/transpileCode';
 import { useState, ReactNode, useCallback } from 'react';
-import { CodeInput } from '../assets/CodeInput';
 import { Button } from '../common/Button';
 import { FormGroup } from '../common/FormGroup';
 import { GenUIAPI } from '@/api/api/GenUIAPI';
 import { CodeEditorLabelContent } from '../assets/CodeEditorLabelContent';
+import { CodeEditor } from '../assets/CodeEditor';
 
 interface ApiResponse {
   code: string;
@@ -54,7 +54,7 @@ export const GenUIComponent = () => {
 
   return (
     <FormGroup className="flex flex-col w-full gap-[20px]">
-      <CodeInput
+      <CodeEditor
         value={showPreview ? result : code}
         labelContent={
           <CodeEditorLabelContent
@@ -87,7 +87,7 @@ export const GenUIComponent = () => {
         </Button>
       </div>
 
-      <CodeInput value={prompt} codeLanguage="markdown" onChange={handlePromptChange} label="Prompt" />
+      <CodeEditor value={prompt} codeLanguage="markdown" onChange={handlePromptChange} label="Prompt" />
       <Button onClick={handleSubmitPrompt} variant="secondary">
         Fix
       </Button>

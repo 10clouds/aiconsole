@@ -211,3 +211,32 @@ h3 {
 .blinking-cursor {
   animation: blink 1s step-start 0s infinite;
 }
+
+/* #region ACE EDITOR STYLES */
+.ace_editor,
+.ace_editor * {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 15px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+}
+
+.ace_editor .ace_gutter {
+  transition: all 0.1s;
+  background-color: rgb(26, 26, 26);
+}
+
+.ace_editor:hover .ace_gutter,
+.ace_editor:focus-within .ace_gutter {
+  background-color: rgb(39, 39, 39);
+}
+
+.ace_placeholder {
+  margin-top: 12px;
+  margin-left: 15px;
+}
+
+.ace_string.ace_emphasis {
+  color: #fff;
+}
+/* #endregion */

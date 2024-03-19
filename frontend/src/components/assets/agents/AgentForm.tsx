@@ -9,7 +9,6 @@ import { Agent, Asset } from '@/types/assets/assetTypes';
 import { EXECUTION_MODES, getExecutionMode } from '@/utils/assets/getExecutionMode';
 import { useDebouncedFunction } from '@/utils/common/useDebouncedFunction';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CodeInput } from '../CodeInput';
 import { HelperLabel } from '../HelperLabel';
 import { MarkdownSupported } from '../MarkdownSupported';
 import { ErrorObject, TextInput } from '../TextInput';
@@ -224,7 +223,7 @@ export const AgentForm = ({
               }
               value={agent.system}
               withFullscreen
-              language="markdown"
+              codeLanguage="markdown"
               maxHeight={window.innerHeight - 200}
               onChange={setAsset}
             />

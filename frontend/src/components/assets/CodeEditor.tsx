@@ -1,31 +1,20 @@
-import React, { type ReactNode, useState } from 'react';
-import MonacoEditor, { EditorProps, loader } from '@monaco-editor/react';
-import * as monaco from 'monaco-editor';
+import { type ReactNode, useState } from 'react';
+import AceEditor from 'react-ace';
+import { Maximize2, Minimize2 } from 'lucide-react';
+import 'ace-builds/src-noconflict/mode-python';
+import 'ace-builds/src-noconflict/mode-javascript';
+import 'ace-builds/src-noconflict/mode-text';
+import 'ace-builds/src-noconflict/mode-markdown';
+import 'ace-builds/src-noconflict/theme-github_dark';
+import 'ace-builds/src-noconflict/ext-language_tools';
+import { type Ace } from 'ace-builds';
 
 import { cn } from '@/utils/common/cn';
-import './CodeEditor.css';
+import { Icon } from '../common/icons/Icon';
+import { CodeEditorFullScreen } from './CodeEditorFullScreen';
 
-monaco.editor.defineTheme('customCodeEditorTheme', {
-  base: 'vs-dark',
-  inherit: true,
-  rules: [
-    { token: 'comment', foreground: '#7a7a7a' },
-    { token: 'keyword', foreground: '#569CD6' },
-  ],
-  colors: {
-    'editor.background': '#1A1A1A',
-    'editor.foreground': '#D4D4D4',
-    'editorLineNumber.foreground': '#858585',
-    'editor.selectionBackground': '#264F78',
-  },
-});
-
-// Set the custom theme for Monaco Editor instances
-// monaco.editor.setTheme('customCodeEditorTheme');
-
-loader.config({ monaco });
-
-interface CodeEditorProps extends Omit<EditorProps, 'theme' | 'onChange'> {
+interface CodeEditorProps {
+  value: string | ReactNode;
   withFullscreen?: boolean;
   labelContent?: ReactNode;
   label?: string;
@@ -34,110 +23,123 @@ interface CodeEditorProps extends Omit<EditorProps, 'theme' | 'onChange'> {
   readOnly?: boolean;
   isFocused?: boolean;
   maxHeight?: number;
-  minHeight?: number;
   onBlur?: () => Promise<void>;
+  transparent?: boolean;
+  codeLanguage?: string;
+  debounceDelay?: number;
 }
 
-const DEFAULT_MAX_HEIGHT = 600;
-const DEFAULT_MIN_HEIGHT = 120;
+export function CodeEditor({
+  codeLanguage = 'python',
+  transparent = false,
+  withFullscreen = false,
+  debounceDelay = 0,
+  maxHeight = Infinity,
+  readOnly,
+  isFocused,
+  value,
+  onChange,
+  onBlur,
+  label,
+  labelSize,
+  labelContent,
+}: CodeEditorProps) {
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState<boolean>(false);
 
-export const CodeEditor: React.FC<CodeEditorProps> = React.memo<CodeEditorProps>(
-  ({
-    withFullscreen = false,
-    language = 'python',
-    defaultValue = 'Write some text',
-    onChange,
-    onBlur,
-    label,
-    labelSize,
-    labelContent,
-    readOnly,
-    isFocused,
-    minHeight = DEFAULT_MIN_HEIGHT,
-    maxHeight = DEFAULT_MAX_HEIGHT,
-    ...props
-  }) => {
-    const [editorHeight, setEditorHeight] = useState<number>(minHeight);
+  const showLineNumbers = codeLanguage !== 'text' && codeLanguage !== 'markdown';
+  const isProgrammingLang = codeLanguage === 'python';
 
-    const handleEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
-      if (isFocused) {
-        const lastLineNumber = editor.getModel()?.getLineCount() || 0;
-        const lastColumn = editor.getModel()?.getLineLastNonWhitespaceColumn(lastLineNumber) || 0;
-        editor.focus();
-        editor.setPosition({ lineNumber: lastLineNumber, column: lastColumn });
-      }
+  const toggleFullscreen = () => {
+    setIsFullscreenOpen((prev) => !prev);
+  };
 
-      const scrollEditorIntoView = () => {
-        editor.getContainerDomNode().scrollIntoView();
-      };
+  const CodeInput = (height: number) => {
+    const handleLoad = (editor: Ace.Editor) => {
+      editor.renderer.setPadding(20);
 
-      editor.onDidFocusEditorText(() => {
-        scrollEditorIntoView();
-      });
-
-      editor.onDidChangeModelContent(() => {
-        onChange?.(editor.getValue());
-        scrollEditorIntoView();
-      });
-
-      editor.onDidContentSizeChange(() => {
-        const height = Math.min(editor.getContentHeight() || 0, maxHeight - 30) + 30;
-        setEditorHeight(height);
-      });
-
-      editor.onDidBlurEditorText(() => {
-        if (onBlur) {
-          onBlur();
-        }
-      });
+      const lineHeight = editor.renderer.lineHeight;
+      const maxLines = height !== Infinity ? height / lineHeight : Infinity;
+      editor.setOption('maxLines', maxLines);
     };
 
     return (
-      <div id="code-editor">
-        <div className="mb-[10px] flex items-center">
-          <label
-            htmlFor={label}
-            className={cn('py-3 flex', {
-              'text-gray-300 text-sm': labelSize === 'sm',
-              'text-white text-[15px]': labelSize === 'md',
+      <div className="relative">
+        {typeof value === 'string' ? (
+          <AceEditor
+            className={cn('border border-gray-500 font-mono text-sm bg-gray-800 rounded-[8px] ', {
+              'focus-within:bg-gray-600 focus-within:border-gray-400 transition-colors duration-100': !transparent,
+              'hover:bg-gray-600 hover:border-gray-400': !readOnly && !transparent,
+              'pointer-events-none opacity-[0.7]': readOnly,
+              'bg-transparent outline-none border-0': transparent,
             })}
-          >
-            {label}
-          </label>
-          {labelContent}
-        </div>
-        <MonacoEditor
-          key={label}
-          loading={false}
-          defaultValue={defaultValue}
-          height={editorHeight}
-          language={language}
-          options={{
-            minimap: { enabled: false },
-            automaticLayout: true,
-            scrollBeyondLastLine: false,
-            readOnly,
-            fontSize: 15,
-            trimAutoWhitespace: true,
-            mouseWheelZoom: true,
-            wordWrap: 'on',
-            wrappingStrategy: 'advanced',
-          }}
-          wrapperProps={{
-            className: cn(
-              props.className,
-              'border-gray-500 bg-gray-800 overflow-hidden border rounded-[8px] transition duration-100',
-              'focus-within:border-gray-400',
-            ),
-          }}
-          theme="vs-dark"
-          onMount={handleEditorDidMount}
-          {...props}
-        />
+            theme="github_dark"
+            placeholder="Write some text"
+            width="100%"
+            name="ace-editor"
+            showGutter={showLineNumbers}
+            mode={codeLanguage}
+            focus={isFocused}
+            value={value}
+            debounceChangePeriod={debounceDelay}
+            readOnly={readOnly}
+            enableLiveAutocompletion={isProgrammingLang}
+            onBlur={onBlur}
+            onLoad={handleLoad}
+            onChange={onChange}
+            onFocus={(_, editor) => editor?.scrollPageDown}
+            scrollMargin={[12, 12, 20, 20]}
+            showPrintMargin={false}
+            setOptions={{
+              highlightGutterLine: false,
+              highlightActiveLine: false,
+              showPrintMargin: false,
+              wrap: true,
+              enableBasicAutocompletion: true,
+              enableSnippets: false,
+              tabSize: 2,
+              fontSize: '15px',
+              displayIndentGuides: !readOnly,
+            }}
+          />
+        ) : (
+          value
+        )}
+
+        {withFullscreen && (
+          <Icon
+            icon={isFullscreenOpen ? Minimize2 : Maximize2}
+            width={24}
+            height={24}
+            className="absolute right-[25px] bottom-[10px] cursor-pointer text-gray-300 hover:text-white"
+            onClick={toggleFullscreen}
+          />
+        )}
       </div>
     );
-  },
-  (prevProps, nextProps) => {
-    return prevProps.label === nextProps.label;
-  },
-);
+  };
+
+  return (
+    <>
+      <div className="mb-[10px] flex items-center">
+        <label
+          htmlFor="ace-editor"
+          className={cn('py-3 flex', {
+            'text-gray-300 text-sm': labelSize === 'sm',
+            'text-white text-[15px]': labelSize === 'md',
+          })}
+        >
+          {label}
+        </label>
+        {labelContent}
+      </div>
+
+      {!isFullscreenOpen ? (
+        CodeInput(maxHeight)
+      ) : (
+        <CodeEditorFullScreen setOpen={setIsFullscreenOpen} open={isFullscreenOpen}>
+          {CodeInput(600)}
+        </CodeEditorFullScreen>
+      )}
+    </>
+  );
+}
