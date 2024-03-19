@@ -39,6 +39,7 @@ import SideBar from './sidebar/SideBar';
 import { GenUIComponent } from './genui/GenUIComponent';
 import { Home } from './projects/Home';
 import { GlobalSettingsModal } from './settings/modal/GlobalSettingsModal';
+import { updateDocumentTitle } from '@/utils/projects/changeDocumentTitle';
 
 function Project() {
   const isProjectOpen = useProjectStore((state) => state.isProjectOpen);
@@ -66,6 +67,8 @@ function NoProject() {
   const isProjectOpen = useProjectStore((state) => state.isProjectOpen);
   const isProjectLoading = useProjectStore((state) => state.isProjectLoading);
 
+  updateDocumentTitle('Welcome to AIConsole');
+
   if (isProjectOpen && !isProjectLoading) {
     return <Navigate to={`/assets/new?type=chat`} />;
   }
@@ -87,6 +90,12 @@ const AssetPage = () => {
   const id = params.id || '';
 
   const asset = useAssetStore((state) => (id === 'new' ? state.newAssetFromParams(searchParams) : state.getAsset(id)));
+
+  if (asset) {
+    const { name, type } = asset;
+    const title = `${type}: ${name}`;
+    updateDocumentTitle(title);
+  }
 
   if (id === 'new') {
     if (type === 'chat') {
