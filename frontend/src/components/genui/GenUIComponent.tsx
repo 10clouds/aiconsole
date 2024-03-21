@@ -1,11 +1,12 @@
 import { createSandbox } from '@/utils/transpilation/createSandbox';
 import { transpileCode } from '@/utils/transpilation/transpileCode';
-import { useState, ReactNode, useCallback } from 'react';
+import { useState, ReactNode, useCallback, useEffect } from 'react';
 import { CodeInput } from '../assets/CodeInput';
 import { Button } from '../common/Button';
 import { FormGroup } from '../common/FormGroup';
 import { GenUIAPI } from '@/api/api/GenUIAPI';
 import { CodeEditorLabelContent } from '../assets/CodeEditorLabelContent';
+import { updateDocumentTitle } from '@/utils/projects/changeDocumentTitle';
 
 interface ApiResponse {
   code: string;
@@ -25,6 +26,10 @@ export const GenUIComponent = () => {
   const [code, setCode] = useState(DEFAULT_CODE);
   const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(true);
+
+  useEffect(() => {
+    updateDocumentTitle('AIConsole: GenUI');
+  }, []);
 
   const handlePromptChange = (code: string) => setPrompt(code);
 
