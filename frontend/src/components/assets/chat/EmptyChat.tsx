@@ -69,8 +69,8 @@ interface EmptyChatProps {
 }
 
 export const EmptyChat = ({ textAreaRef }: EmptyChatProps) => {
-  const command = useChatStore((state) => state.commandHistory[useChatStore.getState().commandIndex]);
-  const chatOptions = useChatStore((state) => state.chatOptions);
+  const chatOptions = useChatStore((state) => state.chat?.chat_options);
+  const command = chatOptions?.draft_command;
 
   function isExampleCurrentlyActive(asset: Asset, example: string) {
     if (command !== example) {
@@ -98,11 +98,9 @@ export const EmptyChat = ({ textAreaRef }: EmptyChatProps) => {
 
   // Chat options
   const editCommand = useChatStore((state) => state.editCommand);
-  const setSelectedAgentId = useChatStore((state) => state.setSelectedAgentId);
-  const setSelectedMaterialsIds = useChatStore((state) => state.setSelectedMaterialsIds);
-  const setAICanAddExtraMaterials = useChatStore((state) => state.setAICanAddExtraMaterials);
 
   const submitCommand = useChatStore((state) => state.submitCommand);
+  const updateChatOptions = useChatStore((state) => state.updateChatOptions);
 
   const assets = useAssetStore((state) => state.assets);
   const [lastExamples, setLastExamples] = useState<string[]>([]);
@@ -142,26 +140,25 @@ export const EmptyChat = ({ textAreaRef }: EmptyChatProps) => {
     if (isExampleCurrentlyActive(asset, example)) {
       //deselect
       editCommand('');
-      setSelectedAgentId('');
-      setSelectedMaterialsIds([]);
-      setAICanAddExtraMaterials(true);
+      updateChatOptions({ materials_ids: [], agent_id: '', ai_can_add_extra_materials: true });
+
       return;
     }
 
     if (asset.type == 'agent') {
-      setSelectedAgentId(asset.id);
+      updateChatOptions({ agent_id: asset.id });
     } else {
-      setSelectedAgentId('');
+      updateChatOptions({ agent_id: '' });
     }
 
     if (asset.type == 'material') {
-      setSelectedMaterialsIds([asset.id]);
+      updateChatOptions({ materials_ids: [asset.id] });
     } else {
-      setSelectedMaterialsIds([]);
+      updateChatOptions({ materials_ids: [] });
     }
 
     editCommand(example);
-    setAICanAddExtraMaterials(true);
+    updateChatOptions({ ai_can_add_extra_materials: true });
   };
 
   return (

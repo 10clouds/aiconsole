@@ -28,24 +28,14 @@ import { ChatStore, useChatStore } from './useChatStore';
 export type ChatSlice = {
   isSaved: boolean;
   chat?: AICChat;
-  chatOptions?: {
-    agent_id: string;
-    materials_ids: string[];
-    ai_can_add_extra_materials: boolean;
-    draft_command: string;
-  };
   lastUsedChat?: AICChat;
   isChatLoading: boolean;
-  isChatOptionsExpanded: boolean;
+  updateChatOptions: (chatOptions: Partial<AICChat['chat_options']>) => void;
+  debounceChatOptionsUpdate: (chat: AICChat, chatOptions: AICChat['chat_options']) => void;
   setLastUsedChat: (chat?: AICChat) => void;
   setChat: (chat: AICChat) => void;
   renameChat: (newChat: AICChat) => Promise<void>;
   setIsChatLoading: (isLoading: boolean) => void;
-  setIsChatOptionsExpanded: (isExpanded: boolean) => void;
-  setSelectedAgentId: (id: string) => void;
-  setSelectedMaterialsIds: (ids: string[]) => void;
-  setAICanAddExtraMaterials: (aiCanAddExtraMaterials: boolean) => void;
-  setDraftCommand: (draftCommand: string) => void;
   createChat: (chat: AICChat) => Promise<void>;
   chatOptionsSaveDebounceTimer: NodeJS.Timeout | null;
 };
@@ -54,10 +44,8 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set,
   isSaved: false,
   isChatLoading: false,
   chat: createEmptyChat(),
-  chatOptions: undefined,
   agent: undefined,
   lastUsedChat: undefined,
-  isChatOptionsExpanded: true,
   materials: [],
   chatOptionsSaveDebounceTimer: null,
   setLastUsedChat: (chat?: AICChat) => {
@@ -66,12 +54,6 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set,
   setChat: (chat: AICChat) => {
     set({
       chat,
-      chatOptions: {
-        agent_id: chat.chat_options.agent_id,
-        materials_ids: chat.chat_options.materials_ids,
-        ai_can_add_extra_materials: chat.chat_options.ai_can_add_extra_materials,
-        draft_command: chat.chat_options.draft_command,
-      },
     });
   },
   renameChat: async (newChat: AICChat) => {
@@ -84,98 +66,30 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set,
   setIsChatLoading: (isLoading: boolean) => {
     set({ isChatLoading: isLoading });
   },
-  setIsChatOptionsExpanded: (isExpanded: boolean) => {
-    set({ isChatOptionsExpanded: isExpanded });
-  },
-  setSelectedAgentId: (id: string) => {
+
+  updateChatOptions: (chatOptions: Partial<AICChat['chat_options']>) => {
     set((state) => {
       const chat = state.chat;
 
       if (!chat) {
-        throw new Error('Cannot set agent to chat that does not exist');
+        throw new Error('Cannot update chat options for chat that does not exist');
       }
 
-      const chatOptions = {
-        agent_id: id,
-        materials_ids: state.chatOptions?.materials_ids ?? [],
-        ai_can_add_extra_materials: state.chatOptions?.ai_can_add_extra_materials ?? true,
-        draft_command: state.chatOptions?.draft_command ?? '',
+      if (!chatOptions) {
+        throw new Error('Cannot update chat options without any new options');
+      }
+
+      const newChatOptions = {
+        ...chat.chat_options,
+        ...chatOptions,
       };
 
-      debounceChatOptionsUpdate(chat, chatOptions);
+      chat.chat_options = newChatOptions;
+
+      get().debounceChatOptionsUpdate(chat, newChatOptions);
 
       return {
         chat,
-        chatOptions,
-      };
-    });
-  },
-  setSelectedMaterialsIds: (ids: string[]) => {
-    set((state) => {
-      const chat = state.chat;
-
-      if (!chat) {
-        throw new Error('Cannot set materials to chat that does not exist');
-      }
-
-      const chatOptions = {
-        agent_id: state.chatOptions?.agent_id ?? '',
-        materials_ids: ids,
-        ai_can_add_extra_materials: state.chatOptions?.ai_can_add_extra_materials ?? true,
-        draft_command: state.chatOptions?.draft_command ?? '',
-      };
-
-      debounceChatOptionsUpdate(chat, chatOptions);
-
-      return {
-        chat,
-        chatOptions,
-      };
-    });
-  },
-  setAICanAddExtraMaterials: (aiCanAddExtraMaterials: boolean) => {
-    set((state) => {
-      const chat = state.chat;
-
-      if (!chat) {
-        throw new Error('Cannot set AI can add extra materials to chat that does not exist');
-      }
-
-      const chatOptions = {
-        agent_id: state.chatOptions?.agent_id ?? '',
-        materials_ids: state.chatOptions?.materials_ids ?? [],
-        ai_can_add_extra_materials: aiCanAddExtraMaterials,
-        draft_command: state.chatOptions?.draft_command ?? '',
-      };
-
-      debounceChatOptionsUpdate(chat, chatOptions);
-
-      return {
-        chat,
-        chatOptions,
-      };
-    });
-  },
-  setDraftCommand: (draftCommand: string) => {
-    set((state) => {
-      const chat = state.chat;
-
-      if (!chat) {
-        throw new Error('Cannot set draft command to chat that does not exist');
-      }
-
-      const chatOptions = {
-        agent_id: state.chatOptions?.agent_id ?? '',
-        materials_ids: state.chatOptions?.materials_ids ?? [],
-        ai_can_add_extra_materials: state.chatOptions?.ai_can_add_extra_materials ?? true,
-        draft_command: draftCommand,
-      };
-
-      debounceChatOptionsUpdate(chat, chatOptions);
-
-      return {
-        chat,
-        chatOptions,
       };
     });
   },
@@ -199,58 +113,50 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set,
       mutation,
     });
   },
-});
 
-const debounceChatOptionsUpdate = (
-  chat: AICChat,
-  chatOptions: {
-    agent_id: string;
-    materials_ids: string[];
-    ai_can_add_extra_materials: boolean;
-    draft_command: string;
-  },
-) => {
-  const debounceDelay = 500; // milliseconds
+  debounceChatOptionsUpdate: (chat: AICChat, chatOptions: AICChat['chat_options']) => {
+    const debounceDelay = 500; // milliseconds
 
-  const timer = useChatStore.getState().chatOptionsSaveDebounceTimer;
-  if (timer) {
-    clearTimeout(timer);
-    useChatStore.setState({ chatOptionsSaveDebounceTimer: null });
-  }
+    const timer = get().chatOptionsSaveDebounceTimer;
+    if (timer) {
+      clearTimeout(timer);
+      set({ chatOptionsSaveDebounceTimer: null });
+    }
 
-  useChatStore.setState({
-    chatOptionsSaveDebounceTimer: setTimeout(async () => {
-      const isSaved = useChatStore.getState().isSaved;
+    set({
+      chatOptionsSaveDebounceTimer: setTimeout(async () => {
+        const isSaved = useChatStore.getState().isSaved;
 
-      if (!isSaved) {
-        useChatStore.getState().createChat(chat);
-        useChatStore.setState({ isSaved: true });
-        useAssetStore.setState((state) => ({
-          assets: [chat, ...state.assets],
-        }));
-      }
+        if (!isSaved) {
+          useChatStore.getState().createChat(chat);
+          useChatStore.setState({ isSaved: true });
+          useAssetStore.setState((state) => ({
+            assets: [chat, ...state.assets],
+          }));
+        }
 
-      const mutation: SetValueMutation = {
-        type: 'SetValueMutation',
-        ref: {
-          id: chat.id,
-          parent_collection: {
-            id: 'assets',
-            parent: null,
+        const mutation: SetValueMutation = {
+          type: 'SetValueMutation',
+          ref: {
+            id: chat.id,
+            parent_collection: {
+              id: 'assets',
+              parent: null,
+            },
           },
-        },
-        key: 'chat_options',
-        value: chatOptions,
-      };
+          key: 'chat_options',
+          value: chatOptions,
+        };
 
-      applyMutation(chat, mutation);
+        applyMutation(chat, mutation);
 
-      useWebSocketStore.getState().sendMessage({
-        type: 'DoMutationClientMessage',
-        request_id: uuidv4(),
-        mutation,
-      });
-      useChatStore.setState({ chatOptionsSaveDebounceTimer: null });
-    }, debounceDelay),
-  });
-};
+        useWebSocketStore.getState().sendMessage({
+          type: 'DoMutationClientMessage',
+          request_id: uuidv4(),
+          mutation,
+        });
+        set({ chatOptionsSaveDebounceTimer: null });
+      }, debounceDelay),
+    });
+  },
+});

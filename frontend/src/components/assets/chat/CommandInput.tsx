@@ -36,19 +36,16 @@ interface MessageInputProps {
 }
 
 export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel, textAreaRef }: MessageInputProps) => {
-  const ActionIcon = actionIcon;
   const [showChatOptions, setShowChatOptions] = useState(false);
   const chatOptionsInputRef = useRef<HTMLInputElement>(null);
 
-  const setSelectedAgentId = useChatStore((state) => state.setSelectedAgentId);
-  const selectedAgentId = useChatStore((state) => state.chatOptions?.agent_id);
-
-  const setAICanAddExtraMaterials = useChatStore((state) => state.setAICanAddExtraMaterials);
-  const aiCanAddExtraMaterials = useChatStore((state) => state.chatOptions?.ai_can_add_extra_materials);
+  const selectedAgentId = useChatStore((state) => state.chat?.chat_options?.agent_id);
+  const selectedMaterialIds = useChatStore((state) => state.chat?.chat_options?.materials_ids || []);
+  const aiCanAddExtraMaterials = useChatStore((state) => state.chat?.chat_options?.ai_can_add_extra_materials);
 
   const chat = useChatStore((state) => state.chat);
-  const draftCommand = useChatStore((state) => state.chatOptions?.draft_command);
-  const setDraftCommand = useChatStore((state) => state.setDraftCommand);
+  const draftCommand = useChatStore((state) => state.chat?.chat_options?.draft_command);
+
   const command = useChatStore((state) => state.commandHistory[state.commandIndex]);
   const setCommand = useChatStore((state) => state.editCommand);
 
@@ -56,17 +53,18 @@ export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel, tex
   const promptDown = useChatStore((state) => state.historyDown);
 
   const assets = useAssetStore((state) => state.assets);
-  const setSelectedMaterialIds = useChatStore((state) => state.setSelectedMaterialsIds);
-  const selectedMaterialIds = useChatStore((state) => state.chatOptions?.materials_ids || []);
+  const ActionIcon = actionIcon;
 
   const selectedMaterials = useMemo(
     () => assets?.filter(({ id }) => selectedMaterialIds.includes(id)) || [],
     [assets, selectedMaterialIds],
   );
 
+  const updateChatOptions = useChatStore((state) => state.updateChatOptions);
+
   const handleSendMessage = useCallback(
     async (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-      setDraftCommand('');
+      updateChatOptions({ draft_command: '' });
 
       if (onSubmit) onSubmit(command);
 
@@ -78,7 +76,7 @@ export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel, tex
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       setCommand(e.target.value);
-      setDraftCommand(e.target.value);
+      updateChatOptions({ draft_command: e.target.value });
       const mentionMatch = e.target.value.match(/@(\s*)$/);
       setShowChatOptions(!!mentionMatch);
 
@@ -113,14 +111,14 @@ export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel, tex
           if (selectedMaterialIds.length > 0) {
             const newChosenMaterials = [...selectedMaterialIds];
             newChosenMaterials.pop();
-            setSelectedMaterialIds(newChosenMaterials);
+            updateChatOptions({ materials_ids: newChosenMaterials });
           } else {
-            setSelectedAgentId('');
+            updateChatOptions({ agent_id: '' });
           }
         }
       }
     },
-    [handleSendMessage, promptDown, promptUp, setSelectedAgentId, setSelectedMaterialIds, selectedMaterialIds],
+    [handleSendMessage, promptDown, promptUp, updateChatOptions, selectedMaterialIds],
   );
 
   // auto focus this text area on changes to chatId
@@ -148,7 +146,7 @@ export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel, tex
   };
 
   const onSelectAgentId = (id: string) => {
-    setSelectedAgentId(id);
+    updateChatOptions({ agent_id: id });
     setShowChatOptions(false);
     removeLastAt();
     setTimeout(() => {
@@ -157,11 +155,11 @@ export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel, tex
   };
 
   const removeAgentId = () => {
-    setSelectedAgentId('');
+    updateChatOptions({ agent_id: '' });
   };
 
   const handleMaterialSelect = (material: Material) => {
-    setSelectedMaterialIds([...selectedMaterialIds, material.id]);
+    updateChatOptions({ materials_ids: [...selectedMaterialIds, material.id] });
     setShowChatOptions(false);
     removeLastAt();
     setTimeout(() => {
@@ -171,7 +169,7 @@ export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel, tex
 
   const removeSelectedMaterial = (id: string) => () => {
     const material = selectedMaterials.find((material) => material.id === id) as Material;
-    setSelectedMaterialIds(selectedMaterialIds.filter((id) => id !== material.id).map((id) => id));
+    updateChatOptions({ materials_ids: selectedMaterialIds.filter((id) => id !== material.id).map((id) => id) });
   };
 
   const handleFocus = useCallback(() => {
@@ -179,13 +177,11 @@ export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel, tex
   }, []);
 
   const handleAnalysisClick = () => {
-    setAICanAddExtraMaterials(!aiCanAddExtraMaterials);
+    updateChatOptions({ ai_can_add_extra_materials: !aiCanAddExtraMaterials });
   };
 
   const clearChatOptions = () => {
-    setSelectedAgentId('');
-    setSelectedMaterialIds([]);
-    setAICanAddExtraMaterials(true);
+    updateChatOptions({ agent_id: '', materials_ids: [], ai_can_add_extra_materials: true });
   };
 
   return (

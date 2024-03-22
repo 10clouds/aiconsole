@@ -45,7 +45,7 @@ const ChatOptions = ({
   inputRef,
   textAreaRef,
 }: ChatOptionsProps) => {
-  const chatOptions = useChatStore((state) => state.chatOptions);
+  const chatOptions = useChatStore((state) => state.chat?.chat_options);
   const chat = useChatStore((state) => state.chat);
   const assets = useAssetStore((state) => state.assets) as Asset[];
   const [inputValue, setInputValue] = useState('');

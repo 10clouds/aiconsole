@@ -106,12 +106,6 @@ export async function handleServerMessage(message: ServerMessage) {
 
       useChatStore.setState({
         chat,
-        chatOptions: {
-          agent_id: chat.chat_options.agent_id,
-          materials_ids: chat.chat_options.materials_ids,
-          ai_can_add_extra_materials: chat.chat_options.ai_can_add_extra_materials,
-          draft_command: chat.chat_options.draft_command,
-        },
       });
       break;
     }
