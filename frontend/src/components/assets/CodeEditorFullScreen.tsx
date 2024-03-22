@@ -1,13 +1,13 @@
 import { ReactNode } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 
-interface CodeInputFullScreenProps {
+interface CodeEditorFullScreenProps {
   children: ReactNode;
   open: boolean;
   setOpen: (open: boolean) => void;
 }
 
-export const CodeInputFullScreen = ({ children, setOpen, open }: CodeInputFullScreenProps) => {
+export const CodeEditorFullScreen = ({ children, setOpen, open }: CodeEditorFullScreenProps) => {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>

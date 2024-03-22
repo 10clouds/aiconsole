@@ -16,9 +16,9 @@
 
 import { useCallback, useState } from 'react';
 import { MessageControls } from './MessageControls';
-import { CodeInput } from '../../CodeInput';
 import { cn } from '@/utils/common/cn';
 import { useChatStore } from '@/store/assets/chat/useChatStore';
+import { CodeEditor } from '../../CodeEditor';
 
 interface EditableContentMessageProps {
   initialContent: string;
@@ -70,16 +70,14 @@ export function EditableContentMessage({
     <div className={cn('flex flex-row items-start overflow-auto', className)}>
       {isEditing ? (
         <div className="rounded-md flex-grow ">
-          <CodeInput
-            className="resize-none border-0 bg-transparent w-full outline-none"
+          <CodeEditor
             value={content}
             onChange={handleOnChange}
             codeLanguage={language ? language : 'text'}
-            transparent
-            focused={isEditing}
-            maxHeight="400px"
-            minHeight="400px"
             onBlur={handleSaveClick}
+            transparent
+            isFocused
+            maxHeight={400}
           />
         </div>
       ) : (

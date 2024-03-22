@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { AssetsAPI } from '@/api/api/AssetsAPI';
 import { FormGroup } from '@/components/common/FormGroup';
 import { Material, RenderedMaterial } from '@/types/assets/assetTypes';
 import { MarkdownSupported } from '../MarkdownSupported';
 import { CodeEditorLabelContent } from '../CodeEditorLabelContent';
-import { CodeInput } from '../CodeInput';
 import { TextInput } from '../TextInput';
 import { useMaterialEditorContent } from './useMaterialEditorContent';
 import { useAssetStore } from '@/store/assets/useAssetStore';
+import { CodeEditor } from '../CodeEditor';
 
 interface MaterialFormProps {
   material: Material;
@@ -16,11 +16,12 @@ interface MaterialFormProps {
 
 export const MaterialForm = ({ material }: MaterialFormProps) => {
   const setSelectedAsset = useAssetStore((state) => state.setSelectedAsset);
-  const handleChange = (value: string) => setSelectedAsset({ ...material, usage: value });
   const [showPreview, setShowPreview] = useState(false);
   const [preview, setPreview] = useState<RenderedMaterial | undefined>(undefined);
-  const previewValue = preview ? preview?.content.split('\\n').join('\n') : 'Generating preview...';
   const materialEditorContent = useMaterialEditorContent(material);
+
+  const toggleShowPreview = () => setShowPreview((prev) => !prev);
+  const handleChange = (value: string) => setSelectedAsset({ ...material, usage: value });
 
   useEffect(() => {
     if (!material) {
@@ -32,6 +33,10 @@ export const MaterialForm = ({ material }: MaterialFormProps) => {
     });
   }, [material]);
 
+  const previewValue = useMemo(
+    () => (preview ? preview?.content.split('\\n').join('\n') : 'Generating preview...'),
+    [preview],
+  );
   const codePreviewConfig = {
     label: 'Preview of text to be injected into AI context',
     onChange: undefined,
@@ -58,19 +63,16 @@ export const MaterialForm = ({ material }: MaterialFormProps) => {
       </FormGroup>
       <FormGroup className="w-full flex flex-col">
         <div className="flex-1">
-          {codeEditorSectionContent ? (
-            <CodeInput
-              label={codeEditorSectionContent.label}
-              labelContent={
-                <CodeEditorLabelContent showPreview={showPreview} onClick={() => setShowPreview((prev) => !prev)} />
-              }
-              labelSize="md"
-              value={codeEditorSectionContent.value}
-              codeLanguage={codeEditorSectionContent.codeLanguage}
-              onChange={codeEditorSectionContent.onChange}
-              readOnly={showPreview}
-            />
-          ) : null}
+          <CodeEditor
+            label={codeEditorSectionContent?.label}
+            labelContent={<CodeEditorLabelContent showPreview={showPreview} onClick={toggleShowPreview} />}
+            labelSize="md"
+            value={codeEditorSectionContent?.value}
+            onChange={codeEditorSectionContent?.onChange}
+            codeLanguage={codeEditorSectionContent?.codeLanguage}
+            readOnly={showPreview}
+            debounceDelay={500}
+          />
           <MarkdownSupported />
         </div>
       </FormGroup>

@@ -9,11 +9,11 @@ import { Agent, Asset } from '@/types/assets/assetTypes';
 import { EXECUTION_MODES, getExecutionMode } from '@/utils/assets/getExecutionMode';
 import { useDebouncedFunction } from '@/utils/common/useDebouncedFunction';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CodeInput } from '../CodeInput';
 import { HelperLabel } from '../HelperLabel';
 import { MarkdownSupported } from '../MarkdownSupported';
 import { ErrorObject, TextInput } from '../TextInput';
 import Checkbox from '@/components/common/Checkbox';
+import { CodeEditor } from '../CodeEditor';
 
 interface AgentFormProps {
   agent: Agent;
@@ -213,7 +213,7 @@ export const AgentForm = ({
                 />
               ),
             )}
-            <CodeInput
+            <CodeEditor
               label="System prompt"
               labelContent={
                 <HelperLabel
@@ -224,7 +224,7 @@ export const AgentForm = ({
               value={agent.system}
               withFullscreen
               codeLanguage="markdown"
-              maxHeight={'calc(100vh - 200px)'}
+              maxHeight={window.innerHeight - 200}
               onChange={setAsset}
             />
           </div>
