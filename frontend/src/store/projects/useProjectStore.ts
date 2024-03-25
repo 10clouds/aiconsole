@@ -54,7 +54,7 @@ export const useProjectStore = create<ProjectSlice>((set, _) => ({
       isProjectSwitchFetching: false,
     }));
 
-    await Promise.all([useChatStore.getState().initCommandHistory()]);
+    await Promise.all([useChatStore.getState().actions.initCommandHistory()]);
 
     if (initial) {
       await Promise.all([useAssetStore.getState().initAssets(), useSettingsStore.getState().initSettings()]);

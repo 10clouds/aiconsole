@@ -97,9 +97,7 @@ export const EmptyChat = ({ textAreaRef }: EmptyChatProps) => {
   }
 
   // Chat options
-  const editCommand = useChatStore((state) => state.editCommand);
-
-  const submitCommand = useChatStore((state) => state.submitCommand);
+  const { editCommand, submitCommand } = useChatStore((state) => state.actions);
   const updateChatOptions = useChatStore((state) => state.updateChatOptions);
 
   const assets = useAssetStore((state) => state.assets);

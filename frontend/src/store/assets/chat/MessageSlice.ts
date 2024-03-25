@@ -27,7 +27,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { AssetMutation } from '@/api/ws/assetMutations';
 
 export type MessageSlice = {
-  loadingMessages: boolean;
   isViableForRunningCode: (toolCallId: string) => boolean;
   userMutateChat: (mutation: AssetMutation | AssetMutation[]) => Promise<void>;
   lockChat: (lockId: string) => Promise<void>;
@@ -55,7 +54,6 @@ export const createMessageSlice: StateCreator<ChatStore, [], [], MessageSlice> =
       return false;
     }
   },
-  loadingMessages: false,
   lockChat: async (lockId: string) => {
     const chat = get().chat;
 

@@ -24,143 +24,145 @@ import { useSettingsStore } from '@/store/settings/useSettingsStore';
 export type CommandSlice = {
   commandHistory: string[];
   commandIndex: number;
-  historyUp: () => void;
-  historyDown: () => void;
-  scrollChatToBottom: undefined | ((props: ScrollOption) => void);
-  setScrollChatToBottom: (scrollChatToBottom: (props: ScrollOption) => void) => void;
-  newCommand: () => Promise<void>;
-  editCommand: (prompt: string) => void;
-  getCommand: () => string;
-  appendFilePathToCommand: (path: string) => void;
-  saveCommandAndMessagesToHistory: (command: string, isUserCommand: boolean) => Promise<void>;
-  submitCommand: (prompt: string, isNewChat?: boolean) => Promise<void>;
-  initCommandHistory: () => Promise<void>;
   commandPending: boolean;
+  scrollChatToBottom?: (props: ScrollOption) => void;
+
+  actions: {
+    historyUp: () => void;
+    newCommand: () => void;
+    historyDown: () => void;
+    getCommand: () => string;
+    editCommand: (prompt: string) => void;
+    initCommandHistory: () => Promise<void>;
+    appendFilePathToCommand: (path: string) => void;
+    submitCommand: (prompt: string, isNewChat?: boolean) => Promise<void>;
+    saveCommandAndMessagesToHistory: (command: string, isUserCommand: boolean) => Promise<void>;
+  };
 };
 
 export const createCommandSlice: StateCreator<ChatStore, [], [], CommandSlice> = (set, get) => ({
-  setScrollChatToBottom: (scrollChatToBottom) => set(() => ({ scrollChatToBottom })),
-  scrollChatToBottom: undefined,
   commandHistory: [''],
   commandIndex: 0,
-  initCommandHistory: async () => {
-    const history: string[] = await (await ChatAPI.getCommandHistory()).json();
+  commandPending: false,
+  scrollChatToBottom: undefined,
 
-    set(() => ({
-      commandHistory: [...history, ''],
-      commandIndex: history.length,
-    }));
-  },
-  historyDown: () => {
-    set((state) => ({
-      commandIndex: Math.min(state.commandHistory.length - 1, state.commandIndex + 1),
-    }));
-  },
-  historyUp: () => {
-    set((state) => ({ commandIndex: Math.max(0, state.commandIndex - 1) }));
-  },
-  newCommand: async () =>
-    set((state) => ({
-      commandHistory: [...state.commandHistory, ''],
-      commandIndex: state.commandHistory.length,
-    })),
-  editCommand: (command) => {
-    set((state) => ({
-      commandHistory: [
-        ...state.commandHistory.slice(0, state.commandIndex),
-        command,
-        ...state.commandHistory.slice(state.commandIndex + 1, state.commandHistory.length),
-      ],
-    }));
-  },
-  getCommand: () => {
-    return get().commandHistory[get().commandIndex];
-  },
-  appendFilePathToCommand: (path: string) => {
-    const command = get().getCommand();
-    get().editCommand(`${command} ${path}`);
-  },
-  saveCommandAndMessagesToHistory: async (command: string, isUserCommand: boolean) => {
-    if (isUserCommand) {
-      const history: string[] = await (await ChatAPI.saveCommandToHistory({ command })).json();
+  actions: {
+    initCommandHistory: async () => {
+      const history: string[] = await (await ChatAPI.getCommandHistory()).json();
+
       set(() => ({
         commandHistory: [...history, ''],
         commandIndex: history.length,
       }));
-    }
-  },
-  submitCommand: async (command: string) => {
-    if (get().commandPending) {
-      return;
-    }
-    set(() => ({ commandPending: true }));
+    },
+    historyDown: () => {
+      set((state) => ({
+        commandIndex: Math.min(state.commandHistory.length - 1, state.commandIndex + 1),
+      }));
+    },
+    historyUp: () => {
+      set((state) => ({ commandIndex: Math.max(0, state.commandIndex - 1) }));
+    },
+    newCommand: () =>
+      set((state) => ({
+        commandHistory: [...state.commandHistory, ''],
+        commandIndex: state.commandHistory.length,
+      })),
+    editCommand: (command) => {
+      set((state) => ({
+        commandHistory: [
+          ...state.commandHistory.slice(0, state.commandIndex),
+          command,
+          ...state.commandHistory.slice(state.commandIndex + 1, state.commandHistory.length),
+        ],
+      }));
+    },
+    getCommand: () => {
+      return get().commandHistory[get().commandIndex];
+    },
+    appendFilePathToCommand: (path: string) => {
+      const { getCommand, editCommand } = get().actions;
+      const command = getCommand();
+      editCommand(`${command} ${path}`);
+    },
+    saveCommandAndMessagesToHistory: async (command: string, isUserCommand: boolean) => {
+      if (isUserCommand) {
+        const history: string[] = await (await ChatAPI.saveCommandToHistory({ command })).json();
+        set(() => ({
+          commandHistory: [...history, ''],
+          commandIndex: history.length,
+        }));
+      }
+    },
+    submitCommand: async (command: string) => {
+      if (get().commandPending) {
+        return;
+      }
+      set(() => ({ commandPending: true }));
 
-    await get().stopWork();
+      await get().stopWork();
 
-    while (get().chatOptionsSaveDebounceTimer) {
-      //Let's wait until any chat option modifiactions are saved
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      console.debug('Waiting for chatOptionsSaveDebounceTimer to be null');
-    }
+      const { saveCommandAndMessagesToHistory } = get().actions;
 
-    if (command.trim() !== '') {
-      const chat = get().chat;
-
-      if (!chat) {
-        throw new Error('Chat is not initialized');
+      while (get().chatOptionsSaveDebounceTimer) {
+        //Let's wait until any chat option modifiactions are saved
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        console.debug('Waiting for chatOptionsSaveDebounceTimer to be null');
       }
 
-      const messageGroupId = uuid();
-      const messageId = uuid();
+      if (command.trim() !== '') {
+        const chat = get().chat;
 
-      //  "AICMessageGroup": AICMessageGroup,
-      //       "AICMessage": AICMessage,
-      //       "AICToolCall": AICToolCall,
-      //       "AICChat": AICChat,
+        if (!chat) {
+          throw new Error('Chat is not initialized');
+        }
 
-      await get().userMutateChat({
-        type: 'CreateMutation',
-        ref: {
-          id: messageGroupId,
-          parent_collection: {
-            id: 'message_groups',
-            parent: {
-              id: chat.id,
-              parent_collection: { id: 'assets' },
+        const messageGroupId = uuid();
+        const messageId = uuid();
+
+        await get().userMutateChat({
+          type: 'CreateMutation',
+          ref: {
+            id: messageGroupId,
+            parent_collection: {
+              id: 'message_groups',
+              parent: {
+                id: chat.id,
+                parent_collection: { id: 'assets' },
+              },
             },
           },
-        },
-        object_type: 'AICMessageGroup',
-        object: {
-          actor_id: { type: 'user', id: useSettingsStore.getState().settings.user_profile.id || 'user' },
-          task: '',
-          materials_ids: [],
-          analysis: '',
-          role: 'user',
-          messages: [
-            {
-              is_streaming: false,
-              id: messageId,
-              content: command,
-              timestamp: new Date().toISOString(),
-              tool_calls: [],
-            },
-          ],
-        },
-      });
+          object_type: 'AICMessageGroup',
+          object: {
+            actor_id: { type: 'user', id: useSettingsStore.getState().settings.user_profile.id || 'user' },
+            task: '',
+            materials_ids: [],
+            analysis: '',
+            role: 'user',
+            messages: [
+              {
+                is_streaming: false,
+                id: messageId,
+                content: command,
+                timestamp: new Date().toISOString(),
+                tool_calls: [],
+              },
+            ],
+          },
+        });
 
-      await get().saveCommandAndMessagesToHistory(command, true);
-    }
-    const scrollChatToBottom = get().scrollChatToBottom;
+        await saveCommandAndMessagesToHistory(command, true);
+      }
 
-    if (scrollChatToBottom) {
-      scrollChatToBottom({
-        behavior: 'smooth',
-      });
-    }
+      const scrollChatToBottom = get().scrollChatToBottom;
+      if (scrollChatToBottom) {
+        scrollChatToBottom({
+          behavior: 'smooth',
+        });
+      }
 
-    await get().doProcess();
-    set(() => ({ commandPending: false }));
+      await get().doProcess();
+      set(() => ({ commandPending: false }));
+    },
   },
-  commandPending: false,
 });

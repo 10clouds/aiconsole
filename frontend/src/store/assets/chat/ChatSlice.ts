@@ -27,7 +27,7 @@ import { ChatStore, useChatStore } from './useChatStore';
 
 export type ChatSlice = {
   isSaved: boolean;
-  chat?: AICChat;
+  chat: AICChat;
   lastUsedChat?: AICChat;
   isChatLoading: boolean;
   updateChatOptions: (chatOptions: Partial<AICChat['chat_options']>) => void;

@@ -23,7 +23,7 @@ import { SendRotated } from '@/components/common/icons/SendRotated';
 import { useChatStore } from '@/store/assets/chat/useChatStore';
 import { useToastsStore } from '@/store/common/useToastsStore';
 import { useProjectStore } from '@/store/projects/useProjectStore';
-import { AICChat, createEmptyChat } from '@/types/assets/chatTypes';
+import { AICChat } from '@/types/assets/chatTypes';
 import { useAssetContextMenu } from '@/utils/assets/useContextMenuForEditable';
 import { cn } from '@/utils/common/cn';
 import { COMMANDS } from '@/utils/constants';
@@ -43,11 +43,10 @@ interface FileWithPath extends File {
 
 export function ChatWindowScrollToBottomSave() {
   const scrollToBottom = useScrollToBottom();
-  const setScrollChatToBottom = useChatStore((state) => state.setScrollChatToBottom);
 
   useEffect(() => {
-    setScrollChatToBottom(scrollToBottom);
-  }, [scrollToBottom, setScrollChatToBottom]);
+    useChatStore.setState({ scrollChatToBottom: scrollToBottom });
+  }, [scrollToBottom]);
 
   return <></>;
 }
@@ -72,35 +71,37 @@ const ScrollToBottomButton = () => {
 };
 
 export function ChatPage() {
-  // Monitors params and initialises useChatStore.chat and useAssetStore.selectedAsset zustand stores
+  // local state
+  const [showSpinner, setShowSpinner] = useState(false);
+
+  // react router hooks
   const params = useParams();
   const navigate = useNavigate();
   const idParam = params.id || '';
   const assetType = 'chat';
-  const searchParams = useSearchParams()[0];
+  const [searchParams] = useSearchParams();
   const copyId = searchParams.get('copy');
   const dt = searchParams.get('dt') || '';
   const forceRefresh = searchParams.get('forceRefresh'); // used to force a refresh
-  const command = useChatStore((state) => state.commandHistory[state.commandIndex]);
 
   const chat = useChatStore((state) => state.chat);
   const setLastUsedChat = useChatStore((state) => state.setLastUsedChat);
-  const loadingMessages = useChatStore((state) => state.loadingMessages);
+
+  // global states
   const isAnalysisRunning = useChatStore((state) => state.chat?.is_analysis_in_progress);
   const isExecutionRunning = useChatStore((state) => state.isExecutionRunning());
-  const submitCommand = useChatStore((state) => state.submitCommand);
   const isSaved = useChatStore((state) => state.isSaved);
   const stopWork = useChatStore((state) => state.stopWork);
-  const newCommand = useChatStore((state) => state.newCommand);
   const isProjectLoading = useProjectStore((state) => state.isProjectLoading);
-  const appendFilePathToCommand = useChatStore((state) => state.appendFilePathToCommand);
   const showToast = useToastsStore((state) => state.showToast);
   const menuItems = useAssetContextMenu({ asset: chat, assetType: 'chat' });
   const renameChat = useChatStore((state) => state.renameChat);
   const setChat = useChatStore((state) => state.setChat);
-  const hasAnyCommandInput = command.trim() !== '';
 
-  const [showSpinner, setShowSpinner] = useState(false);
+  const { submitCommand, newCommand, appendFilePathToCommand } = useChatStore((state) => state.actions);
+
+  const command = useChatStore((state) => state.actions.getCommand());
+  const hasAnyCommandInput = command.trim() !== '';
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -115,7 +116,7 @@ export function ChatPage() {
     }
 
     return () => clearTimeout(timer); // Cleanup the timer when the component unmounts or the dependencies change
-  }, [loadingMessages, chat, isProjectLoading]); // Add dependencies that trigger the spinner
+  }, [chat, isProjectLoading]); // Add dependencies that trigger the spinner
 
   useEffect(() => {
     const stopEvent = (e: Event) => {
@@ -168,7 +169,6 @@ export function ChatPage() {
 
     return () => {
       AssetsAPI.closeChat(idParam);
-      useChatStore.setState({ chat: createEmptyChat() });
     };
   }, [copyId, idParam, dt, assetType, forceRefresh, setChat]);
 
@@ -176,7 +176,7 @@ export function ChatPage() {
     if (isSaved && idParam === 'new') {
       navigate(`/assets/${chat?.id}`, { replace: true });
     }
-  }, [isSaved, idParam, chat]);
+  }, [isSaved, idParam, navigate, chat]);
 
   const isLastMessageFromUser =
     chat?.message_groups.length && chat.message_groups[chat.message_groups.length - 1].actor_id.type === 'user';
@@ -257,7 +257,7 @@ export function ChatPage() {
       </ContextMenu>
       <div className="flex flex-col overflow-hidden h-full w-full">
         <div className="flex-1 overflow-hidden">
-          {!isProjectLoading && !loadingMessages ? ( // This is needed because of https://github.com/compulim/react-scroll-to-bottom/issues/61#issuecomment-1608456508
+          {!isProjectLoading ? ( // This is needed because of https://github.com/compulim/react-scroll-to-bottom/issues/61#issuecomment-1608456508
             <ScrollToBottom
               className="h-full w-full overflow-auto-x"
               scrollViewClassName="main-chat-window flex-1"

@@ -18,16 +18,15 @@ import { Button } from '@/components/common/Button';
 import Tooltip from '@/components/common/Tooltip';
 import { Icon } from '@/components/common/icons/Icon';
 import { useChatStore } from '@/store/assets/chat/useChatStore';
-import { useAssetStore } from '@/store/assets/useAssetStore';
 import { Material } from '@/types/assets/assetTypes';
 import { cn } from '@/utils/common/cn';
-import { BanIcon, LucideIcon, X } from 'lucide-react';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { LucideIcon } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
-import { ActorAvatar } from './ActorAvatar';
 import ChatOptions from './ChatOptions';
+import { CommandOptionsPanel } from './CommandOptionsPanel';
 
-interface MessageInputProps {
+interface CommandInputProps {
   actionIcon: LucideIcon | ((props: React.SVGProps<SVGSVGElement>) => JSX.Element);
   className?: string;
   actionLabel: string;
@@ -35,30 +34,22 @@ interface MessageInputProps {
   textAreaRef: React.RefObject<HTMLTextAreaElement>;
 }
 
-export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel, textAreaRef }: MessageInputProps) => {
-  const [showChatOptions, setShowChatOptions] = useState(false);
+export const CommandInput = ({
+  className,
+  onSubmit,
+  actionIcon: ActionIcon,
+  actionLabel,
+  textAreaRef,
+}: CommandInputProps) => {
+  const [showChatOptions, setShowChatOptions] = useState<boolean>(false);
   const chatOptionsInputRef = useRef<HTMLInputElement>(null);
 
-  const selectedAgentId = useChatStore((state) => state.chat?.chat_options?.agent_id);
-  const selectedMaterialIds = useChatStore((state) => state.chat?.chat_options?.materials_ids || []);
-  const aiCanAddExtraMaterials = useChatStore((state) => state.chat?.chat_options?.ai_can_add_extra_materials);
+  const { editCommand, historyDown, historyUp } = useChatStore((state) => state.actions);
+  const command = useChatStore((state) => state.actions.getCommand());
+  const selectedMaterialIds = useChatStore((state) => state.chat.chat_options.materials_ids);
+  const draftCommand = useChatStore((state) => state.chat.chat_options.draft_command);
 
   const chat = useChatStore((state) => state.chat);
-  const draftCommand = useChatStore((state) => state.chat?.chat_options?.draft_command);
-
-  const command = useChatStore((state) => state.commandHistory[state.commandIndex]);
-  const setCommand = useChatStore((state) => state.editCommand);
-
-  const promptUp = useChatStore((state) => state.historyUp);
-  const promptDown = useChatStore((state) => state.historyDown);
-
-  const assets = useAssetStore((state) => state.assets);
-  const ActionIcon = actionIcon;
-
-  const selectedMaterials = useMemo(
-    () => assets?.filter(({ id }) => selectedMaterialIds.includes(id)) || [],
-    [assets, selectedMaterialIds],
-  );
 
   const updateChatOptions = useChatStore((state) => state.updateChatOptions);
 
@@ -75,8 +66,9 @@ export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel, tex
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setCommand(e.target.value);
+      editCommand(e.target.value);
       updateChatOptions({ draft_command: e.target.value });
+
       const mentionMatch = e.target.value.match(/@(\s*)$/);
       setShowChatOptions(!!mentionMatch);
 
@@ -84,7 +76,7 @@ export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel, tex
         chatOptionsInputRef?.current?.focus();
       }, 0);
     },
-    [setCommand],
+    [editCommand, updateChatOptions],
   );
 
   const handleKeyDown = useCallback(
@@ -102,9 +94,9 @@ export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel, tex
           textAreaRef.current.selectionEnd === textAreaRef.current.value.length;
 
         if (e.key === 'ArrowUp' && caretAtStart) {
-          promptUp();
+          historyUp();
         } else if (e.key === 'ArrowDown' && caretAtEnd) {
-          promptDown();
+          historyDown();
         }
 
         if (e.key === 'Backspace' && caretAtStart) {
@@ -118,71 +110,51 @@ export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel, tex
         }
       }
     },
-    [handleSendMessage, promptDown, promptUp, updateChatOptions, selectedMaterialIds],
+    [handleSendMessage, historyDown, historyUp, updateChatOptions, selectedMaterialIds],
   );
 
-  // auto focus this text area on changes to chatId
+  useEffect(() => {
+    editCommand(draftCommand || '');
+  }, [draftCommand, editCommand]);
+
   useEffect(() => {
     if (textAreaRef.current) {
       textAreaRef.current.focus();
     }
-  }, [chat?.id]);
-
-  useEffect(() => {
-    setCommand(draftCommand || '');
-  }, [draftCommand, setCommand]);
+  }, [chat.id]);
 
   useEffect(() => {
     textAreaRef.current?.setSelectionRange(draftCommand?.length || 0, draftCommand?.length || 0);
   }, []);
 
-  const getAgent = (agentId: string) => assets.find((agent) => agent.id === agentId);
-
   const removeLastAt = () => {
     if (command.endsWith('@')) {
       const newCommand = command.slice(0, -1);
-      setCommand(newCommand);
+      editCommand(newCommand);
     }
   };
 
   const onSelectAgentId = (id: string) => {
-    updateChatOptions({ agent_id: id });
+    updateChatOptions({ agent_id: id, draft_command: '' });
     setShowChatOptions(false);
     removeLastAt();
     setTimeout(() => {
       textAreaRef?.current?.focus();
     }, 0);
-  };
-
-  const removeAgentId = () => {
-    updateChatOptions({ agent_id: '' });
   };
 
   const handleMaterialSelect = (material: Material) => {
-    updateChatOptions({ materials_ids: [...selectedMaterialIds, material.id] });
+    updateChatOptions({ materials_ids: [...selectedMaterialIds, material.id], draft_command: '' });
     setShowChatOptions(false);
     removeLastAt();
     setTimeout(() => {
       textAreaRef?.current?.focus();
     }, 0);
-  };
-
-  const removeSelectedMaterial = (id: string) => () => {
-    const material = selectedMaterials.find((material) => material.id === id) as Material;
-    updateChatOptions({ materials_ids: selectedMaterialIds.filter((id) => id !== material.id).map((id) => id) });
   };
 
   const handleFocus = useCallback(() => {
     setShowChatOptions(false);
   }, []);
-
-  const handleAnalysisClick = () => {
-    updateChatOptions({ ai_can_add_extra_materials: !aiCanAddExtraMaterials });
-  };
-
-  const clearChatOptions = () => {
-    updateChatOptions({ agent_id: '', materials_ids: [], ai_can_add_extra_materials: true });
-  };
 
   return (
     <div className={cn(className, 'flex w-full flex-col px-4 py-[20px] bg-gray-900 z-50')}>
@@ -197,86 +169,7 @@ export const CommandInput = ({ className, onSubmit, actionIcon, actionLabel, tex
           />
         )}
         <div className="w-full overflow-y-auto border border-gray-500 focus-within:border-gray-400 transition duration-100 rounded-[8px] flex flex-col flex-grow resize-none">
-          {(selectedAgentId || selectedMaterialIds.length > 0 || !aiCanAddExtraMaterials) && (
-            <div className="bg-gray-600">
-              <div className="px-[20px] py-[12px] w-full flex flex-wrap gap-2 items-center">
-                <span className="text-gray-400 text-[14px]">Talking&nbsp;to</span>
-
-                {selectedAgentId ? (
-                  <>
-                    <div
-                      className="flex jusify-between items-center gap-2 bg-gray-700 px-[6px] py-[6px] rounded-[32px] cursor-pointer"
-                      onClick={removeAgentId}
-                    >
-                      <div className="flex items-center gap-1 w-full">
-                        <ActorAvatar
-                          actorType="agent"
-                          actorId={selectedAgentId}
-                          type="extraSmall"
-                          className="!mb-0 !mt-0"
-                        />
-
-                        <p className="text-[15px]">
-                          <span className="text-white">{selectedAgentId ? getAgent(selectedAgentId)?.name : '?'}</span>
-                        </p>
-
-                        {selectedAgentId && <Icon icon={X} className={cn('w-4 h-4 min-h-4 min-w-4 flex-shrink-0')} />}
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <span title="AI will choose the agent">?</span>
-                )}
-                {selectedMaterials.length > 0 || !aiCanAddExtraMaterials ? (
-                  <span className="text-gray-400 text-[14px]">using </span>
-                ) : null}
-                {selectedMaterials.map((material) => (
-                  <div
-                    key={material.id}
-                    onClick={removeSelectedMaterial(material.id)}
-                    className="flex gap-1 items-center bg-gray-700 px-[6px] py-[6px] rounded-[32px] cursor-pointer"
-                  >
-                    <span className="text-white text-[14px] pl-[4px]">{material.name}</span>
-                    <Icon
-                      icon={X}
-                      className={cn('w-4 h-4 min-h-4 min-w-4 flex-shrink-0 cursor-pointer text-gray-400')}
-                    />
-                  </div>
-                ))}
-                {aiCanAddExtraMaterials ? (
-                  <div
-                    onClick={handleAnalysisClick}
-                    title="Allows the AI to add more context to the conversation."
-                    className="flex gap-1 items-center cursor-pointer"
-                  >
-                    <span className="text-gray-400  text-[14px]">with extra context</span>
-                  </div>
-                ) : (
-                  <div
-                    onClick={handleAnalysisClick}
-                    title="No additonal context will be added to the conversation."
-                    className="flex gap-1 items-center bg-gray-700 px-[6px] py-[6px] rounded-[32px] cursor-pointer text-[14px] text-material pl-[8px]"
-                  >
-                    <Icon icon={BanIcon} className={cn('w-4 h-4 min-h-4 min-w-4 flex-shrink-0 cursor-pointer')} />
-                    No extra
-                    <Icon
-                      icon={X}
-                      className={cn('w-4 h-4 min-h-4 min-w-4 flex-shrink-0 cursor-pointer text-gray-400')}
-                    />
-                  </div>
-                )}
-
-                <div className="ml-auto">
-                  <Icon
-                    icon={X}
-                    className={cn('w-4 h-4 min-h-4 min-w-4 flex-shrink-0 cursor-pointer')}
-                    onClick={clearChatOptions}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
+          <CommandOptionsPanel />
           <TextareaAutosize
             ref={textAreaRef}
             className="w-full bg-transparent text-[15px] text-white resize-none overflow-y-auto px-[20px] py-[12px] placeholder:text-gray-400 focus:outline-none"

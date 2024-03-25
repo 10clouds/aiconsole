@@ -20,8 +20,8 @@ interface MessageProps {
 }
 
 export function MessageComponent({ message, group }: MessageProps) {
+  const { saveCommandAndMessagesToHistory, submitCommand } = useChatStore((state) => state.actions);
   const userMutateChat = useChatStore((state) => state.userMutateChat);
-  const saveCommandAndMessagesToHistory = useChatStore((state) => state.saveCommandAndMessagesToHistory);
   const getBaseURL = useAPIStore((state) => state.getBaseURL);
   const [isEditing, setIsEditing] = useState(false);
   const chat = useChatStore((state) => state.chat);
@@ -84,8 +84,6 @@ export function MessageComponent({ message, group }: MessageProps) {
     },
     [message.id, saveCommandAndMessagesToHistory, group.role, userMutateChat],
   );
-
-  const submitCommand = useChatStore((state) => state.submitCommand);
 
   return (
     <div>

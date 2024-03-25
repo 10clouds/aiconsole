@@ -1,4 +1,4 @@
-import { AICChat, getMessageGroup, getMessageLocation, getToolCallLocation } from '@/types/assets/chatTypes';
+import { AICChat } from '@/types/assets/chatTypes';
 import { MessageBuffer } from '@/utils/common/MessageBuffer';
 import {
   AppendToStringMutation,
@@ -7,7 +7,6 @@ import {
   DeleteMutation,
   SetValueMutation,
 } from '../assetMutations';
-import { ChatMutation } from './chatMutations';
 import { Asset } from '@/types/assets/assetTypes';
 import { getRefSegments } from '@/utils/assets/getRefSegments';
 
@@ -202,7 +201,7 @@ function findAttribute(asset: Asset | AICChat, refSegments: string[]): Record<st
 
 function handleCreateMutation(asset: Asset | AICChat, mutation: CreateMutation): void {
   const { refSegments } = mutation.ref;
-  const attr = findAttribute(asset, refSegments);
+  let attr = findAttribute(asset, refSegments);
   const object = mutation.object;
   if (object.id === undefined) {
     object.id = mutation.ref.id;
@@ -249,20 +248,20 @@ function handleAppendToStringMutation(asset: Asset | AICChat, mutation: AppendTo
 }
 
 export function applyMutation(asset: Asset | AICChat, mutation: AssetMutation, messageBuffer?: MessageBuffer) {
-  mutation.ref.refSegments = getRefSegments(mutation.ref);
-  switch (mutation.type) {
-    case 'CreateMutation':
-      handleCreateMutation(asset, mutation);
-      break;
-    case 'DeleteMutation':
-      handleDeleteMutation(asset, mutation);
-      break;
-    case 'SetValueMutation': {
-      handleSetValueMutation(asset, mutation);
-      break;
-    }
-    case 'AppendToStringMutation':
-      handleAppendToStringMutation(asset, mutation);
-      break;
+  const mutationsHandlers = {
+    CreateMutation: handleCreateMutation,
+    DeleteMutation: handleDeleteMutation,
+    SetValueMutation: handleSetValueMutation,
+    AppendToStringMutation: handleAppendToStringMutation,
+  };
+
+  const mutationType = mutation.type;
+
+  if (mutationType in mutationsHandlers) {
+    mutation.ref.refSegments = getRefSegments(mutation.ref);
+    mutationsHandlers[mutationType](asset, mutation as any);
+    delete mutation.ref.refSegments;
+  } else {
+    console.error('Unknown mutation type: ', mutation);
   }
 }

@@ -14,14 +14,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { type ChangeEvent, useMemo, useRef, useState } from 'react';
+import clsx from 'clsx';
 import { Icon } from '@/components/common/icons/Icon';
 import { useChatStore } from '@/store/assets/chat/useChatStore';
 import { useAssetStore } from '@/store/assets/useAssetStore';
 import { Asset, Material } from '@/types/assets/assetTypes';
 import { getAssetIcon } from '@/utils/assets/getAssetIcon';
 import { useClickOutside } from '@/utils/common/useClickOutside';
-import clsx from 'clsx';
-import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { ActorAvatar } from './ActorAvatar';
 
 type ChatOptionsProps = {
@@ -45,34 +45,31 @@ const ChatOptions = ({
   inputRef,
   textAreaRef,
 }: ChatOptionsProps) => {
-  const chatOptions = useChatStore((state) => state.chat?.chat_options);
-  const chat = useChatStore((state) => state.chat);
   const assets = useAssetStore((state) => state.assets) as Asset[];
-  const [inputValue, setInputValue] = useState('');
-  const [filteredAssetsOptions, setFilteredAssetsOptions] = useState<Asset[]>(assets);
+
+  const [inputValue, setInputValue] = useState<string>('');
+  const [focusedIndex, setFocusedIndex] = useState<number>(0);
   const wrapperRef = useRef<HTMLDivElement>(null);
+
   const isChatLoading = useChatStore((state) => state.isChatLoading);
-  const [focusedIndex, setFocusedIndex] = useState(0);
 
-  useEffect(() => {
+  const materialIds = useChatStore((state) => state.chat.chat_options.materials_ids);
+  const agentId = useChatStore((state) => state.chat.chat_options.agent_id);
+
+  const filteredAssetsOptions = useMemo(() => {
     const regex = new RegExp(`${inputValue}`, 'i');
-    const filteredMaterialOptions = assets
-      .filter((item) => regex.test(item.name))
-      .filter((item) => item.enabled)
-      .filter((item) => item.type !== 'chat')
-      .filter((item) => !chatOptions?.materials_ids.includes(item.id))
-      .filter((item) => item.id !== chatOptions?.agent_id);
+    const filteredMaterialOptions = assets.filter((item) => {
+      return (
+        regex.test(item.name) &&
+        item.enabled &&
+        item.type !== 'chat' &&
+        !materialIds.includes(item.id) &&
+        item.id !== agentId
+      );
+    });
 
-    setFilteredAssetsOptions(filteredMaterialOptions);
-  }, [assets, inputValue, chatOptions]);
-
-  useEffect(() => {
-    if (focusedIndex >= 0) {
-      const buttons = wrapperRef.current?.querySelectorAll('.options-list button') as NodeListOf<HTMLButtonElement>;
-      const buttonToFocus = buttons?.[focusedIndex];
-      buttonToFocus?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }, [focusedIndex]);
+    return filteredMaterialOptions;
+  }, []);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
@@ -81,6 +78,8 @@ const ChatOptions = ({
 
   const handleKeydown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const itemCount = filteredAssetsOptions.length;
+    const buttons = wrapperRef.current?.querySelectorAll('.options-list button') as NodeListOf<HTMLButtonElement>;
+
     if ((e.nativeEvent.key === 'Backspace' && inputValue === '') || e.nativeEvent.key === 'Escape') {
       setShowChatOptions(false);
       setFocusedIndex(0);
@@ -93,6 +92,8 @@ const ChatOptions = ({
         if (nextIndex < 0) {
           return prevIndex;
         }
+        buttons?.[nextIndex]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
         return nextIndex;
       });
     }
@@ -103,6 +104,7 @@ const ChatOptions = ({
         if (nextIndex >= itemCount) {
           return prevIndex;
         }
+        buttons?.[nextIndex]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         return nextIndex;
       });
     }
@@ -141,9 +143,9 @@ const ChatOptions = ({
     }
   };
 
-  if (!chat && !isChatLoading) {
-    return;
-  }
+  // if (!isChatLoading) {
+  //   return;
+  // }
 
   return (
     <div
