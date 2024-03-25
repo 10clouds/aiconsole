@@ -46,8 +46,6 @@ export const createActionSlice: StateCreator<ChatStore, [], [], ActionSlice> = (
     return !!chat.lock_id;
   },
 
-  runningProcesses: [],
-
   doAcceptCode: async (toolCallId: string) => {
     const chat = get().chat;
 

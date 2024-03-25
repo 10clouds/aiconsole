@@ -16,7 +16,7 @@
 
 import { AssetsAPI } from '@/api/api/AssetsAPI';
 import { EmptyChat } from '@/components/assets/chat/EmptyChat';
-import { MessageGroup } from '@/components/assets/chat/MessageGroup';
+import { MessageGroup } from './messages/MessageGroup';
 import { ContextMenu } from '@/components/common/ContextMenu';
 import { QuestionMarkIcon } from '@/components/common/icons/QuestionMarkIcon';
 import { SendRotated } from '@/components/common/icons/SendRotated';
@@ -29,12 +29,13 @@ import { cn } from '@/utils/common/cn';
 import { COMMANDS } from '@/utils/constants';
 import { ArrowDown, ReplyIcon, Square } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import ScrollToBottom, { useAnimating, useScrollToBottom, useSticky } from 'react-scroll-to-bottom';
 import { v4 as uuidv4 } from 'uuid';
 import { EditorHeader } from '../EditorHeader';
 import { CommandInput } from './CommandInput';
 import { Spinner } from './Spinner';
+import React from 'react';
 
 // Electron adds the path property to File objects
 interface FileWithPath extends File {
@@ -70,15 +71,12 @@ const ScrollToBottomButton = () => {
   );
 };
 
-export function ChatPage() {
-  // local state
+export const ChatPage = React.memo(function ChatPage() {
   const [showSpinner, setShowSpinner] = useState(false);
-
-  // react router hooks
-  const params = useParams();
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  // Monitors params and initialises useChatStore.chat and useAssetStore.selectedAsset zustand stores
+  const { state } = useLocation();
   const navigate = useNavigate();
-  const idParam = params.id || '';
-  const assetType = 'chat';
   const [searchParams] = useSearchParams();
   const copyId = searchParams.get('copy');
   const dt = searchParams.get('dt') || '';
@@ -102,8 +100,8 @@ export function ChatPage() {
 
   const command = useChatStore((state) => state.actions.getCommand());
   const hasAnyCommandInput = command.trim() !== '';
-
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const idParam = useParams().id || 'new';
+  const assetType = 'chat';
 
   useEffect(() => {
     setShowSpinner(false);
@@ -151,30 +149,35 @@ export function ChatPage() {
 
   // Acquire the initial object
   useEffect(() => {
-    if (copyId) {
-      AssetsAPI.fetchAsset<AICChat>({ assetType, id: copyId }).then((orgChat) => {
-        orgChat.id = uuidv4();
-        orgChat.name = orgChat.name + ' (copy)';
-        orgChat.title_edited = true;
-        setChat(orgChat);
-      });
-    } else {
-      //For id === 'new' This will get a default new asset
-      AssetsAPI.fetchAsset<AICChat>({ assetType, id: idParam }).then((chat) => {
-        setChat(chat);
-      });
+    if (!state?.prevId) {
+      if (copyId) {
+        AssetsAPI.fetchAsset<AICChat>({ assetType, id: copyId }).then((orgChat) => {
+          orgChat.id = uuidv4();
+          orgChat.name = orgChat.name + ' (copy)';
+          orgChat.title_edited = true;
+          setChat(orgChat);
+        });
+      } else {
+        //For id === 'new' This will get a default new asset
+        AssetsAPI.fetchAsset<AICChat>({ assetType, id: idParam }).then((chat) => {
+          setChat(chat);
+        });
+      }
     }
 
     useChatStore.setState({ isSaved: idParam !== 'new' });
 
     return () => {
-      AssetsAPI.closeChat(idParam);
+      if (idParam !== 'new') {
+        AssetsAPI.closeChat(idParam);
+        useChatStore.setState({ chat: undefined });
+      }
     };
-  }, [copyId, idParam, dt, assetType, forceRefresh, setChat]);
+  }, [copyId, idParam, dt, assetType, state, forceRefresh, setChat]);
 
   useEffect(() => {
     if (isSaved && idParam === 'new') {
-      navigate(`/assets/${chat?.id}`, { replace: true });
+      navigate(`/assets/${chat?.id}`, { replace: true, state: { prevId: idParam } });
     }
   }, [isSaved, idParam, navigate, chat]);
 
@@ -202,6 +205,16 @@ export function ChatPage() {
   const handleRename = async (newName: string) => {
     if (newName !== chat.name) {
       const newChat = { ...chat, name: newName, title_edited: true } as AICChat;
+
+      if (!isSaved) {
+        showToast({
+          title: 'Error',
+          message: 'Cannot rename a new chat.',
+          variant: 'error',
+        });
+
+        return;
+      }
 
       await renameChat(newChat);
 
@@ -287,4 +300,4 @@ export function ChatPage() {
       </div>
     </div>
   );
-}
+});

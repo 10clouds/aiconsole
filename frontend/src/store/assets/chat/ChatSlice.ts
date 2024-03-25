@@ -15,15 +15,11 @@
 // limitations under the License.
 
 import { StateCreator } from 'zustand';
-
 import { AssetsAPI } from '@/api/api/AssetsAPI';
-import { CreateMutation, SetValueMutation } from '@/api/ws/assetMutations';
-import { applyMutation } from '@/api/ws/chat/applyMutation';
-import { useWebSocketStore } from '@/api/ws/useWebSocketStore';
 import { AICChat, createEmptyChat } from '@/types/assets/chatTypes';
-import { v4 as uuidv4 } from 'uuid';
 import { useAssetStore } from '../useAssetStore';
 import { ChatStore, useChatStore } from './useChatStore';
+import { MutationsAPI } from '@/api/api/MutationsAPI';
 
 export type ChatSlice = {
   isSaved: boolean;
@@ -36,7 +32,6 @@ export type ChatSlice = {
   setChat: (chat: AICChat) => void;
   renameChat: (newChat: AICChat) => Promise<void>;
   setIsChatLoading: (isLoading: boolean) => void;
-  createChat: (chat: AICChat) => Promise<void>;
   chatOptionsSaveDebounceTimer: NodeJS.Timeout | null;
 };
 
@@ -93,26 +88,6 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set,
       };
     });
   },
-  createChat: async (chat: AICChat) => {
-    const mutation: CreateMutation = {
-      type: 'CreateMutation',
-      ref: {
-        id: chat.id,
-        parent_collection: {
-          id: 'assets',
-          parent: null,
-        },
-      },
-      object_type: 'AICChat',
-      object: chat,
-    };
-
-    useWebSocketStore.getState().sendMessage({
-      type: 'DoMutationClientMessage',
-      request_id: uuidv4(),
-      mutation,
-    });
-  },
 
   debounceChatOptionsUpdate: (chat: AICChat, chatOptions: AICChat['chat_options']) => {
     const debounceDelay = 500; // milliseconds
@@ -128,34 +103,15 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set,
         const isSaved = useChatStore.getState().isSaved;
 
         if (!isSaved) {
-          useChatStore.getState().createChat(chat);
+          MutationsAPI.create({ object: chat });
           useChatStore.setState({ isSaved: true });
           useAssetStore.setState((state) => ({
             assets: [chat, ...state.assets],
           }));
         }
 
-        const mutation: SetValueMutation = {
-          type: 'SetValueMutation',
-          ref: {
-            id: chat.id,
-            parent_collection: {
-              id: 'assets',
-              parent: null,
-            },
-          },
-          key: 'chat_options',
-          value: chatOptions,
-        };
-
-        applyMutation(chat, mutation);
-
-        useWebSocketStore.getState().sendMessage({
-          type: 'DoMutationClientMessage',
-          request_id: uuidv4(),
-          mutation,
-        });
-        set({ chatOptionsSaveDebounceTimer: null });
+        MutationsAPI.update({ asset: chat, key: 'chat_options', value: chatOptions });
+        useChatStore.setState({ chatOptionsSaveDebounceTimer: null });
       }, debounceDelay),
     });
   },

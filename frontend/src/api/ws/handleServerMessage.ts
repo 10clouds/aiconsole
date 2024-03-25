@@ -5,11 +5,11 @@ import { useAssetStore } from '@/store/assets/useAssetStore';
 import { useToastsStore } from '@/store/common/useToastsStore';
 import { ServerMessage } from './serverMessages';
 import { applyMutation } from './chat/applyMutation';
-import { deepCopyChat } from '@/utils/assets/chatUtils';
 import { AssetsAPI } from '../api/AssetsAPI';
 import { AICChat } from '@/types/assets/chatTypes';
 import { v4 as uuidv4 } from 'uuid';
 import { MessageBuffer } from '@/utils/common/MessageBuffer';
+import { deepCopyObject } from '@/utils/common/deepCopyObject';
 
 let messageBuffer = new MessageBuffer();
 
@@ -80,7 +80,7 @@ export async function handleServerMessage(message: ServerMessage) {
       }
       break;
     case 'NotifyAboutAssetMutationServerMessage': {
-      const chat = deepCopyChat(useChatStore.getState().chat);
+      const chat = deepCopyObject(useChatStore.getState().chat);
 
       if (!chat) {
         throw new Error('Chat is not initialized');

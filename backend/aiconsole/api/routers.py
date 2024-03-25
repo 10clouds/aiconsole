@@ -18,6 +18,7 @@ from fastapi import APIRouter
 
 from aiconsole.api.endpoints import (
     assets,
+    audio,
     check_key,
     commands_history,
     execution_modes,
@@ -36,6 +37,7 @@ app_router = APIRouter()
 app_router.include_router(ping.router)
 app_router.include_router(genui.router)
 app_router.include_router(image.router)
+app_router.include_router(audio.router)
 app_router.include_router(check_key.router)
 app_router.include_router(net_check.router)
 app_router.include_router(profile.router, tags=["Profile"])

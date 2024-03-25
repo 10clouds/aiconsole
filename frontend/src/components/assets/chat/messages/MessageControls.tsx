@@ -16,7 +16,7 @@
 
 import { Icon } from '@/components/common/icons/Icon';
 import { cn } from '@/utils/common/cn';
-import { Trash, Pencil, Save, X } from 'lucide-react';
+import { Loader2Icon, Pencil, Save, Trash, Volume2Icon, X } from 'lucide-react';
 interface MessageControlsProps {
   isEditing?: boolean;
   hideControls?: boolean;
@@ -24,6 +24,10 @@ interface MessageControlsProps {
   onEditClick?: () => void;
   onRemoveClick?: () => void;
   onCancelClick?: () => void;
+  onPlayClick?: () => Promise<void>;
+  onPlayStopClick?: () => void;
+  isSoundHighlighted?: boolean;
+  isSoundLoading?: boolean;
 }
 
 export function MessageControls({
@@ -33,6 +37,10 @@ export function MessageControls({
   onCancelClick,
   onEditClick,
   onRemoveClick,
+  onPlayClick,
+  onPlayStopClick,
+  isSoundHighlighted,
+  isSoundLoading,
 }: MessageControlsProps) {
   return (
     <div className="min-w-[48px]">
@@ -55,6 +63,22 @@ export function MessageControls({
             'hidden group-hover:flex': hideControls,
           })}
         >
+          {isSoundLoading && <Icon icon={Loader2Icon} className="animate-spin" />}
+          {!isSoundLoading && (
+            <>
+              {onPlayClick && !isSoundHighlighted && (
+                <button onClick={onPlayClick}>
+                  <Icon icon={Volume2Icon} />{' '}
+                </button>
+              )}
+              {onPlayStopClick && isSoundHighlighted && (
+                <button onClick={onPlayStopClick} className="text-primary">
+                  <Icon icon={Volume2Icon} strokeWidth={2} />{' '}
+                </button>
+              )}
+            </>
+          )}
+
           {onSaveClick && onEditClick && onCancelClick ? (
             <button onClick={onEditClick}>
               <Icon icon={Pencil} className="pointer-events-none" />{' '}

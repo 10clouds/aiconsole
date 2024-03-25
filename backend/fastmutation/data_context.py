@@ -1,7 +1,7 @@
 import uuid
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Dict, List, Type, overload
+from typing import TYPE_CHECKING, List, Type, overload
 
 if TYPE_CHECKING:
     from fastmutation.mutations import AssetMutation

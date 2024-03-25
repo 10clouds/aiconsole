@@ -81,7 +81,7 @@ export function createEmptyChat(): AICChat {
   return {
     id: 'new',
     type: 'chat',
-    name: 'New chat',
+    name: 'New Chat',
     version: '0.0.1',
     usage: '',
     usage_examples: [],

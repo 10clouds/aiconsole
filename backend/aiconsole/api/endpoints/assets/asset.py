@@ -39,7 +39,7 @@ from aiconsole.core.project.paths import (
     get_core_assets_directory,
     get_project_assets_directory,
 )
-from aiconsole.core.project.project import is_project_initialized
+from aiconsole.core.project.project import get_project_assets, is_project_initialized
 
 router = APIRouter()
 
@@ -135,7 +135,9 @@ async def partially_update_asset(
             chat = await load_chat_history(id=asset_id)
             if asset.name:
                 chat.name = str(asset.name)
-                await project.get_project_assets().reload(initial=True)
+                await get_project_assets().save_asset(chat, chat.id, create=False)
+            await project.get_project_assets().reload(initial=True)
+
         else:
             await agents_service.partially_update_asset(asset_id=asset_id, asset=asset)
 

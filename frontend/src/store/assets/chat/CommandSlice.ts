@@ -20,6 +20,7 @@ import { v4 as uuid } from 'uuid';
 import { ChatAPI } from '../../../api/api/ChatAPI';
 import { ChatStore } from './useChatStore';
 import { useSettingsStore } from '@/store/settings/useSettingsStore';
+import { MutationsAPI } from '@/api/api/MutationsAPI';
 
 export type CommandSlice = {
   commandHistory: string[];
@@ -120,36 +121,29 @@ export const createCommandSlice: StateCreator<ChatStore, [], [], CommandSlice> =
         const messageGroupId = uuid();
         const messageId = uuid();
 
-        await get().userMutateChat({
-          type: 'CreateMutation',
-          ref: {
-            id: messageGroupId,
-            parent_collection: {
-              id: 'message_groups',
-              parent: {
-                id: chat.id,
-                parent_collection: { id: 'assets' },
-              },
+        await get().userMutateChat((chat, lockId) =>
+          MutationsAPI.create({
+            asset: chat,
+            path: ['message_groups', messageGroupId],
+            object: {
+              actor_id: { type: 'user', id: useSettingsStore.getState().settings.user_profile.id || 'user' },
+              task: '',
+              materials_ids: [],
+              analysis: '',
+              role: 'user',
+              messages: [
+                {
+                  is_streaming: false,
+                  id: messageId,
+                  content: command,
+                  timestamp: new Date().toISOString(),
+                  tool_calls: [],
+                },
+              ],
             },
-          },
-          object_type: 'AICMessageGroup',
-          object: {
-            actor_id: { type: 'user', id: useSettingsStore.getState().settings.user_profile.id || 'user' },
-            task: '',
-            materials_ids: [],
-            analysis: '',
-            role: 'user',
-            messages: [
-              {
-                is_streaming: false,
-                id: messageId,
-                content: command,
-                timestamp: new Date().toISOString(),
-                tool_calls: [],
-              },
-            ],
-          },
-        });
+            requestId: lockId,
+          }),
+        );
 
         await saveCommandAndMessagesToHistory(command, true);
       }

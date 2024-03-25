@@ -14,13 +14,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useState } from 'react';
-import { MessageControls } from './MessageControls';
-import { CodeInput } from '../../CodeInput';
-import { cn } from '@/utils/common/cn';
 import { useChatStore } from '@/store/assets/chat/useChatStore';
+import { cn } from '@/utils/common/cn';
+import { useCallback, useEffect, useState } from 'react';
+import { CodeInput } from '../../CodeInput';
+import { MessageControls } from './MessageControls';
+import { useTTSStore } from '@/audio/useTTSStore';
 
 interface EditableContentMessageProps {
+  enableTTS?: boolean;
   initialContent: string;
   language?: string;
   children?: React.ReactNode;
@@ -33,6 +35,7 @@ interface EditableContentMessageProps {
 }
 
 export function EditableContentMessage({
+  enableTTS,
   initialContent,
   children,
   language,
@@ -44,7 +47,17 @@ export function EditableContentMessage({
   setIsEditing,
 }: EditableContentMessageProps) {
   const isBeingProcessed = useChatStore((state) => !!state.chat?.lock_id);
+  const isPlaying = useTTSStore((state) => state.isPlaying);
+  const numLoading = useTTSStore((state) => state.numLoading);
+  const hasAutoPlay = useTTSStore((state) => state.hasAutoPlay);
+  const readText = useTTSStore((state) => state.readText);
+  const stopReading = useTTSStore((state) => state.stopReading);
+
   const [content, setContent] = useState(initialContent);
+
+  useEffect(() => {
+    setContent(initialContent);
+  }, [initialContent]);
 
   const handleEditClick = () => {
     if (isBeingProcessed) {
@@ -65,6 +78,14 @@ export function EditableContentMessage({
     await handleAcceptedContent(content);
     setIsEditing(false);
   }, [content, handleAcceptedContent, setIsEditing]);
+
+  const handlePlayClick = useCallback(async () => {
+    await readText(content, false);
+  }, [content, readText]);
+
+  const handleStopClick = useCallback(() => {
+    stopReading();
+  }, [stopReading]);
 
   return (
     <div className={cn('flex flex-row items-start overflow-auto', className)}>
@@ -88,13 +109,17 @@ export function EditableContentMessage({
 
       <div
         className={cn('flex flex-none gap-4 px-4 self-start', {
-          'min-w-[100px] ml-[92px]': hideControls,
+          'min-w-[112px] ml-[92px]': hideControls,
         })}
       >
         {!isBeingProcessed && (
           <MessageControls
             isEditing={isEditing}
             hideControls={hideControls}
+            onPlayClick={enableTTS ? handlePlayClick : undefined}
+            onPlayStopClick={enableTTS ? handleStopClick : undefined}
+            isSoundHighlighted={hasAutoPlay}
+            isSoundLoading={numLoading > 0 && !isPlaying}
             onCancelClick={handleCancelEditClick}
             onEditClick={handleEditClick}
             onSaveClick={handleSaveClick}

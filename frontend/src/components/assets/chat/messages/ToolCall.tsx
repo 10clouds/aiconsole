@@ -19,7 +19,7 @@ import { ReactNode, useCallback, useState } from 'react';
 import { Icon } from '@/components/common/icons/Icon';
 import { useChatStore } from '@/store/assets/chat/useChatStore';
 import { useSettingsStore } from '@/store/settings/useSettingsStore';
-import { AICMessageGroup, AICToolCall } from '@/types/assets/chatTypes';
+import { type AICMessageGroup, type AICToolCall, type AICMessage } from '@/types/assets/chatTypes';
 import { cn } from '@/utils/common/cn';
 import { upperFirst } from '@mantine/hooks';
 import {
@@ -40,13 +40,15 @@ import { ToolOutput } from './ToolOutput';
 import { transpileCode } from '@/utils/transpilation/transpileCode';
 import { createSandbox } from '@/utils/transpilation/createSandbox';
 import { MessageControls } from './MessageControls';
+import { MutationsAPI } from '@/api/api/MutationsAPI';
 
 interface MessageProps {
   group: AICMessageGroup;
+  message: AICMessage;
   toolCall: AICToolCall;
 }
 
-export function ToolCall({ group, toolCall: tool_call }: MessageProps) {
+export function ToolCall({ group, toolCall: tool_call, message }: MessageProps) {
   const [isEditing, setIsEditing] = useState(false);
   const userMutateChat = useChatStore((state) => state.userMutateChat);
   const saveCommandAndMessagesToHistory = useChatStore((state) => state.saveCommandAndMessagesToHistory);
@@ -74,27 +76,34 @@ export function ToolCall({ group, toolCall: tool_call }: MessageProps) {
     runCode();
   };
 
-
   const [uiResult, setUIResult] = useState<ReactNode | null>(null);
 
   const handleAcceptedContent = useCallback(
     async (content: string) => {
-      userMutateChat({
-        type: 'SetCodeToolCallMutation',
-        tool_call_id: tool_call.id,
-        code: content,
-      });
+      userMutateChat((asset, lockId) =>
+        MutationsAPI.update({
+          asset,
+          path: ['message_groups', group.id, 'messages', message.id, 'tool_calls', tool_call.id],
+          key: 'code',
+          value: content,
+          requestId: lockId,
+        }),
+      );
+
       saveCommandAndMessagesToHistory(content, group.role === 'user');
     },
-    [tool_call.id, userMutateChat, saveCommandAndMessagesToHistory, group.role],
+    [tool_call.id, userMutateChat, saveCommandAndMessagesToHistory, group.role, message.id, group.id],
   );
 
   const handleRemoveClick = useCallback(() => {
-    userMutateChat({
-      type: 'DeleteToolCallMutation',
-      tool_call_id: tool_call.id,
-    });
-  }, [tool_call.id, userMutateChat]);
+    userMutateChat((asset, lockId) =>
+      MutationsAPI.delete({
+        asset,
+        path: ['message_groups', group.id, 'messages', message.id, 'tool_calls', tool_call.id],
+        requestId: lockId,
+      }),
+    );
+  }, [tool_call.id, userMutateChat, message.id, group.id]);
 
   const runCode = async () => {
     await doAcceptCode(tool_call.id);
@@ -105,7 +114,6 @@ export function ToolCall({ group, toolCall: tool_call }: MessageProps) {
     const sandbox = createSandbox(finalCode);
     setUIResult(sandbox);
   };
-
 
   function translateLanguageToRealLanguage(language: string | undefined) {
     if (language === 'react_ui') {
@@ -236,7 +244,12 @@ export function ToolCall({ group, toolCall: tool_call }: MessageProps) {
 
           <div>
             {tool_call.output != undefined && (
-              <ToolOutput syntaxHighlighterCustomStyles={customVs2015} tool_call={tool_call} />
+              <ToolOutput
+                message={message}
+                group={group}
+                syntaxHighlighterCustomStyles={customVs2015}
+                tool_call={tool_call}
+              />
             )}
           </div>
         </div>

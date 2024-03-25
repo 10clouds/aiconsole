@@ -1096,6 +1096,11 @@
   dependencies:
     "@types/unist" "*"
 
+"@types/howler@^2.2.11":
+  version "2.2.11"
+  resolved "https://registry.yarnpkg.com/@types/howler/-/howler-2.2.11.tgz#a75c4ab5666aee5fcfbd5de15d35dbaaa3d3f070"
+  integrity sha512-7aBoUL6RbSIrqKnpEgfa1wSNUBK06mn08siP2QI0zYk7MXfEJAaORc4tohamQYqCqVESoDyRWSdQn2BOKWj2Qw==
+
 "@types/json-schema@^7.0.12":
   version "7.0.15"
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.15.tgz#596a1747233694d50f6ad8a7869fcb6f56cf5841"
@@ -2180,6 +2185,11 @@ highlight.js@^11.9.0:
   version "11.9.0"
   resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-11.9.0.tgz#04ab9ee43b52a41a047432c8103e2158a1b8b5b0"
   integrity sha512-fJ7cW7fQGCYAkgv4CPfwFHrfd/cLS4Hau96JuJ+ZTOWhjnhoeN1ub1tFmALm/+lW5z4WCAuAV9bm05AP0mS6Gw==
+
+howler@^2.2.4:
+  version "2.2.4"
+  resolved "https://registry.yarnpkg.com/howler/-/howler-2.2.4.tgz#bd3df4a4f68a0118a51e4bd84a2bfc2e93e6e5a1"
+  integrity sha512-iARIBPgcQrwtEr+tALF+rapJ8qSc+Set2GJQl7xT1MQzWaVkFebdJhR3alVlSiUf5U7nAANKuj3aWpwerocD5w==
 
 html-url-attributes@^3.0.0:
   version "3.0.0"

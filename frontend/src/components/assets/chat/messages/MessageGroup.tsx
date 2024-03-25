@@ -14,19 +14,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ActorInfo } from '@/components/assets/chat/ActorInfo';
 import { cn } from '@/utils/common/cn';
 import { useState } from 'react';
-import { AICMessageGroup } from '../../../types/assets/chatTypes';
-import { AnalysisClosed, AnalysisOpened } from './Analysis';
-import { MessageComponent } from './messages/MessageComponent';
-import { MessageControls } from './messages/MessageControls';
+import { ActorInfo } from '@/components/assets/chat/ActorInfo';
+import { AnalysisClosed, AnalysisOpened } from '../Analysis';
+import { MessageComponent } from './MessageComponent';
+import { MessageControls } from './MessageControls';
 import { useChatStore } from '@/store/assets/chat/useChatStore';
+import { type Asset } from '@/types/assets/assetTypes';
+import { MutationsAPI } from '@/api/api/MutationsAPI';
+import { type AICMessageGroup } from '@/types/assets/chatTypes';
 
 export function MessageGroup({ group }: { group: AICMessageGroup }) {
   const [isAnalysisManuallyOpen, setIsAnalysisManuallyOpen] = useState<boolean | undefined>(undefined);
   const isBeingProcessed = useChatStore((state) => !!state.chat?.lock_id);
   const chat = useChatStore((state) => state.chat);
+  const mutateChat = useChatStore((state) => state.userMutateChat);
 
   const lockId = useChatStore((state) => state.chat?.lock_id);
 
@@ -56,16 +59,9 @@ export function MessageGroup({ group }: { group: AICMessageGroup }) {
           <MessageControls
             hideControls={!!lockId}
             onRemoveClick={() => {
-              useChatStore.getState().userMutateChat({
-                type: 'DeleteMutation',
-                ref: {
-                  id: group.id,
-                  parent_collection: {
-                    id: 'message_groups',
-                    parent: { id: chat?.id, parent_collection: { id: 'assets', parent: null } },
-                  },
-                },
-              });
+              mutateChat((asset, lockId) =>
+                MutationsAPI.delete({ asset, path: ['message_groups', group.id], requestId: lockId }),
+              );
             }}
           />
         )}

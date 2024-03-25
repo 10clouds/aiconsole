@@ -89,9 +89,10 @@ async function closeChat(id: string): Promise<ServerMessage> {
       request_id: uuidv4(),
     },
     (response: ServerMessage) => {
-      return response.type === 'ResponseServerMessage' && response.payload.id === id && !response.is_error;
+      return response.type === 'ResponseServerMessage';
     },
   );
+
   return response;
 }
 

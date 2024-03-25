@@ -15,38 +15,47 @@
 // limitations under the License.
 
 import { useChatStore } from '@/store/assets/chat/useChatStore';
-import { AICToolCall } from '@/types/assets/chatTypes';
+import { AICMessage, AICMessageGroup, AICToolCall } from '@/types/assets/chatTypes';
 import { useCallback, useState } from 'react';
 import SyntaxHighlighter, { SyntaxHighlighterProps } from 'react-syntax-highlighter';
 import { duotoneDark as vs2015 } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { EditableContentMessage } from './EditableContentMessage';
+import { MutationsAPI } from '@/api/api/MutationsAPI';
 
 interface OutputProps {
   tool_call: AICToolCall;
   syntaxHighlighterCustomStyles?: SyntaxHighlighterProps['style'];
+  group: AICMessageGroup;
+  message: AICMessage;
 }
 
-export function ToolOutput({ tool_call, syntaxHighlighterCustomStyles }: OutputProps) {
+export function ToolOutput({ tool_call, syntaxHighlighterCustomStyles, message, group }: OutputProps) {
   const userMutateChat = useChatStore((state) => state.userMutateChat);
   const [isEditing, setIsEditing] = useState(false);
 
   const handleAcceptedContent = useCallback(
     async (content: string) => {
-      userMutateChat({
-        type: 'SetOutputToolCallMutation',
-        tool_call_id: tool_call.id,
-        output: content,
-      });
+      userMutateChat((asset, lockId) =>
+        MutationsAPI.update({
+          asset,
+          path: ['message_groups', group.id, 'messages', message.id, 'tool_calls', tool_call.id],
+          key: 'output',
+          value: content,
+          requestId: lockId,
+        }),
+      );
     },
     [tool_call.id, userMutateChat],
   );
 
   const handleRemoveClick = useCallback(() => {
-    userMutateChat({
-      type: 'SetOutputToolCallMutation',
-      tool_call_id: tool_call.id,
-      output: undefined,
-    });
+    userMutateChat((asset, lockId) =>
+      MutationsAPI.delete({
+        asset,
+        path: ['message_groups', group.id, 'messages', message.id, 'tool_calls', tool_call.id],
+        requestId: lockId,
+      }),
+    );
   }, [tool_call.id, userMutateChat]);
 
   return (

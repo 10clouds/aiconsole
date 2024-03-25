@@ -1,5 +1,6 @@
 import { Ref, useCallback, useState } from 'react';
 import { cn } from '@/utils/common/cn';
+ToolCall;
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import rehypeRaw from 'rehype-raw';
@@ -9,8 +10,9 @@ import { BlinkingCursor } from '@/components/assets/chat/BlinkingCursor';
 import { useChatStore } from '@/store/assets/chat/useChatStore';
 import { useAPIStore } from '@/store/useAPIStore';
 import { EditableContentMessage } from './EditableContentMessage';
-import { AICMessage, AICMessageGroup, getMessageLocation } from '../../../../types/assets/chatTypes';
+import { AICMessage, AICMessageGroup } from '../../../../types/assets/chatTypes';
 import { ToolCall } from './ToolCall';
+import { MutationsAPI } from '@/api/api/MutationsAPI';
 
 const urlRegex = /^https?:\/\//;
 
@@ -21,73 +23,36 @@ interface MessageProps {
 
 export function MessageComponent({ message, group }: MessageProps) {
   const { saveCommandAndMessagesToHistory, submitCommand } = useChatStore((state) => state.actions);
-  const userMutateChat = useChatStore((state) => state.userMutateChat);
+  const mutateChat = useChatStore((state) => state.userMutateChat);
   const getBaseURL = useAPIStore((state) => state.getBaseURL);
   const [isEditing, setIsEditing] = useState(false);
-  const chat = useChatStore((state) => state.chat);
 
   const handleRemoveClick = useCallback(() => {
-    if (group.messages.length < 2) {
-      userMutateChat({
-        type: 'DeleteMutation',
-        ref: {
-          id: group.id,
-          parent_collection: {
-            id: 'message_groups',
-            parent: { id: chat?.id, parent_collection: { id: 'assets', parent: null } },
-          },
-        },
-      });
-      return;
+    let path = ['messages', message.id, 'message_groups', group.id];
+    if (group.messages.length === 1) {
+      path = path.slice(2);
     }
 
-    userMutateChat({
-      type: 'DeleteMutation',
-      ref: {
-        id: message.id,
-        parent_collection: {
-          id: 'messages',
-          parent: {
-            id: group.id,
-            parent_collection: {
-              id: 'message_groups',
-              parent: { id: chat?.id, parent_collection: { id: 'assets', parent: null } },
-            },
-          },
-        },
-      },
-    });
-  }, [message.id, userMutateChat]);
+    mutateChat((asset, lockId) => MutationsAPI.delete({ asset, path, requestId: lockId }));
+  }, [message.id]);
 
   const handleSaveClick = useCallback(
     async (content: string) => {
-      await userMutateChat({
-        type: 'SetValueMutation',
-        ref: {
-          id: message.id,
-          parent_collection: {
-            id: 'messages',
-            parent: {
-              id: group.id,
-              parent_collection: {
-                id: 'message_groups',
-                parent: { id: chat?.id, parent_collection: { id: 'assets', parent: null } },
-              },
-            },
-          },
-        },
-        key: 'content',
-        value: content,
-      });
+      const path = ['message_groups', group.id, 'messages', message.id];
+
+      mutateChat((asset, lockId) =>
+        MutationsAPI.update({ asset, path, key: 'content', value: content, requestId: lockId }),
+      );
 
       saveCommandAndMessagesToHistory(content, group.role === 'user');
     },
-    [message.id, saveCommandAndMessagesToHistory, group.role, userMutateChat],
+    [message.id, saveCommandAndMessagesToHistory, group.role, mutateChat],
   );
 
   return (
     <div>
       <EditableContentMessage
+        enableTTS={!!message.content}
         initialContent={message.content}
         handleAcceptedContent={handleSaveClick}
         handleRemoveClick={handleRemoveClick}
@@ -191,7 +156,9 @@ export function MessageComponent({ message, group }: MessageProps) {
             </div>
           )}
           {!message.is_streaming &&
-            message.tool_calls.map((toolCall) => <ToolCall key={toolCall.id} group={group} toolCall={toolCall} />)}
+            message.tool_calls.map((toolCall) => (
+              <ToolCall key={toolCall.id} group={group} message={message} toolCall={toolCall} />
+            ))}
         </div>
       </EditableContentMessage>
     </div>

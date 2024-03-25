@@ -136,7 +136,7 @@ export const useAssetStore = create<AssetsState>((set) => ({
         version: '0.0.1',
         type: 'chat',
         id: 'new_chat',
-        name: 'New chat',
+        name: 'New Chat',
         defined_in: 'project',
         enabled: true,
         enabled_by_default: true,

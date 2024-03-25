@@ -38,6 +38,7 @@ import { MaterialForm } from './materials/MaterialForm';
 import { ErrorObject, checkErrors } from './TextInput';
 import { useAssetEditor } from './useAssetEditor';
 import { useAssetStore } from '@/store/assets/useAssetStore';
+import { MutationsAPI } from '@/api/api/MutationsAPI';
 
 const { setItem } = localStorageTyped<boolean>('isAssetChanged');
 
@@ -167,7 +168,12 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
 
     if (lastSavedAsset === undefined) {
       if (!asset.override && isNew) {
-        await AssetsAPI.saveNewAsset(asset.id, asset);
+        console.log('Creating new asset');
+        // await AssetsAPI.saveNewAsset(asset.id, asset);
+        await MutationsAPI.create({
+          object: asset,
+          waitForResponse: true,
+        });
         await updateStatusIfNecessary();
 
         showToast({

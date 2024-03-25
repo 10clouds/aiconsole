@@ -112,7 +112,7 @@ async def gpt_analysis_function_step(
     available_materials = []
     forced_materials = []
     if (await chat_ref.chat_options.get()).materials_ids:
-        for material in project.get_project_assets()._assets.values():
+        for material in project.get_project_assets().cached_assets.values():
             if material[0].id in ((await chat_ref.chat_options.get()).materials_ids or []):
                 forced_materials.append(material[0])
 

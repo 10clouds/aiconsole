@@ -26,7 +26,7 @@ def create_materials_str(materials_ids: list | None, ai_can_add_extra_materials:
     # We add forced becuase it may influence the choice of enabled materials
     available_materials = []
     if materials_ids:
-        for material in project.get_project_assets()._assets.values():
+        for material in project.get_project_assets().cached_assets.values():
             if material[0].id in materials_ids:
                 available_materials.append(material[0])
 
