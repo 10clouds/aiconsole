@@ -10,7 +10,7 @@ import { BlinkingCursor } from '@/components/assets/chat/BlinkingCursor';
 import { useChatStore } from '@/store/assets/chat/useChatStore';
 import { useAPIStore } from '@/store/useAPIStore';
 import { EditableContentMessage } from './EditableContentMessage';
-import { AICMessage, AICMessageGroup, getMessageLocation } from '../../../../types/assets/chatTypes';
+import { AICMessage, AICMessageGroup } from '../../../../types/assets/chatTypes';
 import { ToolCall } from './ToolCall';
 import { MutationsAPI } from '@/api/api/MutationsAPI';
 import { type Asset } from '@/types/assets/assetTypes';

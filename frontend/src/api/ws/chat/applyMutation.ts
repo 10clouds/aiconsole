@@ -1,5 +1,4 @@
 import { useTTSStore } from '@/utils/audio/useTTSStore';
-import { Asset } from '@/types/assets/assetTypes';
 import { AICChat } from '@/types/assets/chatTypes';
 import { getRefSegments } from '@/utils/assets/getRefSegments';
 import { MessageBuffer } from '@/utils/common/MessageBuffer';
@@ -10,58 +9,107 @@ import {
   DeleteMutation,
   SetValueMutation,
 } from '../assetMutations';
+import { BaseObject, CollectionRef, DataContext, ObjectRef } from '@/store/assets/types';
+import { useAssetStore } from '@/store/assets/useAssetStore';
+import { AICChatOptions, Asset } from '@/store/assets/constructors';
 
-type Attr = Record<string, unknown> | undefined | null | Array<Record<string, unknown>>;
+function findAttribute<T extends BaseObject>(asset: Asset | null, mutation: AssetMutation<T>): T | T[] | null {
+  let attr = asset as BaseObject as T | T[] | null;
 
-function findAttribute(asset: Asset | AICChat, refSegments: string[]): Attr {
-  let attr = asset;
-  for (const refSegment of refSegments.slice(2, -1)) {
+  for (const ref of mutation.ref.ref_segments.slice(2, -1)) {
     if (Array.isArray(attr)) {
-      const index = attr.findIndex((a) => a.id === refSegment);
-      attr = attr[index];
+      const index = attr.findIndex((a) => a.id === ref);
+      attr = attr[index] as T;
     } else {
-      attr = (attr as any)[refSegment];
+      attr = attr![ref as keyof typeof attr] as T[];
     }
   }
+
   return attr;
 }
 
-function handleCreateMutation(asset: Asset | AICChat, mutation: CreateMutation): void {
-  const { refSegments } = mutation.ref;
-  let attr = findAttribute(asset, refSegments);
-  const object = mutation.object;
-  if (object.id === undefined) {
-    object.id = mutation.ref.id;
+function handleCreateMutation<T extends BaseObject>(context: DataContext, mutation: CreateMutation<T>): void {
+  const collection = context.get(mutation.ref.parent_collection) as T[] | null;
+
+  if (!collection) {
+    throw new Error(`Collection ${mutation.ref} not found`);
   }
+
+  const asset = useAssetStore.getState().subscribedAssets.find((a) => a.id === mutation.ref.ref_segments[1]) ?? null; // [0] is 'assets' and [1] is the asset id
+
+  const obj = mutation.object;
+
+  let attr = findAttribute(asset, mutation);
+
   if (Array.isArray(attr)) {
-    attr.push(object);
+    attr.push(obj);
   } else if (typeof attr === 'object' && attr !== null) {
-    Object.assign(attr, object);
+    Object.assign(attr, obj);
   } else {
-    attr = object;
+    attr = obj;
   }
+
+  useAssetStore.getState().saveAsset(asset ?? (obj as unknown as Asset));
 }
 
-function handleDeleteMutation(asset: Asset | AICChat, mutation: DeleteMutation): void {
-  const collection = findAttribute(asset, mutation.ref.refSegments);
+function handleDeleteMutation<T extends BaseObject>(context: DataContext, mutation: DeleteMutation): void {
+  const collection = context.get(mutation.ref.parent_collection) as T[];
 
-  if (Array.isArray(collection)) {
-    const index = collection.findIndex((a) => a?.id === mutation.ref.id);
-    collection.splice(index, 1);
+  if (collection === null) {
+    throw new Error(`Collection ${mutation.ref.parent_collection} not found`);
   }
+
+  const asset = useAssetStore.getState().subscribedAssets.find((a) => a.id === mutation.ref.ref_segments[1]) ?? null;
+
+  if (asset === null) {
+    throw new Error(`Asset ${mutation.ref.ref_segments[1]} not found`);
+  }
+
+  const obj = context.get(mutation.ref) as BaseObject;
+
+  if (obj === null) {
+    throw new Error(`Object ${mutation.ref} not found`);
+  }
+
+  const objIndex = collection.findIndex((item) => item.id === obj.id);
+  collection.splice(objIndex, 1);
+
+  useAssetStore.setState((state) => ({
+    ...state,
+    subscribedAssets: [...state.subscribedAssets.filter((item) => item.id !== asset.id), asset],
+  }));
 }
 
-function handleSetValueMutation(asset: Asset | AICChat, mutation: SetValueMutation): void {
-  const { key, value } = mutation;
-  const { refSegments } = mutation.ref;
-  const attr = findAttribute(asset, refSegments) as Record<string, unknown>;
-  const assetToChange = Array.isArray(attr) ? attr.find((a) => a.id === mutation.ref.id) : attr;
-  assetToChange[key] = value;
+function handleSetValueMutation(context: DataContext, mutation: SetValueMutation): void {
+  const obj = context.get(mutation.ref) as BaseObject;
+  const asset = useAssetStore.getState().subscribedAssets.find((a) => a.id === mutation.ref.ref_segments[1]) ?? null;
+
+  if (asset === null) {
+    throw new Error(`Asset ${mutation.ref.ref_segments[1]} not found`);
+  }
+
+  const attr = findAttribute(asset, mutation) as unknown as Record<string, any>;
+
+  const { value, key } = mutation;
+
+  if (attr !== null && typeof attr === 'object') {
+    if (attr[key] instanceof AICChatOptions) {
+      const { agent_id, ai_can_add_extra_materials, draft_command, materials_ids } = attr[key] as AICChatOptions;
+      attr[key] = new AICChatOptions(agent_id, materials_ids, ai_can_add_extra_materials, draft_command);
+    } else {
+      attr[key] = value;
+    }
+  }
+
+  useAssetStore.setState((state) => ({
+    ...state,
+    subscribedAssets: [...state.subscribedAssets.filter((item) => item.id !== asset.id), asset],
+  }));
 
   // Finish playing speech if content has finished changing
   // Should probably be added externally as an additional handler for is_streaming (using some kind of staticlly typed ref?)
-  if (useTTSStore.getState().hasAutoPlay && key === 'is_streaming' && !value) {
-    useTTSStore.getState().readText(assetToChange['content'], false);
+  if (key === 'is_streaming' && !value) {
+    useTTSStore.getState().readText(attr['content'], false);
   }
 }
 
@@ -79,21 +127,20 @@ function handleAppendToStringMutation(asset: Asset | AICChat, mutation: AppendTo
   }
 }
 
-export function applyMutation(asset: Asset | AICChat, mutation: AssetMutation, messageBuffer?: MessageBuffer) {
-  mutation.ref.refSegments = getRefSegments(mutation.ref);
+export function applyMutation(context: DataContext, mutation: AssetMutation, messageBuffer?: MessageBuffer) {
   switch (mutation.type) {
     case 'CreateMutation':
-      handleCreateMutation(asset, mutation);
+      handleCreateMutation(context, mutation);
       break;
     case 'DeleteMutation':
-      handleDeleteMutation(asset, mutation);
+      handleDeleteMutation(context, mutation);
       break;
     case 'SetValueMutation': {
-      handleSetValueMutation(asset, mutation);
+      handleSetValueMutation(context, mutation);
       break;
     }
     case 'AppendToStringMutation':
-      handleAppendToStringMutation(asset, mutation);
+      handleAppendToStringMutation(context, mutation);
       break;
   }
 }

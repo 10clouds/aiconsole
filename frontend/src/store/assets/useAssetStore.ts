@@ -21,24 +21,27 @@ import { Agent, Asset, AssetType, Material } from '@/types/assets/assetTypes';
 import { getAssetType } from '@/utils/assets/getAssetType';
 import { AssetsAPI } from '../../api/api/AssetsAPI';
 import { AICChat } from '@/types/assets/chatTypes';
+import { AssetSlice, createAssetsSlice } from './AssetSlice';
 
 export type AssetsState = {
   assets: Asset[];
+  selectedAsset?: Asset;
+  lastSavedSelectedAsset?: Asset;
   initAssets: () => Promise<void>;
   deleteAsset: (id: string) => Promise<void>;
   canOpenFinderForEditable(editable: Asset): boolean;
   openFinderForEditable: (editable: Asset) => void;
-  selectedAsset?: Asset;
-  lastSavedSelectedAsset?: Asset;
   newAssetFromParams: (location: URLSearchParams) => void;
   getAsset: (id: string) => Asset | undefined;
   setSelectedAsset: (asset?: Asset) => void;
   setLastSavedSelectedAsset: (asset?: Asset) => void;
   setIsEnabledFlag: (id: string, enabled: boolean) => Promise<void>;
-};
+} & AssetSlice;
 
-export const useAssetStore = create<AssetsState>((set) => ({
+export const useAssetStore = create<AssetsState>((set, ...a) => ({
   assets: [],
+  lastSavedSelectedAsset: undefined,
+  selectedAsset: undefined,
   initAssets: async () => {
     const assets: Asset[] = [];
 
@@ -79,8 +82,6 @@ export const useAssetStore = create<AssetsState>((set) => ({
     window?.electron?.openFinder?.(path || '');
   },
 
-  lastSavedSelectedAsset: undefined,
-  selectedAsset: undefined,
   setLastSavedSelectedAsset: (asset?: Asset) => {
     set({
       lastSavedSelectedAsset: asset,
@@ -208,4 +209,5 @@ export const useAssetStore = create<AssetsState>((set) => ({
 
     await AssetsAPI.setAssetEnabledFlag(id, enabled);
   },
+  ...createAssetsSlice(set, ...a),
 }));
