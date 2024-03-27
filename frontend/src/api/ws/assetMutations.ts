@@ -47,6 +47,7 @@ export const SetValueMutationSchema = BaseMutationSchema.extend({
 // export type SetValueMutation = z.infer<typeof SetValueMutationSchema>;
 
 export interface SetValueMutation extends BaseMutation {
+  ref: ObjectRef;
   type: 'SetValueMutation';
   key: string;
   value: unknown;

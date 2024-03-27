@@ -23,6 +23,31 @@ export class Asset extends BaseObject {
     super(id);
   }
 }
+export class AICMessageGroup extends BaseObject {
+  constructor(
+    id: string,
+    public actor_id: ct.ActorId,
+    public role: t.GPTRole = 'user',
+    public task: string = '',
+    public analysis: string = '',
+    public messages: AICMessage[] = [],
+    public materials_ids: string[] = [],
+  ) {
+    super(id);
+  }
+}
+
+export class AICMessage extends BaseObject implements ct.AICMessage {
+  constructor(
+    id: string,
+    public timestamp: string,
+    public content: string,
+    public tool_calls: ct.AICToolCall[],
+    public is_streaming: boolean,
+  ) {
+    super(id);
+  }
+}
 
 export class AICChatOptions implements ct.AICChatOptions {
   constructor(
@@ -37,7 +62,7 @@ export class AICChatOptions implements ct.AICChatOptions {
   }
 }
 
-class AICChat extends Asset implements ct.AICChat {
+export class AICChat extends Asset implements ct.AICChat {
   chat_options: AICChatOptions;
   type: 'chat';
 
@@ -98,7 +123,7 @@ class AICChat extends Asset implements ct.AICChat {
   }
 }
 
-class AICAgent extends Asset implements AICAgent {
+export class AICAgent extends Asset implements AICAgent {
   constructor(
     public system: string,
     public gpt_mode: t.GPTMode,

@@ -1,6 +1,6 @@
-import { AICChat, AICChatOptions, AICMessage, AICMessageGroup, AICToolCall } from '@/types/assets/chatTypes';
+import { AICChatOptions, AICToolCall } from '@/types/assets/chatTypes';
 import { AttributeRef, CollectionRef, DataContext, ObjectRef, StringAttributeRef } from './types';
-import { Asset } from '@/types/assets/assetTypes';
+import { AICAgent, AICChat, AICMessageGroup, Asset } from './constructors';
 
 // COLLECTION REFS
 export class AssetsCollectionRef extends CollectionRef<Asset> {
@@ -46,7 +46,7 @@ export class AssetRef extends ObjectRef<Asset> {
 }
 
 export class ChatRef extends ObjectRef<AICChat> {
-  parent_collection = new AssetsCollectionRef();
+  parent_collection: AssetsCollectionRef = new AssetsCollectionRef();
   constructor(id: string, context: DataContext | null = null) {
     super(id, new AssetsCollectionRef(context), context);
   }

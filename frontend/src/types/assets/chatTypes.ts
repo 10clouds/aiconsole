@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { AssetSchema, GPTRoleSchema } from './assetTypes'; // Import necessary types and schemas
 
+import { BaseObject } from '@/store/assets/types';
+
 export const AICToolCallSchema = z.object({
   id: z.string(),
   language: z.string().optional(),
@@ -41,7 +43,7 @@ export const AICMessageGroupSchema = z.object({
   analysis: z.string(),
 });
 
-export type AICMessageGroup = z.infer<typeof AICMessageGroupSchema>;
+export type AICMessageGroup = z.infer<typeof AICMessageGroupSchema> & BaseObject;
 
 export const AICChatHeadlineSchema = AssetSchema.extend({});
 
@@ -57,7 +59,7 @@ const AICChatOptionsSchema = z.object({
 export type AICChatOptions = z.infer<typeof AICChatOptionsSchema>;
 
 export const AICChatSchema = AssetSchema.extend({
-  lock_id: z.string().optional(),
+  lock_id: z.string().nullable(),
   title_edited: z.boolean(),
   chat_options: AICChatOptionsSchema,
   message_groups: z.array(AICMessageGroupSchema),

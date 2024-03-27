@@ -3,6 +3,7 @@ import { useAssetStore } from './useAssetStore';
 import { Asset } from '@/types/assets/assetTypes';
 import { applyMutation } from '@/api/ws/chat/applyMutation';
 import { v4 as uuidv4 } from 'uuid';
+import { useWebSocketStore } from '@/api/ws/useWebSocketStore';
 
 interface TBaseObject {
   id: string;
@@ -22,6 +23,11 @@ interface TDataContext {
 export class DataContext implements TDataContext {
   async mutate<T extends BaseObject>(mutation: AssetMutation<T>): Promise<void> {
     applyMutation(this, mutation);
+    useWebSocketStore.getState().sendMessage({
+      type: 'DoMutationClientMessage',
+      mutation,
+      request_id: uuidv4(),
+    });
   }
 
   get<T extends ObjectRef | CollectionRef>(ref: T): BaseObject | BaseObject[] | null {
@@ -69,8 +75,8 @@ export class DataContext implements TDataContext {
     return this.get(ref) !== null;
   }
 
-  acquireLock(ref: ObjectRef<any>): string | null {
-    const obj = this.get(ref);
+  acquireLock(ref: ObjectRef): string | null {
+    const obj = this.get(ref) as BaseObject;
     let lockId = null;
 
     if (obj !== null && obj.lock_id === null) {
@@ -81,8 +87,8 @@ export class DataContext implements TDataContext {
     return lockId;
   }
 
-  realeaseLock(ref: ObjectRef<any>) {
-    const obj = this.get(ref);
+  realeaseLock(ref: ObjectRef) {
+    const obj = this.get(ref) as BaseObject;
 
     if (obj !== null && obj.lock_id !== null) {
       obj.lock_id = null;
@@ -218,7 +224,7 @@ export class ObjectRef<T extends BaseObject = BaseObject> extends BaseObject imp
 
   get(): T {
     if (this.context !== null) {
-      return this.context.get<T>(this) as T;
+      return this.context.get(this) as T;
     }
     throw new Error('Context must be set externally after deserialisation to use the object.');
   }

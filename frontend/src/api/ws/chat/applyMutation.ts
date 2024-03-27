@@ -1,6 +1,8 @@
-import { useTTSStore } from '@/utils/audio/useTTSStore';
+import { useTTSStore } from '@/audio/useTTSStore';
+import { AICChatOptions, Asset } from '@/store/assets/constructors';
+import { BaseObject, DataContext } from '@/store/assets/types';
+import { useAssetStore } from '@/store/assets/useAssetStore';
 import { AICChat } from '@/types/assets/chatTypes';
-import { getRefSegments } from '@/utils/assets/getRefSegments';
 import { MessageBuffer } from '@/utils/common/MessageBuffer';
 import {
   AppendToStringMutation,
@@ -9,9 +11,6 @@ import {
   DeleteMutation,
   SetValueMutation,
 } from '../assetMutations';
-import { BaseObject, CollectionRef, DataContext, ObjectRef } from '@/store/assets/types';
-import { useAssetStore } from '@/store/assets/useAssetStore';
-import { AICChatOptions, Asset } from '@/store/assets/constructors';
 
 function findAttribute<T extends BaseObject>(asset: Asset | null, mutation: AssetMutation<T>): T | T[] | null {
   let attr = asset as BaseObject as T | T[] | null;
@@ -81,7 +80,6 @@ function handleDeleteMutation<T extends BaseObject>(context: DataContext, mutati
 }
 
 function handleSetValueMutation(context: DataContext, mutation: SetValueMutation): void {
-  const obj = context.get(mutation.ref) as BaseObject;
   const asset = useAssetStore.getState().subscribedAssets.find((a) => a.id === mutation.ref.ref_segments[1]) ?? null;
 
   if (asset === null) {
@@ -113,24 +111,41 @@ function handleSetValueMutation(context: DataContext, mutation: SetValueMutation
   }
 }
 
-function handleAppendToStringMutation(asset: Asset | AICChat, mutation: AppendToStringMutation): void {
-  const { key, value } = mutation;
-  const { refSegments } = mutation.ref;
-  const attr = findAttribute(asset, refSegments) as Record<string, unknown>;
-  const assetToChange = Array.isArray(attr) ? attr.find((a) => a.id === mutation.ref.id) : attr;
-  assetToChange[key] = (assetToChange[key] as string) + value;
+function handleAppendToStringMutation(context: DataContext, mutation: AppendToStringMutation): void {
+  const asset = useAssetStore.getState().subscribedAssets.find((a) => a.id === mutation.ref.ref_segments[1]) ?? null;
+
+  if (asset === null) {
+    throw new Error(`Asset ${mutation.ref.ref_segments[1]} not found`);
+  }
+
+  const attr = findAttribute(asset, mutation) as unknown as Record<string, any>;
+
+  const { value, key } = mutation;
+
+  if (attr !== null && typeof attr === 'object') {
+    attr[key] = attr[key] + value;
+  }
+
+  useAssetStore.setState((state) => ({
+    ...state,
+    subscribedAssets: [...state.subscribedAssets.filter((item) => item.id !== asset.id), asset],
+  }));
 
   // Play Speech if content is changed
   // Should probably be added externally as an additional handler for is_streaming (using some kind of staticlly typed ref?)
   if (useTTSStore.getState().hasAutoPlay && key === 'content') {
-    useTTSStore.getState().readText(assetToChange[key], true);
+    useTTSStore.getState().readText(attr[key], true);
   }
 }
 
-export function applyMutation(context: DataContext, mutation: AssetMutation, messageBuffer?: MessageBuffer) {
+export function applyMutation<T extends BaseObject>(
+  context: DataContext,
+  mutation: AssetMutation<T>,
+  messageBuffer?: MessageBuffer,
+) {
   switch (mutation.type) {
     case 'CreateMutation':
-      handleCreateMutation(context, mutation);
+      handleCreateMutation<T>(context, mutation);
       break;
     case 'DeleteMutation':
       handleDeleteMutation(context, mutation);
