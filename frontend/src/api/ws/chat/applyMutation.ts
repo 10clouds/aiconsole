@@ -48,7 +48,7 @@ function handleCreateMutation<T extends BaseObject>(context: DataContext, mutati
     attr = obj;
   }
 
-  useAssetStore.getState().saveAsset(asset ?? (obj as unknown as Asset));
+  useAssetStore.getState().actions.saveAsset(asset ?? (obj as unknown as Asset));
 }
 
 function handleDeleteMutation<T extends BaseObject>(context: DataContext, mutation: DeleteMutation): void {

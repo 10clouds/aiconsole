@@ -19,8 +19,7 @@ import { ScrollOption } from 'react-scroll-to-bottom';
 import { v4 as uuid } from 'uuid';
 import { ChatAPI } from '../../../api/api/ChatAPI';
 import { ChatStore } from './useChatStore';
-import { useSettingsStore } from '@/store/settings/useSettingsStore';
-import { MutationsAPI } from '@/api/api/MutationsAPI';
+import { AICMessage, AICMessageGroup } from '../constructors';
 
 export type CommandSlice = {
   commandHistory: string[];
@@ -113,32 +112,10 @@ export const createCommandSlice: StateCreator<ChatStore, [], [], CommandSlice> =
         throw new Error('Chat is not initialized');
       }
 
-      const messageGroupId = uuid();
-      const messageId = uuid();
+      const newMessage = new AICMessage(uuid(), command);
+      const newMessageGroup = new AICMessageGroup(uuid(), [newMessage]);
 
-      await get().userMutateChat((chat, lockId) =>
-        MutationsAPI.create({
-          asset: chat,
-          path: ['message_groups', messageGroupId],
-          object: {
-            actor_id: { type: 'user', id: useSettingsStore.getState().settings.user_profile.id || 'user' },
-            task: '',
-            materials_ids: [],
-            analysis: '',
-            role: 'user',
-            messages: [
-              {
-                is_streaming: false,
-                id: messageId,
-                content: command,
-                timestamp: new Date().toISOString(),
-                tool_calls: [],
-              },
-            ],
-          },
-          requestId: lockId,
-        }),
-      );
+      get().chatRef?.messagesGroups.create(newMessageGroup);
 
       await get().saveCommandAndMessagesToHistory(command, true);
     }

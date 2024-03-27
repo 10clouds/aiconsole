@@ -1,6 +1,7 @@
 import { BaseObject } from './types';
 import * as t from '@/types/assets/assetTypes';
 import * as ct from '@/types/assets/chatTypes';
+import { useSettingsStore } from '../settings/useSettingsStore';
 
 type AICMessageLocation = { group: ct.AICMessageGroup; message: ct.AICMessage } | undefined;
 type AICToolCallLocation = (AICMessageLocation & { toolCall: ct.AICToolCall }) | undefined;
@@ -25,11 +26,11 @@ export class Asset extends BaseObject {
 export class AICMessageGroup extends BaseObject implements ct.AICMessageGroup {
   constructor(
     id: string,
-    public actor_id: ct.ActorId,
+    public messages: AICMessage[] = [],
+    public actor_id: ct.ActorId = { id: useSettingsStore.getState().settings.user_profile.id || 'user', type: 'user' },
     public role: t.GPTRole = 'user',
     public task: string = '',
     public analysis: string = '',
-    public messages: AICMessage[] = [],
     public materials_ids: string[] = [],
   ) {
     super(id);
@@ -54,10 +55,10 @@ export class AICToolCall extends BaseObject {
 export class AICMessage extends BaseObject {
   constructor(
     id: string,
-    public timestamp: string,
     public content: string,
-    public tool_calls: ct.AICToolCall[],
-    public is_streaming: boolean,
+    public timestamp: string = new Date().toISOString(),
+    public tool_calls: ct.AICToolCall[] = [],
+    public is_streaming: boolean = false,
   ) {
     super(id);
   }

@@ -49,22 +49,20 @@ const ChatOptions = ({
   const chat = useChatStore((state) => state.chat);
   const assets = useAssetStore((state) => state.assets) as Asset[];
   const [inputValue, setInputValue] = useState('');
-  const [filteredAssetsOptions, setFilteredAssetsOptions] = useState<Asset[]>(assets);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const isChatLoading = useChatStore((state) => state.isChatLoading);
   const [focusedIndex, setFocusedIndex] = useState(0);
 
-  useEffect(() => {
+  const filteredAssetsOptions = assets.filter((item) => {
     const regex = new RegExp(`${inputValue}`, 'i');
-    const filteredMaterialOptions = assets
-      .filter((item) => regex.test(item.name))
-      .filter((item) => item.enabled)
-      .filter((item) => item.type !== 'chat')
-      .filter((item) => !chatOptions?.materials_ids.includes(item.id))
-      .filter((item) => item.id !== chatOptions?.agent_id);
-
-    setFilteredAssetsOptions(filteredMaterialOptions);
-  }, [assets, inputValue, chatOptions]);
+    return (
+      regex.test(item.name) &&
+      item.enabled &&
+      item.type !== 'chat' &&
+      !chatOptions?.materials_ids.includes(item.id) &&
+      item.id !== chatOptions?.agent_id
+    );
+  });
 
   useEffect(() => {
     if (focusedIndex >= 0) {

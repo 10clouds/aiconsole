@@ -6,10 +6,11 @@ import { useToastsStore } from '@/store/common/useToastsStore';
 import { ServerMessage } from './serverMessages';
 import { applyMutation } from './chat/applyMutation';
 import { AssetsAPI } from '../api/AssetsAPI';
-import { AICChat } from '@/types/assets/chatTypes';
 import { v4 as uuidv4 } from 'uuid';
 import { MessageBuffer } from '@/utils/common/MessageBuffer';
 import { deepCopyObject } from '@/utils/common/deepCopyObject';
+import { AICChat } from '@/store/assets/constructors';
+import { DataContext } from '@/store/assets/DataContext';
 import { ChatRef } from '@/store/assets/locations';
 
 let messageBuffer = new MessageBuffer();
@@ -91,7 +92,7 @@ export async function handleServerMessage(message: ServerMessage) {
       break;
     }
     case 'ChatOpenedServerMessage': {
-      const chat = message.chat;
+      const chat = AICChat.createChatFromObject(message.chat);
 
       const currentlySreamingMessage = chat.message_groups
         .flatMap((group) => group.messages)
@@ -104,7 +105,7 @@ export async function handleServerMessage(message: ServerMessage) {
       }
 
       useChatStore.setState({
-        chatRef: new ChatRef(chat.id, useAssetStore.getState().dataContext),
+        chatRef: new ChatRef(chat.id, new DataContext()),
         chat,
         chatOptions: {
           agent_id: chat.chat_options.agent_id,

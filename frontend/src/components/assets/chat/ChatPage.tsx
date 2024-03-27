@@ -102,6 +102,8 @@ export const ChatPage = React.memo(function ChatPage() {
   const renameChat = useChatStore((state) => state.renameChat);
   const setChat = useChatStore((state) => state.setChat);
 
+  const { subscribeById, unsubscribeById } = useAssetStore((state) => state.actions);
+
   const idParam = id || '';
   const assetType = 'chat';
   const hasAnyCommandInput = command.trim() !== '';
@@ -152,7 +154,7 @@ export const ChatPage = React.memo(function ChatPage() {
 
   // Acquire the initial object
   useEffect(() => {
-    if (!state?.prevId) {
+    if (!state?.isSubscribed) {
       if (copyId) {
         AssetsAPI.fetchAsset<AICChat>({ assetType, id: copyId }).then((orgChat) => {
           orgChat.id = uuidv4();
@@ -162,23 +164,21 @@ export const ChatPage = React.memo(function ChatPage() {
         });
       } else {
         //For id === 'new' This will get a default new asset
-        const response = useAssetStore.getState().subscribeById(idParam);
-        console.log(response);
+        subscribeById(idParam);
       }
     }
     useChatStore.setState({ isSaved: idParam !== 'new' });
 
     return () => {
       if (idParam !== 'new') {
-        useAssetStore.getState().unsubscribeById(idParam);
-        useChatStore.setState({ chat: undefined });
+        unsubscribeById(idParam);
       }
     };
   }, [copyId, idParam, dt, assetType, state, forceRefresh, setChat]);
 
   useEffect(() => {
     if (isSaved && idParam === 'new') {
-      navigate(`/assets/${chat?.id}`, { replace: true, state: { prevId: idParam } });
+      navigate(`/assets/${chat?.id}`, { replace: true, state: { isSubscribed: true } });
     }
   }, [isSaved, idParam, navigate, chat]);
 
