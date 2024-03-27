@@ -8,10 +8,10 @@ import { applyMutation } from './chat/applyMutation';
 import { AssetsAPI } from '../api/AssetsAPI';
 import { v4 as uuidv4 } from 'uuid';
 import { MessageBuffer } from '@/utils/common/MessageBuffer';
-import { deepCopyObject } from '@/utils/common/deepCopyObject';
 import { AICChat } from '@/store/assets/constructors';
 import { DataContext } from '@/store/assets/DataContext';
 import { ChatRef } from '@/store/assets/locations';
+import { getRefSegments } from '@/utils/assets/getRefSegments';
 
 let messageBuffer = new MessageBuffer();
 
@@ -80,15 +80,11 @@ export async function handleServerMessage(message: ServerMessage) {
       }
       break;
     case 'NotifyAboutAssetMutationServerMessage': {
-      const chat = deepCopyObject(useChatStore.getState().chat);
-
-      if (!chat) {
-        throw new Error('Chat is not initialized');
-      }
-
-      chat.lock_id = message.request_id;
-      applyMutation(chat, message.mutation, messageBuffer);
-      useChatStore.setState({ chat });
+      const ref_segments = getRefSegments(message.mutation.ref);
+      message.mutation.ref.ref_segments = ref_segments;
+      message.mutation.ref.parent_collection.ref_segments = ref_segments.slice(0, -1);
+      const context = new DataContext();
+      applyMutation(context, message.mutation);
       break;
     }
     case 'ChatOpenedServerMessage': {

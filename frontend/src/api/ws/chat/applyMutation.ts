@@ -1,5 +1,5 @@
 import { useTTSStore } from '@/audio/useTTSStore';
-import { AICChatOptions, Asset } from '@/store/assets/constructors';
+import { AICChat, AICChatOptions, Asset } from '@/store/assets/constructors';
 import { BaseObject } from '@/store/assets/types';
 import { useAssetStore } from '@/store/assets/useAssetStore';
 import { MessageBuffer } from '@/utils/common/MessageBuffer';
@@ -11,11 +11,19 @@ import {
   SetValueMutation,
 } from '../assetMutations';
 import { DataContext } from '@/store/assets/DataContext';
+import { useChatStore } from '@/store/assets/chat/useChatStore';
+import { deepCopyObject } from '@/utils/common/deepCopyObject';
 
-function findAttribute<T extends BaseObject>(asset: Asset | null, mutation: AssetMutation<T>): T | T[] | null {
+function findAttribute<T extends BaseObject>(
+  asset: Asset | null,
+  mutation: AssetMutation<T>,
+  to?: number,
+): T | T[] | null {
   let attr = asset as BaseObject as T | T[] | null;
 
-  for (const ref of mutation.ref.ref_segments.slice(2, -1)) {
+  const segments = to ? mutation.ref.ref_segments.slice(2, to) : mutation.ref.ref_segments.slice(2);
+
+  for (const ref of segments) {
     if (Array.isArray(attr)) {
       const index = attr.findIndex((a) => a.id === ref);
       attr = attr[index] as T;
@@ -37,8 +45,9 @@ function handleCreateMutation<T extends BaseObject>(context: DataContext, mutati
   const asset = useAssetStore.getState().assets.find((a) => a.id === mutation.ref.ref_segments[1]) ?? null; // [0] is 'assets' and [1] is the asset id
 
   const obj = mutation.object;
+  obj.id = mutation.ref.id;
 
-  let attr = findAttribute(asset, mutation);
+  let attr = findAttribute(asset, mutation, -1);
 
   if (Array.isArray(attr)) {
     attr.push(obj);
@@ -66,8 +75,6 @@ function handleDeleteMutation<T extends BaseObject>(context: DataContext, mutati
 
   const obj = context.get(mutation.ref) as BaseObject;
 
-  console.log(obj);
-
   if (obj === null) {
     throw new Error(`Object ${mutation.ref} not found`);
   }
@@ -75,10 +82,17 @@ function handleDeleteMutation<T extends BaseObject>(context: DataContext, mutati
   const objIndex = collection.findIndex((item) => item.id === obj.id);
   collection.splice(objIndex, 1);
 
+  const copiedAsset = deepCopyObject(asset);
+
   useAssetStore.setState((state) => ({
     ...state,
-    assets: [...state.assets.filter((item) => item.id !== asset.id), asset],
+    assets: [...state.assets.filter((item) => item.id !== asset.id), copiedAsset],
   }));
+
+  // Temp solution to update chat state
+  if (asset.type === 'chat') {
+    useChatStore.setState({ chat: copiedAsset as AICChat });
+  }
 }
 
 function handleSetValueMutation(context: DataContext, mutation: SetValueMutation): void {
@@ -101,10 +115,17 @@ function handleSetValueMutation(context: DataContext, mutation: SetValueMutation
     }
   }
 
+  const copiedAsset = deepCopyObject(asset);
+
   useAssetStore.setState((state) => ({
     ...state,
-    assets: [...state.assets.filter((item) => item.id !== asset.id), asset],
+    assets: [...state.assets.filter((item) => item.id !== asset.id), copiedAsset],
   }));
+
+  // Temp solution to update chat state
+  if (asset.type === 'chat') {
+    useChatStore.setState({ chat: copiedAsset as AICChat });
+  }
 
   // Finish playing speech if content has finished changing
   // Should probably be added externally as an additional handler for is_streaming (using some kind of staticlly typed ref?)
@@ -128,10 +149,17 @@ function handleAppendToStringMutation(context: DataContext, mutation: AppendToSt
     attr[key] = attr[key] + value;
   }
 
+  const copiedAsset = deepCopyObject(asset);
+
   useAssetStore.setState((state) => ({
     ...state,
-    assets: [...state.assets.filter((item) => item.id !== asset.id), asset],
+    assets: [...state.assets.filter((item) => item.id !== asset.id), copiedAsset],
   }));
+
+  // Temp solution to update chat state
+  if (asset.type === 'chat') {
+    useChatStore.setState({ chat: copiedAsset as AICChat });
+  }
 
   // Play Speech if content is changed
   // Should probably be added externally as an additional handler for is_streaming (using some kind of staticlly typed ref?)
