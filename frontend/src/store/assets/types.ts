@@ -1,99 +1,16 @@
-import { AssetMutation } from '@/api/ws/assetMutations';
-import { useAssetStore } from './useAssetStore';
-import { Asset } from '@/types/assets/assetTypes';
-import { applyMutation } from '@/api/ws/chat/applyMutation';
-import { v4 as uuidv4 } from 'uuid';
-import { useWebSocketStore } from '@/api/ws/useWebSocketStore';
+import { DataContext } from './DataContext';
+import { Asset } from './constructors';
 
 interface TBaseObject {
   id: string;
   lock_id?: string | null;
 }
 
-type AssetKeyWithBaseObjectArray = {
-  [K in keyof Asset]: Asset[K] extends BaseObject[] ? K : never;
-}[keyof Asset];
-
-interface TDataContext {
-  mutate<T extends BaseObject>(mutation: AssetMutation<T>): Promise<void>;
-  get<T extends ObjectRef | CollectionRef>(ref: T): BaseObject | BaseObject[] | null;
-  exists(ref: ObjectRef<any> | CollectionRef<any>): boolean;
-}
-
-export class DataContext implements TDataContext {
-  async mutate<T extends BaseObject>(mutation: AssetMutation<T>): Promise<void> {
-    applyMutation(this, mutation);
-    useWebSocketStore.getState().sendMessage({
-      type: 'DoMutationClientMessage',
-      mutation,
-      request_id: uuidv4(),
-    });
-  }
-
-  get<T extends ObjectRef | CollectionRef>(ref: T): BaseObject | BaseObject[] | null {
-    let obj: BaseObject | Asset | null = new Root();
-    const segments = ref.ref_segments;
-    if (!segments.length) {
-      return obj;
-    }
-
-    let segment = segments.shift() as string;
-    if (segment === 'assets') {
-      if (!segments.length) {
-        return useAssetStore.getState().subscribedAssets;
-      }
-      // Get the object from the assets collection
-      segment = segments.shift() as string;
-      obj = useAssetStore.getState().getSubscribedAsset(segment) ?? null;
-
-      if (!obj || !segments.length) {
-        return obj as BaseObject | null;
-      }
-
-      while (segments.length) {
-        // Get the sub collection
-        segment = segments.shift() as string;
-        const col: BaseObject[] | null = (obj as Asset)[segment as AssetKeyWithBaseObjectArray];
-
-        if (!col || !segments.length) {
-          return col;
-        }
-
-        // Get the object from the sub collection
-        segment = segments.shift() as string;
-        obj = (col as BaseObject[]).find((x) => x.id === segment) ?? null;
-
-        if (!obj || !segments.length) {
-          return obj;
-        }
-      }
-    }
-    throw new Error(`Unknown ref type ${ref}`);
-  }
-
-  exists(ref: ObjectRef | CollectionRef): boolean {
-    return this.get(ref) !== null;
-  }
-
-  acquireLock(ref: ObjectRef): string | null {
-    const obj = this.get(ref) as BaseObject;
-    let lockId = null;
-
-    if (obj !== null && obj.lock_id === null) {
-      lockId = uuidv4();
-      obj.lock_id = lockId;
-    }
-
-    return lockId;
-  }
-
-  realeaseLock(ref: ObjectRef) {
-    const obj = this.get(ref) as BaseObject;
-
-    if (obj !== null && obj.lock_id !== null) {
-      obj.lock_id = null;
-    }
-  }
+export class BaseObject implements TBaseObject {
+  constructor(
+    public id: string,
+    public lock_id: string | null = null,
+  ) {}
 }
 
 interface TCollectionRef extends TBaseObject {
@@ -106,19 +23,18 @@ interface TObjectRef extends TBaseObject {
   context: DataContext | null;
 }
 
+type TCollectionRefWithoutContext = Omit<TCollectionRef, 'context' | 'parent'> & {
+  parent: TObjectRefWithoutContext | null;
+};
+type TObjectRefWithoutContext = Omit<TObjectRef, 'context' | 'parent_collection'> & {
+  parent_collection: TCollectionRefWithoutContext;
+};
+
 interface TAttributeRef {
   name: string;
   object: TObjectRef;
   context: DataContext | null;
 }
-
-export class BaseObject implements TBaseObject {
-  constructor(
-    public id: string,
-    public lock_id: string | null = null,
-  ) {}
-}
-
 export class Root extends BaseObject {
   assets: Asset[];
 
@@ -131,7 +47,7 @@ export class Root extends BaseObject {
 export class CollectionRef<T extends BaseObject = BaseObject> extends BaseObject implements TCollectionRef {
   constructor(
     id: string,
-    public parent: ObjectRef<T> | null = null,
+    public parent: ObjectRef | null = null,
     public context: DataContext | null = null,
   ) {
     super(id);
@@ -149,6 +65,7 @@ export class CollectionRef<T extends BaseObject = BaseObject> extends BaseObject
         ref = null;
       }
     }
+
     return segments.reverse();
   }
 
@@ -163,7 +80,7 @@ export class CollectionRef<T extends BaseObject = BaseObject> extends BaseObject
     if (this.context !== null) {
       return await this.context.mutate({
         type: 'CreateMutation',
-        ref: new ObjectRef(object.id, this, this.context),
+        ref: new ObjectRef<T>(object.id, this, this.context),
         object,
         object_type: object.constructor.name,
       });
@@ -172,14 +89,21 @@ export class CollectionRef<T extends BaseObject = BaseObject> extends BaseObject
   }
 
   getById(id: string) {
-    return new ObjectRef(id, this);
+    return new ObjectRef(id, this, this.context);
+  }
+
+  get sendable(): TCollectionRefWithoutContext {
+    return {
+      id: this.id,
+      parent: this.parent ? this.parent.sendable : null,
+    };
   }
 }
 
 export class ObjectRef<T extends BaseObject = BaseObject> extends BaseObject implements TObjectRef {
   constructor(
     id: string,
-    public parent_collection: CollectionRef<T>,
+    public parent_collection: CollectionRef<T | BaseObject>,
     public context: DataContext | null = null,
   ) {
     super(id);
@@ -193,6 +117,7 @@ export class ObjectRef<T extends BaseObject = BaseObject> extends BaseObject imp
       segments.push(ref.parent_collection.id);
       ref = ref.parent_collection.parent;
     }
+
     return segments.reverse();
   }
 
@@ -234,6 +159,13 @@ export class ObjectRef<T extends BaseObject = BaseObject> extends BaseObject imp
       return this.context.exists(this);
     }
     throw new Error('Context must be set externally after deserialisation to use the object.');
+  }
+
+  get sendable(): TObjectRefWithoutContext {
+    return {
+      id: this.id,
+      parent_collection: this.parent_collection.sendable,
+    };
   }
 }
 

@@ -36,6 +36,8 @@ import { EditorHeader } from '../EditorHeader';
 import { CommandInput } from './CommandInput';
 import { Spinner } from './Spinner';
 import React from 'react';
+import { useAssetStore } from '@/store/assets/useAssetStore';
+import { ChatRef } from '@/store/assets/locations';
 
 // Electron adds the path property to File objects
 interface FileWithPath extends File {
@@ -161,17 +163,16 @@ export const ChatPage = React.memo(function ChatPage() {
         });
       } else {
         //For id === 'new' This will get a default new asset
-        AssetsAPI.fetchAsset<AICChat>({ assetType, id: idParam }).then((chat) => {
-          setChat(chat);
-        });
+        const response = useAssetStore.getState().subscribeById(idParam);
+        console.log(response);
       }
     }
-
+    useChatStore.setState({ chatRef: new ChatRef(chat?.id, useAssetStore.getState().dataContext) });
     useChatStore.setState({ isSaved: idParam !== 'new' });
 
     return () => {
       if (idParam !== 'new') {
-        AssetsAPI.closeChat(idParam);
+        useAssetStore.getState().unsubscribeById(idParam);
         useChatStore.setState({ chat: undefined });
       }
     };

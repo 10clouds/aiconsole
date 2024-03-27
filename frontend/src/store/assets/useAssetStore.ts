@@ -17,11 +17,12 @@
 import { create } from 'zustand';
 
 import { useProjectStore } from '@/store/projects/useProjectStore';
-import { Agent, Asset, AssetType, Material } from '@/types/assets/assetTypes';
+import { Agent, AssetType, Material } from '@/types/assets/assetTypes';
 import { getAssetType } from '@/utils/assets/getAssetType';
 import { AssetsAPI } from '../../api/api/AssetsAPI';
 import { AICChat } from '@/types/assets/chatTypes';
 import { AssetSlice, createAssetsSlice } from './AssetSlice';
+import { Asset } from './constructors';
 
 export type AssetsState = {
   assets: Asset[];

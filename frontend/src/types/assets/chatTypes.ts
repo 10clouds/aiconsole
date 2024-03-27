@@ -59,7 +59,7 @@ const AICChatOptionsSchema = z.object({
 export type AICChatOptions = z.infer<typeof AICChatOptionsSchema>;
 
 export const AICChatSchema = AssetSchema.extend({
-  lock_id: z.string().nullable(),
+  lock_id: z.string().nullish(),
   title_edited: z.boolean(),
   chat_options: AICChatOptionsSchema,
   message_groups: z.array(AICMessageGroupSchema),
@@ -92,7 +92,7 @@ export function createEmptyChat(): AICChat {
     defined_in: 'project',
     enabled: true,
     enabled_by_default: true,
-    lock_id: undefined,
+    lock_id: null,
     title_edited: false,
     chat_options: createDefaultChatOptions(),
     message_groups: [],

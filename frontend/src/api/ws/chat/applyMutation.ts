@@ -1,8 +1,7 @@
 import { useTTSStore } from '@/audio/useTTSStore';
 import { AICChatOptions, Asset } from '@/store/assets/constructors';
-import { BaseObject, DataContext } from '@/store/assets/types';
+import { BaseObject } from '@/store/assets/types';
 import { useAssetStore } from '@/store/assets/useAssetStore';
-import { AICChat } from '@/types/assets/chatTypes';
 import { MessageBuffer } from '@/utils/common/MessageBuffer';
 import {
   AppendToStringMutation,
@@ -11,6 +10,7 @@ import {
   DeleteMutation,
   SetValueMutation,
 } from '../assetMutations';
+import { DataContext } from '@/store/assets/DataContext';
 
 function findAttribute<T extends BaseObject>(asset: Asset | null, mutation: AssetMutation<T>): T | T[] | null {
   let attr = asset as BaseObject as T | T[] | null;
@@ -34,7 +34,7 @@ function handleCreateMutation<T extends BaseObject>(context: DataContext, mutati
     throw new Error(`Collection ${mutation.ref} not found`);
   }
 
-  const asset = useAssetStore.getState().subscribedAssets.find((a) => a.id === mutation.ref.ref_segments[1]) ?? null; // [0] is 'assets' and [1] is the asset id
+  const asset = useAssetStore.getState().assets.find((a) => a.id === mutation.ref.ref_segments[1]) ?? null; // [0] is 'assets' and [1] is the asset id
 
   const obj = mutation.object;
 
@@ -58,7 +58,7 @@ function handleDeleteMutation<T extends BaseObject>(context: DataContext, mutati
     throw new Error(`Collection ${mutation.ref.parent_collection} not found`);
   }
 
-  const asset = useAssetStore.getState().subscribedAssets.find((a) => a.id === mutation.ref.ref_segments[1]) ?? null;
+  const asset = useAssetStore.getState().assets.find((a) => a.id === mutation.ref.ref_segments[1]) ?? null;
 
   if (asset === null) {
     throw new Error(`Asset ${mutation.ref.ref_segments[1]} not found`);
@@ -75,12 +75,12 @@ function handleDeleteMutation<T extends BaseObject>(context: DataContext, mutati
 
   useAssetStore.setState((state) => ({
     ...state,
-    subscribedAssets: [...state.subscribedAssets.filter((item) => item.id !== asset.id), asset],
+    assets: [...state.assets.filter((item) => item.id !== asset.id), asset],
   }));
 }
 
 function handleSetValueMutation(context: DataContext, mutation: SetValueMutation): void {
-  const asset = useAssetStore.getState().subscribedAssets.find((a) => a.id === mutation.ref.ref_segments[1]) ?? null;
+  const asset = useAssetStore.getState().assets.find((a) => a.id === mutation.ref.ref_segments[1]) ?? null;
 
   if (asset === null) {
     throw new Error(`Asset ${mutation.ref.ref_segments[1]} not found`);
@@ -101,7 +101,7 @@ function handleSetValueMutation(context: DataContext, mutation: SetValueMutation
 
   useAssetStore.setState((state) => ({
     ...state,
-    subscribedAssets: [...state.subscribedAssets.filter((item) => item.id !== asset.id), asset],
+    assets: [...state.assets.filter((item) => item.id !== asset.id), asset],
   }));
 
   // Finish playing speech if content has finished changing
@@ -112,7 +112,7 @@ function handleSetValueMutation(context: DataContext, mutation: SetValueMutation
 }
 
 function handleAppendToStringMutation(context: DataContext, mutation: AppendToStringMutation): void {
-  const asset = useAssetStore.getState().subscribedAssets.find((a) => a.id === mutation.ref.ref_segments[1]) ?? null;
+  const asset = useAssetStore.getState().assets.find((a) => a.id === mutation.ref.ref_segments[1]) ?? null;
 
   if (asset === null) {
     throw new Error(`Asset ${mutation.ref.ref_segments[1]} not found`);
@@ -128,7 +128,7 @@ function handleAppendToStringMutation(context: DataContext, mutation: AppendToSt
 
   useAssetStore.setState((state) => ({
     ...state,
-    subscribedAssets: [...state.subscribedAssets.filter((item) => item.id !== asset.id), asset],
+    assets: [...state.assets.filter((item) => item.id !== asset.id), asset],
   }));
 
   // Play Speech if content is changed

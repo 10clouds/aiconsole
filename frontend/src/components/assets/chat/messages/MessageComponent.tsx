@@ -1,4 +1,4 @@
-import { Ref, useCallback, useState } from 'react';
+import { Ref, useCallback, useRef, useState } from 'react';
 import { cn } from '@/utils/common/cn';
 ToolCall;
 import ReactMarkdown from 'react-markdown';
@@ -14,6 +14,8 @@ import { AICMessage, AICMessageGroup } from '../../../../types/assets/chatTypes'
 import { ToolCall } from './ToolCall';
 import { MutationsAPI } from '@/api/api/MutationsAPI';
 import { type Asset } from '@/types/assets/assetTypes';
+import { MessageRef } from '@/store/assets/locations';
+import { useAssetStore } from '@/store/assets/useAssetStore';
 
 const urlRegex = /^https?:\/\//;
 
@@ -28,14 +30,12 @@ export function MessageComponent({ message, group }: MessageProps) {
   const getBaseURL = useAPIStore((state) => state.getBaseURL);
   const [isEditing, setIsEditing] = useState(false);
   const chat = useChatStore((state) => state.chat);
+  const dataContext = useAssetStore((state) => state.dataContext);
+  const ref = useRef(new MessageRef(message.id, dataContext));
 
   const handleRemoveClick = useCallback(() => {
-    let path = ['messages', message.id, 'message_groups', group.id];
-    if (group.messages.length === 1) {
-      path = path.slice(2);
-    }
-
-    mutateChat((asset, lockId) => MutationsAPI.delete({ asset, path, requestId: lockId }));
+    const messageRef = ref.current;
+    messageRef.delete();
   }, [message.id]);
 
   const handleSaveClick = useCallback(

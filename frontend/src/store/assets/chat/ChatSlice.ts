@@ -17,18 +17,15 @@
 import { StateCreator } from 'zustand';
 
 import { AssetsAPI } from '@/api/api/AssetsAPI';
-import { CreateMutation, SetValueMutation } from '@/api/ws/assetMutations';
-import { applyMutation } from '@/api/ws/chat/applyMutation';
-import { useWebSocketStore } from '@/api/ws/useWebSocketStore';
-import { AICChat, createEmptyChat } from '@/types/assets/chatTypes';
-import { v4 as uuidv4 } from 'uuid';
+import { AICChat } from '../constructors';
+import { AssetsCollectionRef, ChatRef } from '../locations';
 import { useAssetStore } from '../useAssetStore';
 import { ChatStore, useChatStore } from './useChatStore';
-import { MutationsAPI } from '@/api/api/MutationsAPI';
 
 export type ChatSlice = {
   isSaved: boolean;
   chat: AICChat;
+  chatRef: ChatRef;
   chatOptions?: {
     agent_id: string;
     materials_ids: string[];
@@ -48,12 +45,22 @@ export type ChatSlice = {
   setAICanAddExtraMaterials: (aiCanAddExtraMaterials: boolean) => void;
   setDraftCommand: (draftCommand: string) => void;
   chatOptionsSaveDebounceTimer: NodeJS.Timeout | null;
+  debounceChatOptionsUpdate: (
+    chat: AICChat,
+    chatOptions: {
+      agent_id: string;
+      materials_ids: string[];
+      ai_can_add_extra_materials: boolean;
+      draft_command: string;
+    },
+  ) => void;
 };
 
 export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set, get) => ({
   isSaved: false,
   isChatLoading: false,
-  chat: createEmptyChat(),
+  chat: AICChat.createEmptyChat(),
+  chatRef: undefined,
   chatOptions: undefined,
   agent: undefined,
   lastUsedChat: undefined,
@@ -102,7 +109,7 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set,
         draft_command: state.chatOptions?.draft_command ?? '',
       };
 
-      debounceChatOptionsUpdate(chat, chatOptions);
+      get().debounceChatOptionsUpdate(chat, chatOptions);
 
       return {
         chat,
@@ -125,7 +132,7 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set,
         draft_command: state.chatOptions?.draft_command ?? '',
       };
 
-      debounceChatOptionsUpdate(chat, chatOptions);
+      get().debounceChatOptionsUpdate(chat, chatOptions);
 
       return {
         chat,
@@ -148,7 +155,7 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set,
         draft_command: state.chatOptions?.draft_command ?? '',
       };
 
-      debounceChatOptionsUpdate(chat, chatOptions);
+      get().debounceChatOptionsUpdate(chat, chatOptions);
 
       return {
         chat,
@@ -171,7 +178,7 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set,
         draft_command: draftCommand,
       };
 
-      debounceChatOptionsUpdate(chat, chatOptions);
+      get().debounceChatOptionsUpdate(chat, chatOptions);
 
       return {
         chat,
@@ -179,39 +186,38 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set,
       };
     });
   },
-});
 
-const debounceChatOptionsUpdate = (
-  chat: AICChat,
-  chatOptions: {
-    agent_id: string;
-    materials_ids: string[];
-    ai_can_add_extra_materials: boolean;
-    draft_command: string;
-  },
-) => {
-  const debounceDelay = 500; // milliseconds
+  debounceChatOptionsUpdate: async (
+    chat: AICChat,
+    chatOptions: {
+      agent_id: string;
+      materials_ids: string[];
+      ai_can_add_extra_materials: boolean;
+      draft_command: string;
+    },
+  ) => {
+    const debounceDelay = 500; // milliseconds
 
-  const timer = useChatStore.getState().chatOptionsSaveDebounceTimer;
-  if (timer) {
-    clearTimeout(timer);
-    useChatStore.setState({ chatOptionsSaveDebounceTimer: null });
-  }
-
-  useChatStore.setState({
-    chatOptionsSaveDebounceTimer: setTimeout(async () => {
-      const isSaved = useChatStore.getState().isSaved;
-
-      if (!isSaved) {
-        MutationsAPI.create({ object: chat });
-        useChatStore.setState({ isSaved: true });
-        useAssetStore.setState((state) => ({
-          assets: [chat, ...state.assets],
-        }));
-      }
-
-      MutationsAPI.update({ asset: chat, key: 'chat_options', value: chatOptions });
+    const timer = useChatStore.getState().chatOptionsSaveDebounceTimer;
+    if (timer) {
+      clearTimeout(timer);
       useChatStore.setState({ chatOptionsSaveDebounceTimer: null });
-    }, debounceDelay),
-  });
-};
+    }
+
+    set({
+      chatOptionsSaveDebounceTimer: setTimeout(async () => {
+        const isSaved = get().isSaved;
+        const assetsRef = new AssetsCollectionRef(useAssetStore.getState().dataContext);
+
+        if (!isSaved) {
+          await assetsRef.create(chat);
+          set({ isSaved: true });
+        }
+
+        // MutationsAPI.update({ asset: chat, key: 'chat_options', value: chatOptions });
+        await get().chatRef.chat_options.set(chatOptions);
+        set({ chatOptionsSaveDebounceTimer: null });
+      }, debounceDelay),
+    });
+  },
+});

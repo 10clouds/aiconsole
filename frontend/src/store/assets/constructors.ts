@@ -1,7 +1,6 @@
+import { BaseObject } from './types';
 import * as t from '@/types/assets/assetTypes';
 import * as ct from '@/types/assets/chatTypes';
-import { v4 as uuidv4 } from 'uuid';
-import { BaseObject } from './types';
 
 type AICMessageLocation = { group: ct.AICMessageGroup; message: ct.AICMessage } | undefined;
 type AICToolCallLocation = (AICMessageLocation & { toolCall: ct.AICToolCall }) | undefined;
@@ -23,7 +22,7 @@ export class Asset extends BaseObject {
     super(id);
   }
 }
-export class AICMessageGroup extends BaseObject {
+export class AICMessageGroup extends BaseObject implements ct.AICMessageGroup {
   constructor(
     id: string,
     public actor_id: ct.ActorId,
@@ -37,7 +36,22 @@ export class AICMessageGroup extends BaseObject {
   }
 }
 
-export class AICMessage extends BaseObject implements ct.AICMessage {
+export class AICToolCall extends BaseObject {
+  constructor(
+    id: string,
+    public language: string,
+    public code: string,
+    public headline: string = '',
+    public output: string = '',
+    public is_successful: boolean = false,
+    public is_streaming: boolean = false,
+    public is_executing: boolean = false,
+  ) {
+    super(id);
+  }
+}
+
+export class AICMessage extends BaseObject {
   constructor(
     id: string,
     public timestamp: string,
@@ -57,9 +71,9 @@ export class AICChatOptions implements ct.AICChatOptions {
     public draft_command: string = '',
   ) {}
 
-  isDefault(): boolean {
-    return this.agent_id === '' && this.materials_ids.length === 0 && this.draft_command === '';
-  }
+  // isDefault(): boolean {
+  //   return this.agent_id === '' && this.materials_ids.length === 0 && this.draft_command === '';
+  // }
 }
 
 export class AICChat extends Asset implements ct.AICChat {
@@ -102,24 +116,61 @@ export class AICChat extends Asset implements ct.AICChat {
     }
   }
 
-  static createEmptyChat() {
+  static createChatFromObject({
+    id,
+    name,
+    version,
+    defined_in,
+    type,
+    usage,
+    usage_examples,
+    enabled_by_default,
+    enabled,
+    override,
+    last_modified,
+    title_edited,
+    message_groups,
+    is_analysis_in_progress,
+    chat_options: { materials_ids, ai_can_add_extra_materials, draft_command, agent_id },
+  }: ct.AICChat): AICChat {
     return new AICChat(
-      false,
-      [],
-      false,
-      ['', [], true, ''],
-      uuidv4(),
-      'New Chat',
-      '0.0.1',
-      'aiconsole',
-      'chat',
-      '',
-      [],
-      true,
-      true,
-      false,
-      new Date().toISOString(),
+      title_edited,
+      message_groups,
+      is_analysis_in_progress,
+      [agent_id, materials_ids, ai_can_add_extra_materials, draft_command],
+      id,
+      name,
+      version,
+      defined_in,
+      type,
+      usage,
+      usage_examples,
+      enabled_by_default,
+      enabled,
+      override,
+      last_modified,
     );
+  }
+
+  static createEmptyChat() {
+    return this.createChatFromObject({
+      id: 'new',
+      type: 'chat',
+      name: 'New Chat',
+      version: '0.0.1',
+      usage: '',
+      usage_examples: [],
+      override: false,
+      last_modified: new Date().toISOString(),
+      defined_in: 'project',
+      enabled: true,
+      enabled_by_default: true,
+      lock_id: null,
+      title_edited: false,
+      chat_options: new AICChatOptions(),
+      message_groups: [],
+      is_analysis_in_progress: false,
+    });
   }
 }
 

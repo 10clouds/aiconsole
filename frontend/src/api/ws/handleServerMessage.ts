@@ -6,10 +6,10 @@ import { useToastsStore } from '@/store/common/useToastsStore';
 import { ServerMessage } from './serverMessages';
 import { applyMutation } from './chat/applyMutation';
 import { AssetsAPI } from '../api/AssetsAPI';
-import { AICChat } from '@/types/assets/chatTypes';
 import { v4 as uuidv4 } from 'uuid';
 import { MessageBuffer } from '@/utils/common/MessageBuffer';
 import { deepCopyObject } from '@/utils/common/deepCopyObject';
+import { AICChat } from '@/store/assets/constructors';
 
 let messageBuffer = new MessageBuffer();
 
@@ -92,6 +92,8 @@ export async function handleServerMessage(message: ServerMessage) {
     case 'ChatOpenedServerMessage': {
       const chat = message.chat;
 
+      const newChat = AICChat.createChatFromObject(chat);
+
       const currentlySreamingMessage = chat.message_groups
         .flatMap((group) => group.messages)
         .find((message) => message.is_streaming);
@@ -103,7 +105,7 @@ export async function handleServerMessage(message: ServerMessage) {
       }
 
       useChatStore.setState({
-        chat,
+        chat: newChat,
         chatOptions: {
           agent_id: chat.chat_options.agent_id,
           materials_ids: chat.chat_options.materials_ids,
@@ -117,7 +119,7 @@ export async function handleServerMessage(message: ServerMessage) {
       const chat = useChatStore.getState().chat;
 
       if (chat) {
-        chat.lock_id = undefined;
+        chat.lock_id = null;
       }
 
       if (message.is_error) {

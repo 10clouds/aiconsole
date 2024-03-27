@@ -14,12 +14,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { MaterialDefinitionSource, AssetType, RenderedMaterial, Asset } from '@/types/assets/assetTypes';
+import { MaterialDefinitionSource, AssetType, RenderedMaterial } from '@/types/assets/assetTypes';
 import ky from 'ky';
 import { API_HOOKS, getBaseURL } from '../../store/useAPIStore';
 import { useWebSocketStore } from '../ws/useWebSocketStore';
 import { ChatOpenedServerMessage, ServerMessage } from '../ws/serverMessages';
 import { v4 as uuidv4 } from 'uuid';
+import { Asset } from '@/store/assets/constructors';
+import { ChatRef } from '@/store/assets/locations';
 
 const previewMaterial: (asset: Asset) => Promise<RenderedMaterial> = async (asset: Asset) =>
   ky
@@ -58,7 +60,7 @@ async function fetchAsset<T extends Asset>({
     const response: ChatOpenedServerMessage = (await useWebSocketStore.getState().sendMessageAndWaitForResponse(
       {
         type: 'SubscribeToClientMessage',
-        ref: { id, context: null, parent_collection: { id: 'assets', parent: null, context: null } },
+        ref: new ChatRef(id, null),
         request_id: uuidv4(),
       },
       (response: ServerMessage) => {
@@ -85,7 +87,7 @@ async function closeChat(id: string): Promise<ServerMessage> {
   const response = await useWebSocketStore.getState().sendMessageAndWaitForResponse(
     {
       type: 'UnsubscribeClientMessage',
-      ref: { id, context: null, parent_collection: { id: 'assets', parent: null, context: null } },
+      ref: new ChatRef(id, null),
       request_id: uuidv4(),
     },
     (response: ServerMessage) => {
