@@ -25,7 +25,7 @@ import { ChatStore, useChatStore } from './useChatStore';
 export type ChatSlice = {
   isSaved: boolean;
   chat: AICChat;
-  chatRef: ChatRef;
+  chatRef?: ChatRef;
   chatOptions?: {
     agent_id: string;
     materials_ids: string[];

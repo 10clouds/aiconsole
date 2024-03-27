@@ -11,32 +11,32 @@ export class AssetsCollectionRef extends CollectionRef<Asset> {
 }
 
 export class MessagesGroupCollectionRef extends CollectionRef<AICMessageGroup> {
-  constructor(id: string, context: DataContext | null = null) {
-    super('message_groups', new ChatRef(id, context), context);
+  constructor(parentRef: ChatRef, context: DataContext | null = null) {
+    super('message_groups', parentRef, context);
   }
 
   getById(id: string) {
-    return new MessageGroupRef(id, this.context);
+    return new MessageGroupRef(id, this, this.context);
   }
 }
 
 export class MessagesCollectionRef extends CollectionRef<AICMessage> {
-  constructor(id: string, context: DataContext | null = null) {
-    super('messages', new MessageGroupRef(id, context), context);
+  constructor(parentRef: MessageGroupRef, context: DataContext | null = null) {
+    super('messages', parentRef, context);
   }
 
   getById(id: string) {
-    return new MessageRef(id, this.context);
+    return new MessageRef(id, this, this.context);
   }
 }
 
 export class ToolCallsCollectionRef extends CollectionRef<AICToolCall> {
-  constructor(id: string, context: DataContext | null = null) {
-    super('tool_calls', new ToolCallRef(id, context), context);
+  constructor(parent: MessageRef, context: DataContext | null = null) {
+    super('tool_calls', parent, context);
   }
 
   getById(id: string) {
-    return new ToolCallRef(id, this.context);
+    return new ToolCallRef(id, this, this.context);
   }
 }
 // OBJECT REFS
@@ -52,7 +52,7 @@ export class ChatRef extends ObjectRef<AICChat> {
   }
 
   get messagesGroups() {
-    return new MessagesGroupCollectionRef(this.id, this.context);
+    return new MessagesGroupCollectionRef(this, this.context);
   }
 
   get isAnalysisInProgress() {
@@ -65,12 +65,12 @@ export class ChatRef extends ObjectRef<AICChat> {
 }
 
 export class MessageGroupRef extends ObjectRef<AICMessageGroup> {
-  constructor(id: string, context: DataContext | null = null) {
-    super(id, new MessagesGroupCollectionRef(id, context), context);
+  constructor(id: string, parentRef: MessagesGroupCollectionRef, context: DataContext | null = null) {
+    super(id, parentRef, context);
   }
 
   get messages() {
-    return new MessagesCollectionRef(this.id, this.context);
+    return new MessagesCollectionRef(this, this.context);
   }
 
   get actor_id() {
@@ -91,12 +91,12 @@ export class MessageGroupRef extends ObjectRef<AICMessageGroup> {
 }
 
 export class MessageRef extends ObjectRef<AICMessage> {
-  constructor(id: string, context: DataContext | null = null) {
-    super(id, new MessagesCollectionRef(id, context), context);
+  constructor(id: string, parentRef: MessagesCollectionRef, context: DataContext | null = null) {
+    super(id, parentRef, context);
   }
 
   get tool_calls() {
-    return new ToolCallsCollectionRef(this.id, this.context);
+    return new ToolCallsCollectionRef(this, this.context);
   }
 
   get content() {
@@ -109,8 +109,8 @@ export class MessageRef extends ObjectRef<AICMessage> {
 }
 
 export class ToolCallRef extends ObjectRef<AICToolCall> {
-  constructor(id: string, context: DataContext | null = null) {
-    super(id, new ToolCallsCollectionRef(id, context), context);
+  constructor(id: string, parent: ToolCallsCollectionRef, context: DataContext | null = null) {
+    super(id, parent, context);
   }
 
   get headline() {

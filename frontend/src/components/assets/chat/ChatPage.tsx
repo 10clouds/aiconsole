@@ -23,7 +23,6 @@ import { SendRotated } from '@/components/common/icons/SendRotated';
 import { useChatStore } from '@/store/assets/chat/useChatStore';
 import { useToastsStore } from '@/store/common/useToastsStore';
 import { useProjectStore } from '@/store/projects/useProjectStore';
-import { AICChat } from '@/types/assets/chatTypes';
 import { useAssetContextMenu } from '@/utils/assets/useContextMenuForEditable';
 import { cn } from '@/utils/common/cn';
 import { COMMANDS } from '@/utils/constants';
@@ -37,7 +36,7 @@ import { CommandInput } from './CommandInput';
 import { Spinner } from './Spinner';
 import React from 'react';
 import { useAssetStore } from '@/store/assets/useAssetStore';
-import { ChatRef } from '@/store/assets/locations';
+import { AICChat } from '@/store/assets/constructors';
 
 // Electron adds the path property to File objects
 interface FileWithPath extends File {
@@ -167,7 +166,6 @@ export const ChatPage = React.memo(function ChatPage() {
         console.log(response);
       }
     }
-    useChatStore.setState({ chatRef: new ChatRef(chat?.id, useAssetStore.getState().dataContext) });
     useChatStore.setState({ isSaved: idParam !== 'new' });
 
     return () => {

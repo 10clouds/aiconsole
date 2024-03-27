@@ -28,8 +28,8 @@ import { type AICMessageGroup } from '@/types/assets/chatTypes';
 export function MessageGroup({ group }: { group: AICMessageGroup }) {
   const [isAnalysisManuallyOpen, setIsAnalysisManuallyOpen] = useState<boolean | undefined>(undefined);
   const isBeingProcessed = useChatStore((state) => !!state.chat?.lock_id);
-  const chat = useChatStore((state) => state.chat);
   const mutateChat = useChatStore((state) => state.userMutateChat);
+  const chatRef = useChatStore((state) => state.chatRef);
 
   const lockId = useChatStore((state) => state.chat?.lock_id);
 
@@ -59,9 +59,11 @@ export function MessageGroup({ group }: { group: AICMessageGroup }) {
           <MessageControls
             hideControls={!!lockId}
             onRemoveClick={() => {
-              mutateChat((asset, lockId) =>
-                MutationsAPI.delete({ asset, path: ['message_groups', group.id], requestId: lockId }),
-              );
+              if (!chatRef) {
+                throw new Error('No chat reference found');
+              }
+
+              chatRef.messagesGroups.getById(group.id).delete();
             }}
           />
         )}

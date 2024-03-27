@@ -29,13 +29,14 @@ export function MessageComponent({ message, group }: MessageProps) {
   const saveCommandAndMessagesToHistory = useChatStore((state) => state.saveCommandAndMessagesToHistory);
   const getBaseURL = useAPIStore((state) => state.getBaseURL);
   const [isEditing, setIsEditing] = useState(false);
-  const chat = useChatStore((state) => state.chat);
-  const dataContext = useAssetStore((state) => state.dataContext);
-  const ref = useRef(new MessageRef(message.id, dataContext));
+  const chatRef = useChatStore((state) => state.chatRef);
 
   const handleRemoveClick = useCallback(() => {
-    const messageRef = ref.current;
-    messageRef.delete();
+    if (!chatRef) {
+      throw new Error('No chat reference found');
+    }
+
+    chatRef.messagesGroups.getById(group.id).messages.getById(message.id).delete();
   }, [message.id]);
 
   const handleSaveClick = useCallback(

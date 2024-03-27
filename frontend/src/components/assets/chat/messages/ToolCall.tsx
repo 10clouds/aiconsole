@@ -53,6 +53,7 @@ export function ToolCall({ group, toolCall: tool_call, message }: MessageProps) 
   const userMutateChat = useChatStore((state) => state.userMutateChat);
   const saveCommandAndMessagesToHistory = useChatStore((state) => state.saveCommandAndMessagesToHistory);
   const chat = useChatStore((state) => state.chat);
+  const chatRef = useChatStore((state) => state.chatRef);
 
   const code_autorun = useSettingsStore((state) => state.settings.code_autorun);
 
@@ -80,15 +81,15 @@ export function ToolCall({ group, toolCall: tool_call, message }: MessageProps) 
 
   const handleAcceptedContent = useCallback(
     async (content: string) => {
-      userMutateChat((asset, lockId) =>
-        MutationsAPI.update({
-          asset,
-          path: ['message_groups', group.id, 'messages', message.id, 'tool_calls', tool_call.id],
-          key: 'code',
-          value: content,
-          requestId: lockId,
-        }),
-      );
+      // userMutateChat((asset, lockId) =>
+      //   MutationsAPI.update({
+      //     asset,
+      //     path: ['message_groups', group.id, 'messages', message.id, 'tool_calls', tool_call.id],
+      //     key: 'code',
+      //     value: content,
+      //     requestId: lockId,
+      //   }),
+      // );
 
       saveCommandAndMessagesToHistory(content, group.role === 'user');
     },

@@ -66,6 +66,8 @@ function handleDeleteMutation<T extends BaseObject>(context: DataContext, mutati
 
   const obj = context.get(mutation.ref) as BaseObject;
 
+  console.log(obj);
+
   if (obj === null) {
     throw new Error(`Object ${mutation.ref} not found`);
   }
