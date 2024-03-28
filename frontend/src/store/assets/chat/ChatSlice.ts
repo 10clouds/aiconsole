@@ -36,13 +36,13 @@ export type ChatSlice = {
   lastUsedChat?: AICChat;
   isChatLoading: boolean;
   isChatOptionsExpanded: boolean;
+  chatOptionsSaveDebounceTimer: NodeJS.Timeout | null;
   setLastUsedChat: (chat?: AICChat) => void;
   setChat: (chat: AICChat) => void;
   renameChat: (newChat: AICChat) => Promise<void>;
   setIsChatLoading: (isLoading: boolean) => void;
   setIsChatOptionsExpanded: (isExpanded: boolean) => void;
   updateChatOptions: (chatOptions: Partial<AICChat['chat_options']>) => void;
-  chatOptionsSaveDebounceTimer: NodeJS.Timeout | null;
   debounceChatOptionsUpdate: (chat: AICChat, chatOptions: AICChatOptions) => void;
 };
 

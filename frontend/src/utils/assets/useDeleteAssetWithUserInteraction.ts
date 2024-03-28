@@ -1,20 +1,19 @@
 import { useAssetStore } from '@/store/assets/useAssetStore';
-import { Asset, AssetType } from '@/types/assets/assetTypes';
 import { isAsset } from './isAsset';
 import { AssetsAPI } from '@/api/api/AssetsAPI';
-import { useSelectedAsset } from './useSelectedAsset';
+import { Asset } from '@/store/assets/constructors';
 
-export function useDeleteAssetWithUserInteraction(assetType: AssetType) {
+export function useDeleteAssetWithUserInteraction(assetType: Asset['type']) {
   const deleteAsset = useAssetStore((state) => state.deleteAsset);
   const setSelectedAsset = useAssetStore((state) => state.setSelectedAsset);
   const setLastSavedSelectedAsset = useAssetStore((state) => state.setLastSavedSelectedAsset);
-  const [editable] = useSelectedAsset();
+  const selectedAsset = useAssetStore((state) => state.selectedAsset);
 
   async function handleDelete(id: string) {
     await deleteAsset(id);
 
-    if (editable?.id === id) {
-      if (isAsset(assetType) && (editable as Asset).override) {
+    if (selectedAsset?.id === id) {
+      if (isAsset(assetType) && (selectedAsset as Asset).override) {
         //Force reload of the current asset
         const newAsset = await AssetsAPI.fetchAsset<Asset>({ assetType, id });
         setSelectedAsset(newAsset);

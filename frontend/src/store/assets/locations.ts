@@ -41,13 +41,13 @@ export class ToolCallsCollectionRef extends CollectionRef<AICToolCall> {
 }
 // OBJECT REFS
 export class AssetRef extends ObjectRef<Asset> {
-  constructor(id: string, context: DataContext | null = null) {
+  constructor(id: string, context: DataContext | null = new DataContext()) {
     super(id, new AssetsCollectionRef(context), context);
   }
 }
 
 export class ChatRef extends ObjectRef<AICChat> {
-  constructor(id: string, context: DataContext | null = null) {
+  constructor(id: string, context: DataContext | null = new DataContext()) {
     super(id, new AssetsCollectionRef(context), context);
   }
 

@@ -5,12 +5,14 @@ import { useWebSocketStore } from '@/api/ws/useWebSocketStore';
 import { Asset } from '@/store/assets/constructors';
 import { v4 as uuidv4 } from 'uuid';
 import { StateCreator } from 'zustand';
-import { AssetRef } from './locations';
+import { AssetRef, ChatRef } from './locations';
 import { AssetsState } from './useAssetStore';
 
 export interface AssetSlice {
   // subscribedAssets: Asset[];
+  currentRef: AssetRef | ChatRef | null;
   actions: {
+    setCurrentRef: (ref: AssetRef | ChatRef | null, type: string) => void;
     subscribeById: (id: string) => Promise<void>;
     unsubscribeById: (id: string) => Promise<void>;
     getAsset: (id: string) => Asset | undefined;
@@ -19,7 +21,11 @@ export interface AssetSlice {
 }
 
 export const createAssetsSlice: StateCreator<AssetsState, [], [], AssetSlice> = (set, get) => ({
+  currentRef: null,
   actions: {
+    setCurrentRef: (ref: AssetRef | ChatRef | null) => {
+      set({ currentRef: ref as ChatRef });
+    },
     unsubscribeById: async (id: string) => {
       await useWebSocketStore.getState().sendMessageAndWaitForResponse(
         {

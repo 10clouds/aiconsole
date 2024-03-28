@@ -98,9 +98,7 @@ export const EmptyChat = ({ textAreaRef }: EmptyChatProps) => {
 
   // Chat options
   const editCommand = useChatStore((state) => state.editCommand);
-  const setSelectedAgentId = useChatStore((state) => state.setSelectedAgentId);
-  const setSelectedMaterialsIds = useChatStore((state) => state.setSelectedMaterialsIds);
-  const setAICanAddExtraMaterials = useChatStore((state) => state.setAICanAddExtraMaterials);
+  const updateChatOptions = useChatStore((state) => state.updateChatOptions);
 
   const submitCommand = useChatStore((state) => state.submitCommand);
 
@@ -149,26 +147,24 @@ export const EmptyChat = ({ textAreaRef }: EmptyChatProps) => {
     if (isExampleCurrentlyActive(asset, example)) {
       //deselect
       editCommand('');
-      setSelectedAgentId('');
-      setSelectedMaterialsIds([]);
-      setAICanAddExtraMaterials(true);
+      updateChatOptions({ agent_id: '', materials_ids: [], ai_can_add_extra_materials: true });
       return;
     }
 
     if (asset.type == 'agent') {
-      setSelectedAgentId(asset.id);
+      updateChatOptions({ agent_id: asset.id });
     } else {
-      setSelectedAgentId('');
+      updateChatOptions({ agent_id: '' });
     }
 
     if (asset.type == 'material') {
-      setSelectedMaterialsIds([asset.id]);
+      updateChatOptions({ materials_ids: [asset.id] });
     } else {
-      setSelectedMaterialsIds([]);
+      updateChatOptions({ materials_ids: [] });
     }
 
     editCommand(example);
-    setAICanAddExtraMaterials(true);
+    updateChatOptions({ ai_can_add_extra_materials: true });
   };
 
   return (
