@@ -19,11 +19,11 @@ interface AgentFormProps {
   agent: Agent;
   avatarData: File | null;
   setAvatarData: React.Dispatch<React.SetStateAction<File | null>>;
-  isAvatarOverwritten: boolean;
   setIsAvatarOverwritten: React.Dispatch<React.SetStateAction<boolean>>;
   errors?: ErrorObject;
   setErrors?: React.Dispatch<React.SetStateAction<ErrorObject>>;
   onRevert: () => void;
+  urlId: string;
 }
 
 // TODO: all commented lines are ready UI - integrate it with backend when ready
@@ -33,9 +33,9 @@ export const AgentForm = ({
   setErrors,
   avatarData: _avatarData,
   setAvatarData,
-  isAvatarOverwritten,
   setIsAvatarOverwritten,
   onRevert: _onRevert,
+  urlId,
 }: AgentFormProps) => {
   const agentRef = useRef(agent);
   const [hasFirstLoadedParamsSchema, setHasFirstLoadedParamsSchema] = useState<boolean>(false);
@@ -113,12 +113,9 @@ export const AgentForm = ({
   };
 
   useEffect(() => {
-    // new Date is used to refresh image url
-    if (!isAvatarOverwritten) {
-      const userAgentAvatarUrl = `${getBaseURL()}/api/assets/${agent.id}/image?version=${agent?.version}`;
-      setAvatarUrl(userAgentAvatarUrl);
-    }
-  }, [agent.id, agent.version, getBaseURL, isAvatarOverwritten]);
+    const userAgentAvatarUrl = `${getBaseURL()}/api/assets/${urlId}/image?version=${agent?.version}`;
+    setAvatarUrl(userAgentAvatarUrl);
+  }, [urlId, agent.version, getBaseURL]);
 
   return (
     <>

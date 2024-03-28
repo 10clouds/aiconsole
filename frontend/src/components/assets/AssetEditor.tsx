@@ -338,9 +338,9 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
                     errors={errors}
                     avatarData={avatarData}
                     setAvatarData={setAvatarData}
-                    isAvatarOverwritten={isAvatarOverwritten}
                     setIsAvatarOverwritten={setIsAvatarOverwritten}
                     onRevert={revertAsset}
+                    urlId={id}
                   />
                 )}
                 <div className="flex items-center justify-between w-full gap-[10px]">
