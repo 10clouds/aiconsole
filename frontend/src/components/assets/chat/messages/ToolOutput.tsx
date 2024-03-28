@@ -20,7 +20,6 @@ import { useCallback, useState } from 'react';
 import SyntaxHighlighter, { SyntaxHighlighterProps } from 'react-syntax-highlighter';
 import { duotoneDark as vs2015 } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { EditableContentMessage } from './EditableContentMessage';
-import { MutationsAPI } from '@/api/api/MutationsAPI';
 
 interface OutputProps {
   tool_call: AICToolCall;
@@ -30,33 +29,29 @@ interface OutputProps {
 }
 
 export function ToolOutput({ tool_call, syntaxHighlighterCustomStyles, message, group }: OutputProps) {
-  const userMutateChat = useChatStore((state) => state.userMutateChat);
   const [isEditing, setIsEditing] = useState(false);
+  const chatRef = useChatStore((state) => state.chatRef);
 
   const handleAcceptedContent = useCallback(
     async (content: string) => {
-      userMutateChat((asset, lockId) =>
-        MutationsAPI.update({
-          asset,
-          path: ['message_groups', group.id, 'messages', message.id, 'tool_calls', tool_call.id],
-          key: 'output',
-          value: content,
-          requestId: lockId,
-        }),
-      );
+      const messageRef = chatRef?.messagesGroups.getById(group.id).messages.getById(message.id);
+      if (!messageRef) {
+        throw new Error('No message reference found');
+      }
+
+      messageRef.tool_calls.getById(tool_call.id).output.set(content);
     },
-    [tool_call.id, userMutateChat],
+    [tool_call.id, chatRef, group.id, message.id],
   );
 
   const handleRemoveClick = useCallback(() => {
-    userMutateChat((asset, lockId) =>
-      MutationsAPI.delete({
-        asset,
-        path: ['message_groups', group.id, 'messages', message.id, 'tool_calls', tool_call.id],
-        requestId: lockId,
-      }),
-    );
-  }, [tool_call.id, userMutateChat]);
+    const messageRef = chatRef?.messagesGroups.getById(group.id).messages.getById(message.id);
+    if (!messageRef) {
+      throw new Error('No message reference found');
+    }
+
+    messageRef.tool_calls.getById(tool_call.id).delete();
+  }, [tool_call.id, chatRef, group.id, message.id]);
 
   return (
     <div className="flex flex-col w-full mt-2">

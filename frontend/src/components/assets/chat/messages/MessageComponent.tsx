@@ -1,21 +1,16 @@
-import { Ref, useCallback, useRef, useState } from 'react';
+import { Ref, useCallback, useState } from 'react';
 import { cn } from '@/utils/common/cn';
 ToolCall;
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import rehypeRaw from 'rehype-raw';
 import { duotoneDark as vs2015 } from 'react-syntax-highlighter/dist/cjs/styles/prism';
-
 import { BlinkingCursor } from '@/components/assets/chat/BlinkingCursor';
 import { useChatStore } from '@/store/assets/chat/useChatStore';
 import { useAPIStore } from '@/store/useAPIStore';
 import { EditableContentMessage } from './EditableContentMessage';
 import { AICMessage, AICMessageGroup } from '../../../../types/assets/chatTypes';
 import { ToolCall } from './ToolCall';
-import { MutationsAPI } from '@/api/api/MutationsAPI';
-import { type Asset } from '@/types/assets/assetTypes';
-import { MessageRef } from '@/store/assets/locations';
-import { useAssetStore } from '@/store/assets/useAssetStore';
 
 const urlRegex = /^https?:\/\//;
 
@@ -25,7 +20,6 @@ interface MessageProps {
 }
 
 export function MessageComponent({ message, group }: MessageProps) {
-  const mutateChat = useChatStore((state) => state.userMutateChat);
   const saveCommandAndMessagesToHistory = useChatStore((state) => state.saveCommandAndMessagesToHistory);
   const getBaseURL = useAPIStore((state) => state.getBaseURL);
   const [isEditing, setIsEditing] = useState(false);
@@ -36,20 +30,27 @@ export function MessageComponent({ message, group }: MessageProps) {
       throw new Error('No chat reference found');
     }
 
-    chatRef.messagesGroups.getById(group.id).messages.getById(message.id).delete();
-  }, [message.id]);
+    const messageGroupRef = chatRef.messagesGroups.getById(group.id);
+
+    if (group.messages.length === 1) {
+      messageGroupRef.delete();
+    } else {
+      messageGroupRef.messages.getById(message.id).delete();
+    }
+  }, [chatRef, group.id, group.messages.length, message.id]);
 
   const handleSaveClick = useCallback(
     async (content: string) => {
-      const path = ['message_groups', group.id, 'messages', message.id];
+      if (!chatRef) {
+        throw new Error('No chat reference found');
+      }
 
-      mutateChat((asset, lockId) =>
-        MutationsAPI.update({ asset, path, key: 'content', value: content, requestId: lockId }),
-      );
+      const messagesCollectionRef = chatRef.messagesGroups.getById(group.id).messages;
+      messagesCollectionRef.getById(message.id).content.set(content);
 
       saveCommandAndMessagesToHistory(content, group.role === 'user');
     },
-    [message.id, saveCommandAndMessagesToHistory, group.role, mutateChat],
+    [chatRef, group.id, group.role, message.id, saveCommandAndMessagesToHistory],
   );
 
   const submitCommand = useChatStore((state) => state.submitCommand);

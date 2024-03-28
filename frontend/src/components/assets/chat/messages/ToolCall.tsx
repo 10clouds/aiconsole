@@ -40,7 +40,6 @@ import { ToolOutput } from './ToolOutput';
 import { transpileCode } from '@/utils/transpilation/transpileCode';
 import { createSandbox } from '@/utils/transpilation/createSandbox';
 import { MessageControls } from './MessageControls';
-import { MutationsAPI } from '@/api/api/MutationsAPI';
 
 interface MessageProps {
   group: AICMessageGroup;
@@ -50,7 +49,6 @@ interface MessageProps {
 
 export function ToolCall({ group, toolCall: tool_call, message }: MessageProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const userMutateChat = useChatStore((state) => state.userMutateChat);
   const saveCommandAndMessagesToHistory = useChatStore((state) => state.saveCommandAndMessagesToHistory);
   const chat = useChatStore((state) => state.chat);
   const chatRef = useChatStore((state) => state.chatRef);
@@ -81,30 +79,26 @@ export function ToolCall({ group, toolCall: tool_call, message }: MessageProps) 
 
   const handleAcceptedContent = useCallback(
     async (content: string) => {
-      // userMutateChat((asset, lockId) =>
-      //   MutationsAPI.update({
-      //     asset,
-      //     path: ['message_groups', group.id, 'messages', message.id, 'tool_calls', tool_call.id],
-      //     key: 'code',
-      //     value: content,
-      //     requestId: lockId,
-      //   }),
-      // );
+      const messageRef = chatRef?.messagesGroups.getById(group.id).messages.getById(message.id);
+      if (!messageRef) {
+        throw new Error('No message reference found');
+      }
+
+      messageRef.tool_calls.getById(tool_call.id).code.set(content);
 
       saveCommandAndMessagesToHistory(content, group.role === 'user');
     },
-    [tool_call.id, userMutateChat, saveCommandAndMessagesToHistory, group.role, message.id, group.id],
+    [tool_call.id, saveCommandAndMessagesToHistory, group.role, message.id, group.id, chatRef],
   );
 
   const handleRemoveClick = useCallback(() => {
-    userMutateChat((asset, lockId) =>
-      MutationsAPI.delete({
-        asset,
-        path: ['message_groups', group.id, 'messages', message.id, 'tool_calls', tool_call.id],
-        requestId: lockId,
-      }),
-    );
-  }, [tool_call.id, userMutateChat, message.id, group.id]);
+    const messageRef = chatRef?.messagesGroups.getById(group.id).messages.getById(message.id);
+    if (!messageRef) {
+      throw new Error('No message reference found');
+    }
+
+    messageRef.tool_calls.getById(tool_call.id).delete();
+  }, [tool_call.id, message.id, group.id, chatRef]);
 
   const runCode = async () => {
     await doAcceptCode(tool_call.id);

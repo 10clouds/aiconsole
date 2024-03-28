@@ -21,14 +21,11 @@ import { AnalysisClosed, AnalysisOpened } from '../Analysis';
 import { MessageComponent } from './MessageComponent';
 import { MessageControls } from './MessageControls';
 import { useChatStore } from '@/store/assets/chat/useChatStore';
-import { type Asset } from '@/types/assets/assetTypes';
-import { MutationsAPI } from '@/api/api/MutationsAPI';
 import { type AICMessageGroup } from '@/types/assets/chatTypes';
 
 export function MessageGroup({ group }: { group: AICMessageGroup }) {
   const [isAnalysisManuallyOpen, setIsAnalysisManuallyOpen] = useState<boolean | undefined>(undefined);
   const isBeingProcessed = useChatStore((state) => !!state.chat?.lock_id);
-  const mutateChat = useChatStore((state) => state.userMutateChat);
   const chatRef = useChatStore((state) => state.chatRef);
 
   const lockId = useChatStore((state) => state.chat?.lock_id);
