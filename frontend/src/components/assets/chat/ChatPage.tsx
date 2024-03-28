@@ -85,8 +85,6 @@ export function ChatPage() {
   const forceRefresh = searchParams.get('forceRefresh'); // used to force a refresh
   const chat = useAssetStore((state) => state.selectedAsset) as AICChat;
 
-  console.log(chat);
-
   const command = useChatStore((state) => state.commandHistory[state.commandIndex]);
   // const chat = useChatStore((state) => state.chat);
 

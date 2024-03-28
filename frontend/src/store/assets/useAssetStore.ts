@@ -25,7 +25,7 @@ import { AICChat, Asset } from './constructors';
 
 export type AssetsState = {
   assets: Asset[];
-  selectedAsset?: Asset;
+  selectedAsset?: Asset | AICChat;
   lastSavedSelectedAsset?: Asset;
   initAssets: () => Promise<void>;
   deleteAsset: (id: string) => Promise<void>;
@@ -33,7 +33,7 @@ export type AssetsState = {
   openFinderForEditable: (editable: Asset) => void;
   newAssetFromParams: (location: URLSearchParams) => void;
   getAsset: (id: string) => Asset | undefined;
-  setSelectedAsset: (asset?: Asset) => void;
+  setSelectedAsset: (asset?: Asset | AICChat) => void;
   setLastSavedSelectedAsset: (asset?: Asset) => void;
   setIsEnabledFlag: (id: string, enabled: boolean) => Promise<void>;
 } & AssetSlice;

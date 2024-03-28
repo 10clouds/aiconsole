@@ -29,7 +29,7 @@ import { assetMatchesSearchText } from './filters';
 const SideBar = () => {
   const [searchText, setSearchText] = useState('');
 
-  const chat = useChatStore((state) => state.chat);
+  const selectedAsset = useAssetStore((state) => state.selectedAsset);
   const assets = useAssetStore((state) => state.assets);
 
   const filteredAssets = useMemo(() => {
@@ -41,10 +41,10 @@ const SideBar = () => {
   const setIsChatLoading = useChatStore((state) => state.setIsChatLoading);
 
   useEffect(() => {
-    if (chat?.id) {
+    if (selectedAsset?.id) {
       setIsChatLoading(false);
     }
-  }, [chat?.id, setIsChatLoading]);
+  }, [selectedAsset?.id, setIsChatLoading]);
 
   return (
     <div

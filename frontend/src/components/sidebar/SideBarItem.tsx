@@ -144,7 +144,7 @@ const SideBarItem = ({ asset }: { asset: Asset }) => {
 
   const handleLinkClick = () => {
     setSelectedAsset(asset);
-    if (asset.type === 'chat' && asset.id !== useChatStore.getState().chat?.id) {
+    if (asset.type === 'chat' && asset.id !== useAssetStore.getState().selectedAsset?.id) {
       setIsChatLoading(true);
     } else if (asset.type !== 'chat') {
       setLastUsedChat(undefined);

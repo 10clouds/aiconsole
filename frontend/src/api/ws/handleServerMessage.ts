@@ -113,16 +113,10 @@ export async function handleServerMessage(message: ServerMessage) {
       break;
     }
     case 'ResponseServerMessage': {
-      const chat = useChatStore.getState().chat;
-
-      if (chat) {
-        chat.lock_id = undefined;
-      }
-
       if (message.is_error) {
         AssetsAPI.closeChat(message.payload.chat_id);
         AssetsAPI.fetchAsset<AICChat>({ assetType: 'chat', id: uuidv4() }).then((chat) => {
-          useChatStore.getState().setChat(chat);
+          useAssetStore.getState().setSelectedAsset(chat);
         });
       }
       break;

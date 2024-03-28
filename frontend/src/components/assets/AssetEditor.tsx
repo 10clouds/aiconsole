@@ -275,7 +275,7 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
   const disableSubmit = (!isSubmitEnabled && !isSavedButtonLabel) || checkErrors(errors);
 
   const confirmPageEscape = () => {
-    getInitialAsset();
+    // getInitialAsset();
     setItem(false);
     proceed?.();
   };

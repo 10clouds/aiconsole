@@ -74,7 +74,7 @@ export function ActorInfo({
   const triggerRef = useRef<ContextMenuRef>(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
-  const isAnalysisRunning = useChatStore((state) => state.chat?.is_analysis_in_progress);
+  const isAnalysisRunning = useAssetStore((state) => state.selectedAsset?.is_analysis_in_progress);
   const isExecutionRunning = useChatStore((state) => state.isExecutionRunning());
   const assets = useAssetStore((state) => state.assets) || [];
   const actor = assets.find((m) => m.id === actorId.id);

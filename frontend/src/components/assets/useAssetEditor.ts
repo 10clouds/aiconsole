@@ -24,7 +24,6 @@ export const useAssetEditor = (assetType: AssetType) => {
   const getInitialAsset = useCallback(() => {
     if (copyId) {
       // setLastSavedSelectedAsset(undefined);
-
       AssetsAPI.fetchAsset<Asset>({ assetType, id: copyId }).then((assetToCopy) => {
         assetToCopy.name += ' Copy';
         assetToCopy.defined_in = 'project';
