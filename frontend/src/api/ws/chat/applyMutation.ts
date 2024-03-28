@@ -1,4 +1,4 @@
-import { useTTSStore } from '@/audio/useTTSStore';
+import { useTTSStore } from '@/utils/audio/useTTSStore';
 import { AICChat, AICChatOptions, Asset } from '@/store/assets/constructors';
 import { BaseObject } from '@/store/assets/types';
 import { useAssetStore } from '@/store/assets/useAssetStore';
@@ -129,7 +129,7 @@ function handleSetValueMutation(context: DataContext, mutation: SetValueMutation
 
   // Finish playing speech if content has finished changing
   // Should probably be added externally as an additional handler for is_streaming (using some kind of staticlly typed ref?)
-  if (key === 'is_streaming' && !value) {
+  if (useTTSStore.getState().hasAutoPlay && key === 'is_streaming' && !value) {
     useTTSStore.getState().readText(attr['content'], false);
   }
 }
