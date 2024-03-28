@@ -34,7 +34,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { EditorHeader } from '../EditorHeader';
 import { CommandInput } from './CommandInput';
 import { Spinner } from './Spinner';
-import React from 'react';
 import { useAssetStore } from '@/store/assets/useAssetStore';
 import { AICChat } from '@/store/assets/constructors';
 
@@ -73,7 +72,7 @@ const ScrollToBottomButton = () => {
   );
 };
 
-export const ChatPage = React.memo(function ChatPage() {
+export function ChatPage() {
   const [showSpinner, setShowSpinner] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   // Monitors params and initialises useChatStore.chat and useAssetStore.selectedAsset zustand stores
@@ -84,12 +83,17 @@ export const ChatPage = React.memo(function ChatPage() {
   const copyId = searchParams.get('copy');
   const dt = searchParams.get('dt') || '';
   const forceRefresh = searchParams.get('forceRefresh'); // used to force a refresh
+  const chat = useAssetStore((state) => state.selectedAsset) as AICChat;
+
+  console.log(chat);
 
   const command = useChatStore((state) => state.commandHistory[state.commandIndex]);
-  const chat = useChatStore((state) => state.chat);
+  // const chat = useChatStore((state) => state.chat);
+
   const setLastUsedChat = useChatStore((state) => state.setLastUsedChat);
   const loadingMessages = useChatStore((state) => state.loadingMessages);
-  const isAnalysisRunning = useChatStore((state) => state.chat?.is_analysis_in_progress);
+  // const isAnalysisRunning = useChatStore((state) => state.chat?.is_analysis_in_progress);
+  const isAnalysisRunning = chat?.is_analysis_in_progress;
   const isExecutionRunning = useChatStore((state) => state.isExecutionRunning());
   const submitCommand = useChatStore((state) => state.submitCommand);
   const isSaved = useChatStore((state) => state.isSaved);
@@ -112,8 +116,9 @@ export const ChatPage = React.memo(function ChatPage() {
     setShowSpinner(false);
 
     let timer: NodeJS.Timeout;
-    if (!chat) {
+    if (!chat || !(chat instanceof AICChat)) {
       timer = setTimeout(() => {
+        console.log('show spinner');
         setShowSpinner(true);
       }, 500);
     }
@@ -183,7 +188,10 @@ export const ChatPage = React.memo(function ChatPage() {
   }, [isSaved, idParam, navigate, chat]);
 
   const isLastMessageFromUser =
-    chat?.message_groups.length && chat.message_groups[chat.message_groups.length - 1].actor_id.type === 'user';
+    chat &&
+    chat instanceof AICChat &&
+    chat?.message_groups.length &&
+    chat?.message_groups[chat?.message_groups.length - 1].actor_id.type === 'user';
 
   useEffect(() => {
     //if there is exactly one text area focus on it
@@ -301,4 +309,4 @@ export const ChatPage = React.memo(function ChatPage() {
       </div>
     </div>
   );
-});
+}

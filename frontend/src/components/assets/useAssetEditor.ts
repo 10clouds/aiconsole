@@ -1,6 +1,7 @@
 import { AssetsAPI } from '@/api/api/AssetsAPI';
+import { Asset } from '@/store/assets/constructors';
 import { useAssetStore } from '@/store/assets/useAssetStore';
-import { Asset, AssetType } from '@/types/assets/assetTypes';
+import { AssetType } from '@/types/assets/assetTypes';
 import { convertNameToId } from '@/utils/assets/convertNameToId';
 import { useAssetChanged } from '@/utils/assets/useAssetChanged';
 import { useDeleteAssetWithUserInteraction } from '@/utils/assets/useDeleteAssetWithUserInteraction';

@@ -147,6 +147,7 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
     if (asset && isSystemAsset && wasAssetChangedInitially) {
       AssetsAPI.doesEdibleExist(asset?.id, 'aiconsole').then((exists) => {
         setHasCore(exists);
+        console.log('Asset exists in aiconsole:', exists);
         setSelectedAsset({ ...asset, defined_in: 'project', override: exists } as Asset);
         // setLastSavedSelectedAsset(undefined);
       });
@@ -220,6 +221,7 @@ export function AssetEditor({ assetType }: { assetType: AssetType }) {
         assetType,
         id: asset.id,
       });
+      console.log('New material:', newAsset);
       setSelectedAsset(newAsset);
       useAssetStore.setState({ lastSavedSelectedAsset: newAsset });
     }

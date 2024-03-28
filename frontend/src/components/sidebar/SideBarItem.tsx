@@ -29,13 +29,14 @@ import { MoreVertical } from 'lucide-react';
 import { KeyboardEvent, MouseEvent, useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Asset } from '@/types/assets/assetTypes';
+import { useAssetStore } from '@/store/assets/useAssetStore';
 
 const SideBarItem = ({ asset }: { asset: Asset }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
   const setLastUsedChat = useChatStore((state) => state.setLastUsedChat);
-
+  const setSelectedAsset = useAssetStore((state) => state.setSelectedAsset);
   const renameChat = useChatStore((state) => state.renameChat);
   const setIsChatLoading = useChatStore((state) => state.setIsChatLoading);
 
@@ -142,6 +143,7 @@ const SideBarItem = ({ asset }: { asset: Asset }) => {
   const triggerRef = useRef<ContextMenuRef>(null);
 
   const handleLinkClick = () => {
+    setSelectedAsset(asset);
     if (asset.type === 'chat' && asset.id !== useChatStore.getState().chat?.id) {
       setIsChatLoading(true);
     } else if (asset.type !== 'chat') {

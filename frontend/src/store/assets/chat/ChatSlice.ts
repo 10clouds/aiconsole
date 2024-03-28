@@ -25,7 +25,6 @@ import { DataContext } from '../DataContext';
 
 export type ChatSlice = {
   isSaved: boolean;
-  chat: AICChat;
   chatRef?: ChatRef;
   chatOptions?: {
     agent_id: string;
@@ -49,8 +48,6 @@ export type ChatSlice = {
 export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set, get) => ({
   isSaved: false,
   isChatLoading: false,
-  chat: AICChat.createEmptyChat(),
-  chatRef: new ChatRef('new', new DataContext()),
   chatOptions: undefined,
   agent: undefined,
   lastUsedChat: undefined,
@@ -62,14 +59,12 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set,
   },
   setChat: (chat: AICChat) => {
     set({
-      chat,
       chatOptions: {
         agent_id: chat.chat_options.agent_id,
         materials_ids: chat.chat_options.materials_ids,
         ai_can_add_extra_materials: chat.chat_options.ai_can_add_extra_materials,
         draft_command: chat.chat_options.draft_command,
       },
-      chatRef: new ChatRef(chat.id, new DataContext()),
     });
   },
   renameChat: async (newChat: AICChat) => {
@@ -87,7 +82,7 @@ export const createChatSlice: StateCreator<ChatStore, [], [], ChatSlice> = (set,
   },
   updateChatOptions: (chatOptions: Partial<AICChatOptions>) => {
     set((state) => {
-      const chat = state.chat;
+      const chat = useAssetStore.getState().selectedAsset as AICChat;
 
       if (!chat) {
         throw new Error('Cannot update chat options for chat that does not exist');

@@ -87,12 +87,8 @@ function handleDeleteMutation<T extends BaseObject>(context: DataContext, mutati
   useAssetStore.setState((state) => ({
     ...state,
     assets: [...state.assets.filter((item) => item.id !== asset.id), copiedAsset],
+    selectedAsset: copiedAsset,
   }));
-
-  // Temp solution to update chat state
-  if (asset.type === 'chat') {
-    useChatStore.setState({ chat: copiedAsset as AICChat });
-  }
 }
 
 function handleSetValueMutation(context: DataContext, mutation: SetValueMutation): void {
@@ -120,12 +116,8 @@ function handleSetValueMutation(context: DataContext, mutation: SetValueMutation
   useAssetStore.setState((state) => ({
     ...state,
     assets: [...state.assets.filter((item) => item.id !== asset.id), copiedAsset],
+    selectedAsset: copiedAsset,
   }));
-
-  // Temp solution to update chat state
-  if (asset.type === 'chat') {
-    useChatStore.setState({ chat: copiedAsset as AICChat });
-  }
 
   // Finish playing speech if content has finished changing
   // Should probably be added externally as an additional handler for is_streaming (using some kind of staticlly typed ref?)
@@ -154,12 +146,8 @@ function handleAppendToStringMutation(context: DataContext, mutation: AppendToSt
   useAssetStore.setState((state) => ({
     ...state,
     assets: [...state.assets.filter((item) => item.id !== asset.id), copiedAsset],
+    selectedAsset: copiedAsset,
   }));
-
-  // Temp solution to update chat state
-  if (asset.type === 'chat') {
-    useChatStore.setState({ chat: copiedAsset as AICChat });
-  }
 
   // Play Speech if content is changed
   // Should probably be added externally as an additional handler for is_streaming (using some kind of staticlly typed ref?)

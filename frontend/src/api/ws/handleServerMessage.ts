@@ -99,9 +99,10 @@ export async function handleServerMessage(message: ServerMessage) {
         currentlySreamingMessage.content = messageBuffer.message;
       }
 
+      useAssetStore.getState().setSelectedAsset(chat);
+
       useChatStore.setState({
         chatRef: new ChatRef(chat.id, new DataContext()),
-        chat,
         chatOptions: {
           agent_id: chat.chat_options.agent_id,
           materials_ids: chat.chat_options.materials_ids,

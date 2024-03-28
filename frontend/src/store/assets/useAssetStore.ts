@@ -20,9 +20,8 @@ import { useProjectStore } from '@/store/projects/useProjectStore';
 import { Agent, AssetType, Material } from '@/types/assets/assetTypes';
 import { getAssetType } from '@/utils/assets/getAssetType';
 import { AssetsAPI } from '../../api/api/AssetsAPI';
-import { AICChat } from '@/types/assets/chatTypes';
 import { AssetSlice, createAssetsSlice } from './AssetSlice';
-import { Asset } from './constructors';
+import { AICChat, Asset } from './constructors';
 
 export type AssetsState = {
   assets: Asset[];
@@ -134,30 +133,7 @@ export const useAssetStore = create<AssetsState>((set, ...a) => ({
 
       return material;
     } else if (type === 'chat') {
-      const chat: AICChat = {
-        version: '0.0.1',
-        type: 'chat',
-        id: 'new_chat',
-        name: 'New Chat',
-        defined_in: 'project',
-        enabled: true,
-        enabled_by_default: true,
-        override: false,
-        last_modified: new Date().toISOString(),
-        usage: '',
-        title_edited: false,
-        message_groups: [],
-        is_analysis_in_progress: false,
-        usage_examples: [],
-        chat_options: {
-          agent_id: '',
-          materials_ids: [],
-          ai_can_add_extra_materials: true,
-          draft_command: '',
-        },
-      };
-
-      return chat;
+      return AICChat.createEmptyChat();
     } else {
       throw new Error(`Unknown asset type ${type}`);
     }
