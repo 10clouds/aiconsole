@@ -16,7 +16,8 @@
 
 import { AICChatSchema } from '@/types/assets/chatTypes';
 import { z } from 'zod';
-import { AssetMutationSchema } from './assetMutations';
+import { AssetMutation, AssetMutationSchema } from './assetMutations';
+import { BaseObject } from '@/store/assets/types';
 
 export const BaseServerMessageSchema = z.object({});
 
@@ -122,7 +123,11 @@ export const NotifyAboutAssetMutationServerMessageSchema = BaseServerMessageSche
   mutation: AssetMutationSchema,
 });
 
-export type NotifyAboutAssetMutationServerMessage = z.infer<typeof NotifyAboutAssetMutationServerMessageSchema>;
+export interface NotifyAboutAssetMutationServerMessage {
+  type: 'NotifyAboutAssetMutationServerMessage';
+  request_id: string;
+  mutation: AssetMutation<BaseObject>;
+}
 
 export type ResponseServerMessage = z.infer<typeof ResponseServerMessageSchema>;
 
@@ -143,4 +148,18 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
   ResponseServerMessageSchema,
 ]);
 
-export type ServerMessage = z.infer<typeof ServerMessageSchema>;
+export type ServerMessage =
+  | NotifyAboutAssetMutationServerMessage
+  | NotificationServerMessage
+  | DebugJSONServerMessage
+  | ErrorServerMessage
+  | InitialProjectStatusServerMessage
+  | ProjectOpenedServerMessage
+  | ProjectClosedServerMessage
+  | ProjectLoadingServerMessage
+  | AssetsUpdatedServerMessage
+  | SettingsServerMessage
+  | ChatOpenedServerMessage
+  | ChatClosedServerMessage
+  | DuplicateAssetServerMessage
+  | ResponseServerMessage;

@@ -121,6 +121,18 @@ export class ObjectRef<T extends BaseObject = BaseObject> extends BaseObject imp
     return segments.reverse();
   }
 
+  static fromObject(obj: ObjectRef, context: DataContext | null = null): ObjectRef {
+    if (!obj.id) {
+      throw new Error("Object must have an 'id' property to create an ObjectRef.");
+    }
+    const parentCollection = new CollectionRef(
+      obj.parent_collection.id,
+      obj.parent_collection.parent ? ObjectRef.fromObject(obj.parent_collection.parent, context) : null,
+      context,
+    );
+    return new ObjectRef(obj.id, parentCollection, context);
+  }
+
   collection(id: string): TCollectionRef {
     if (this.context !== null) {
       return new CollectionRef(id, this, this.context);

@@ -11,7 +11,7 @@ import { MessageBuffer } from '@/utils/common/MessageBuffer';
 import { AICChat } from '@/store/assets/constructors';
 import { DataContext } from '@/store/assets/DataContext';
 import { ChatRef } from '@/store/assets/locations';
-import { getRefSegments } from '@/utils/assets/getRefSegments';
+import { ObjectRef } from '@/store/assets/types';
 
 let messageBuffer = new MessageBuffer();
 
@@ -80,10 +80,9 @@ export async function handleServerMessage(message: ServerMessage) {
       }
       break;
     case 'NotifyAboutAssetMutationServerMessage': {
-      const ref_segments = getRefSegments(message.mutation.ref);
-      message.mutation.ref.ref_segments = ref_segments;
-      message.mutation.ref.parent_collection.ref_segments = ref_segments.slice(0, -1);
       const context = new DataContext();
+      const ref = ObjectRef.fromObject(message.mutation.ref as ObjectRef, context);
+      message.mutation.ref = ref;
       applyMutation(context, message.mutation);
       break;
     }
